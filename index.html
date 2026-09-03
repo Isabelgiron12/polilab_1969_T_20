@@ -120,10 +120,6 @@ button.ghost:active{color:var(--ink);background:var(--accent-dim);border-color:v
 .seg-opt{flex:1;font-family:var(--mono);font-size:17px;font-weight:600;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink-dim);padding:14px;cursor:pointer;text-align:center}
 .seg-opt.active{background:var(--accent-dim);border-color:var(--accent-2);color:var(--accent-2);box-shadow:0 0 14px -6px var(--accent-2)}
 
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.key{font-family:var(--mono);font-size:18px;font-weight:600;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink);padding:16px;cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-.key:active{filter:brightness(1.3)}
-
 label.field{display:flex;flex-direction:column;gap:5px}
 .field-label{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
 input[type=text],textarea{font-family:var(--sans);font-size:16px;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink);border-radius:4px;padding:12px 13px;width:100%}
@@ -307,7 +303,6 @@ const REFLECTION_PRESETS = [
   'No me lo guardé: dije todo lo que sabía.',
 ];
 const DELAY_HOURS = {1:48, 2:24, 3:72, 4:8, 5:168, 6:336};
-const ACCESS_PIN = '1969';
 const TOTAL_DELAY_HOURS = Object.values(DELAY_HOURS).reduce((a,b)=>a+b,0);
 function formatDuration(hours){
   const unit = (n,s,p)=> n+' '+(n===1?s:p);
@@ -342,8 +337,7 @@ function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); retu
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 let S = {
-  screen:'gate', view:'mission',
-  pinInput:'', pinError:false,
+  screen:'intro', view:'mission',
   count:6,
   participants:[], running:false, elapsed:0, _lastPhase:null,
   sys:{idx:0, q1:null, miniDone:false, miniStart:null, miniResult:null},
@@ -640,7 +634,7 @@ function rocketSVG(state){
 
 function renderHUD(){
   const hud = document.getElementById('hud');
-  if(S.screen==='setup' || S.screen==='intro' || S.screen==='gate'){
+  if(S.screen==='setup' || S.screen==='intro'){
     hud.innerHTML = `<div class="hud-top"><div class="wordmark">SALA DE <b>CONTROL</b> · CAJA NEGRA</div></div>`;
     return;
   }
@@ -666,41 +660,6 @@ function renderHUD(){
       <button class="pausebtn" onclick="togglePause()" ${S.screen==='end'?'style=visibility:hidden':''}>${S.running?'PAUSAR':'SEGUIR'}</button>
     </div>
     <div class="progress-track"><div class="progress-fill" style="width:${(S.elapsed/TOTAL*100).toFixed(2)}%"></div></div>
-  `;
-}
-
-function pinTap(d){
-  if(S.pinInput.length>=4) return;
-  S.pinInput += d;
-  if(S.pinInput.length===4){
-    if(S.pinInput===ACCESS_PIN){ S.screen='intro'; S.pinError=false; S.pinInput=''; }
-    else { S.pinError=true; S.pinInput=''; }
-  }
-  render();
-}
-function pinClear(){ S.pinInput=''; S.pinError=false; render(); }
-
-function renderGate(){
-  const dots = Array.from({length:4}).map((_,i)=> i<S.pinInput.length ? '●' : '○').join(' ');
-  return `
-    <div style="text-align:center;padding:16px 0 2px">
-      <img src="${POLI_LOGO}" alt="Politecnico Grancolombiano" style="max-width:170px;width:55%;height:auto;display:block;margin:0 auto">
-    </div>
-    ${eyebrow('Acceso restringido', true)}
-    <h1 style="text-align:center">Caja Negra</h1>
-    <p class="lede" style="text-align:center">Ingresa el código para entrar.</p>
-    ${panel(`
-      <div style="text-align:center;font-family:var(--mono);font-size:26px;letter-spacing:12px;color:var(--accent-2)">${dots}</div>
-      ${S.pinError?`<div class="footer-note" style="color:var(--nogo);margin-top:10px">Código incorrecto. Intenta de nuevo.</div>`:''}
-    `)}
-    ${panel(`
-      <div class="keypad">
-        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="key" onclick="pinTap('${n}')">${n}</button>`).join('')}
-        <button class="key" onclick="pinClear()" style="font-size:12px">BORRAR</button>
-        <button class="key" onclick="pinTap('0')">0</button>
-        <div></div>
-      </div>
-    `)}
   `;
 }
 
@@ -1109,8 +1068,7 @@ function renderMuro(){
 function renderBody(){
   const body = document.getElementById('body');
   let html;
-  if(S.screen==='gate'){ html = renderGate(); }
-  else if(S.screen==='intro'){ html = renderIntro(); }
+  if(S.screen==='intro'){ html = renderIntro(); }
   else if(S.screen==='setup'){ html = renderSetup(); }
   else if(S.view==='tablero'){ html = renderTablero(); }
   else if(S.view==='muro'){ html = renderMuro(); }
