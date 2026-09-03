@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: admitir la falla, en publico o en privado, arriesga tu puesto.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: admitir la falla arriesga tu puesto, con una decision de la direccion que se toma en vivo.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -225,6 +225,9 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .ttt-cell.win-o{border-color:var(--nogo);background:var(--nogo-dim);color:var(--nogo);box-shadow:0 0 14px -4px var(--nogo)}
 .ttt-cell:disabled{cursor:default}
 .ttt-cell:active{filter:brightness(1.3)}
+.spinner{width:44px;height:44px;margin:0 auto;border:3px solid var(--border);border-top-color:var(--accent-2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spinner{animation:none;border-top-color:var(--border)}}
 .ttt-cell .avatar{display:block;margin:0 auto}
 
 .avatar .avatar-collar{fill:var(--panel-2);stroke:var(--ac,var(--accent-2));stroke-width:2}
@@ -421,7 +424,7 @@ function shuffle(arr){
 }
 
 function resetSubstateFor(id){
-  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, firedPending:false, firedWait:0, firedName:''};
+  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', clearedPending:false, clearedName:''};
 }
 
 function startMission(){
@@ -431,7 +434,7 @@ function startMission(){
     S.participants.push({name:'Jugador '+(i+1), cardId:pool[i], fired:false, credited:null});
   }
   S.elapsed = 0; S.running = true; S._lastPhase = null;
-  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, firedPending:false, firedWait:0, firedName:''};
+  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', clearedPending:false, clearedName:''};
   S._bitStore = {};
   S.decision = null; S.verifText=''; S.signed={}; S.prediction=null;
   S.savedRound = false; S.reflectionSubmitted=0;
@@ -490,7 +493,7 @@ function goBack(){
   }
   const ph = currentPhase();
   if(ph.id==='sistemas'){
-    if(S.sys.firedPending) return;
+    if(S.sys.firedPending || S.sys.deciding || S.sys.clearedPending) return;
     if(S.sys.q1!=null){ S.sys.q1=null; render(); return; }
     if(S.sys.miniDone){ S.sys.miniDone=false; S.sys.ttt=null; render(); return; }
     if(S.sys.idx>0){ S.sys.idx--; S.sys.miniDone=true; S.sys.ttt=null; render(); return; }
@@ -554,24 +557,34 @@ function pickQ2(ans){ finalizeParticipant(ans); }
 function finalizeParticipant(q2){
   const p = S.participants[S.sys.idx];
   S._bitStore[p.cardId] = {q1:S.sys.q1, q2:q2};
-
-  let fired = false;
-  if(S.sys.q1==='YES' || q2==='YES'){
-    fired = Math.random() < 0.5;
-    p.credited = !fired;
-  }
+  const admitted = (S.sys.q1==='YES' || q2==='YES');
 
   S.sys.idx++; S.sys.q1=null; S.sys.miniDone=false; S.sys.ttt=null; S.sys.miniResult=null;
 
-  if(fired){
-    p.fired = true;
-    S.sys.firedPending = true;
-    S.sys.firedWait = 60;
-    S.sys.firedName = p.name;
-  }
+  if(!admitted){ render(); return; }
+
+  S.sys.deciding = true;
   render();
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(function(){
+    const fired = Math.random() < 0.5;
+    p.credited = !fired;
+    S.sys.deciding = false;
+    const role = AVATARS[p.cardId] ? AVATARS[p.cardId].role : p.name;
+    if(fired){
+      p.fired = true;
+      S.sys.firedPending = true;
+      S.sys.firedWait = 60;
+      S.sys.firedName = role;
+    } else {
+      S.sys.clearedPending = true;
+      S.sys.clearedName = role;
+    }
+    render();
+  }, reduced ? 0 : 1800);
 }
 function clearFired(){ S.sys.firedPending=false; S.sys.firedWait=0; render(); }
+function clearCleared(){ S.sys.clearedPending=false; render(); }
 
 function setDecision(d){ S.decision = d; render(); }
 function toggleSign(i){ S.signed[i] = !S.signed[i]; render(); }
@@ -840,17 +853,41 @@ function renderLectura(){
   `;
 }
 
+function renderDeciding(){
+  return `
+    ${eyebrow(currentPhase().code, true)}
+    <h2 style="text-align:center">Tomando decisión sobre la situación</h2>
+    ${panel(`
+      <div style="text-align:center;padding:16px 0">
+        <div class="spinner"></div>
+        <p style="margin-top:16px;color:var(--ink-dim)">Los directivos están evaluando el caso.</p>
+      </div>
+    `)}
+  `;
+}
+function renderCleared(){
+  return `
+    ${eyebrow(currentPhase().code, true)}
+    <h2 style="text-align:center">Caso cerrado</h2>
+    ${panel(`
+      <p style="text-align:center;color:var(--ink)">Los directivos revisaron el caso de ${esc(S.sys.clearedName)}.</p>
+      <p style="text-align:center;margin-top:8px;color:var(--go);font-weight:700">Sigue en el equipo.</p>
+    `, 'flash-go')}
+    <button class="primary" onclick="clearCleared()">CONTINUAR</button>
+  `;
+}
 function renderFiredWait(){
   const done = S.sys.firedWait<=0;
   return `
     ${eyebrow(currentPhase().code)}
-    <h2>Tripulante despedido</h2>
+    <h2 style="text-align:center">Anuncio de la dirección</h2>
     ${panel(`
-      <p style="color:var(--nogo);font-weight:700;text-align:center">${esc(S.sys.firedName)} fue despedido por asuntos internos.</p>
-      <p style="text-align:center;margin-top:8px;color:var(--ink-dim)">El equipo se retrasa por falta de un tripulante, y ${esc(S.sys.firedName)} pierde el juego.</p>
+      <p style="text-align:center;color:var(--ink)">Los directivos llaman al equipo para anunciar:</p>
+      <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)}. Continúen con la misión."</p>
+      <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} pierde el juego.</p>
     `, 'flash-nogo')}
     ${panel(`
-      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperando reemplazo'}</div>
+      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar un minuto para buscar el reemplazo'}</div>
       <div class="stat-num nogo" style="text-align:center;display:block;margin-top:8px;font-size:44px">${done?'00':String(S.sys.firedWait).padStart(2,'0')}s</div>
     `)}
     ${done ? `<button class="primary" onclick="clearFired()">CONTINUAR</button>` : ''}
@@ -859,7 +896,9 @@ function renderFiredWait(){
 
 function renderSistemas(){
   const n = S.participants.length;
+  if(S.sys.deciding){ return renderDeciding(); }
   if(S.sys.firedPending){ return renderFiredWait(); }
+  if(S.sys.clearedPending){ return renderCleared(); }
   if(S.sys.idx >= n){
     return `
       ${eyebrow(currentPhase().code)}
@@ -874,7 +913,6 @@ function renderSistemas(){
   const sys = SYSTEMS.find(s=>s.id===p.cardId);
   if(!S.sys.miniDone){
     if(!S.sys.ttt) S.sys.ttt = tttInit();
-    const mg = MINIGAMES[sys.id];
     const t = S.sys.ttt;
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
@@ -886,7 +924,8 @@ function renderSistemas(){
       </div>
       ${prepBar()}
       ${panel(`
-        <div class="field-label" style="text-align:center">${esc(mg.title)}</div>
+        <div class="field-label" style="text-align:center">TRIKI</div>
+        <h2 style="text-align:center;margin-top:4px">Prueba de acceso a tu sistema</h2>
         <div class="donow" style="text-align:center;margin-top:8px">▸ Gana el triki para revisar tu sistema.</div>
         <div class="ttt-grid">
           ${t.board.map((v,i)=>{
@@ -1236,7 +1275,7 @@ function renderKey(){
   if(S.screen!=='mission'){ return S.screen+'|'+S.view; }
   const ph = currentPhase();
   let extra = '';
-  if(ph.id==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0); }
+  if(ph.id==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|deciding:'+(S.sys.deciding?1:0)+'|cleared:'+(S.sys.clearedPending?1:0)+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0); }
   return 'mission|'+S.view+'|'+ph.id+extra;
 }
 let _lastRenderKey = null;
