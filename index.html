@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: admitir la falla en publico arriesga tu puesto, y callarla arriesga la mision.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: admitir la falla, en publico o en privado, arriesga tu puesto.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -556,10 +556,9 @@ function finalizeParticipant(q2){
   S._bitStore[p.cardId] = {q1:S.sys.q1, q2:q2};
 
   let fired = false;
-  if(S.sys.q1==='YES'){
-    fired = Math.random() < 0.4;
-  } else if(q2==='YES'){
-    p.credited = Math.random() < 0.5;
+  if(S.sys.q1==='YES' || q2==='YES'){
+    fired = Math.random() < 0.5;
+    p.credited = !fired;
   }
 
   S.sys.idx++; S.sys.q1=null; S.sys.miniDone=false; S.sys.ttt=null; S.sys.miniResult=null;
@@ -787,6 +786,7 @@ function renderSetup(){
     <div style="text-align:center;margin:8px 0 2px">
       <div class="field-label">Objetivo de la misión</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:21px;color:var(--amber);line-height:1.3;margin-top:6px;text-shadow:0 0 18px rgba(255,176,32,.3)">LLEVAR LA NAVE AL ESPACIO EN 20 MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);line-height:1.4;margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
     <p class="lede" style="text-align:center">Faltan veinte minutos para el lanzamiento.</p>
 
@@ -794,7 +794,7 @@ function renderSetup(){
       <div style="text-align:center">
         <div class="field-label">Tu rol</div>
         <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">Cada uno controla un sistema clave de la nave.</div>
-        <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">Nadie sabe cómo le fue a los demás.</div>
+        <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.</div>
       </div>
     `, 'notice')}
 
@@ -846,8 +846,8 @@ function renderFiredWait(){
     ${eyebrow(currentPhase().code)}
     <h2>Tripulante despedido</h2>
     ${panel(`
-      <p style="color:var(--nogo);font-weight:700;text-align:center">${esc(S.sys.firedName)} fue despedido por asumir la responsabilidad de la falla.</p>
-      <p style="text-align:center;margin-top:8px;color:var(--ink-dim)">El equipo se retrasa por falta de un tripulante.</p>
+      <p style="color:var(--nogo);font-weight:700;text-align:center">${esc(S.sys.firedName)} fue despedido por asuntos internos.</p>
+      <p style="text-align:center;margin-top:8px;color:var(--ink-dim)">El equipo se retrasa por falta de un tripulante, y ${esc(S.sys.firedName)} pierde el juego.</p>
     `, 'flash-nogo')}
     ${panel(`
       <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperando reemplazo'}</div>
@@ -933,6 +933,7 @@ function renderSistemas(){
           <div class="card-field-body">${esc(formatDuration(DELAY_HOURS[sys.id]))}</div>
         </div>
       `)}
+      <div class="donow" style="margin-top:4px">▸ Ojo: admitirlo tiene 50% de probabilidad de que te despidan por asuntos internos. Si te despiden, pierdes el juego.</div>
       ${panel(`
         <div class="field-label" style="text-align:center;margin-bottom:12px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
         <div class="row">
@@ -948,6 +949,7 @@ function renderSistemas(){
     ${eyebrow(currentPhase().code+' · segunda decisión')}
     <h2>${esc(p.name)}, no lo vas a decir en la sala</h2>
     <div class="donow">▸ Queda una vía: avisarle solo a la directora de vuelo, en privado. La sala nunca se entera.</div>
+    <div class="donow" style="margin-top:4px">▸ Ojo: avisarle a ella también tiene 50% de probabilidad de que te despidan por asuntos internos.</div>
     ${panel(`
       <div class="field-label" style="text-align:center;margin-bottom:12px">¿SE LO DICES EN PRIVADO?</div>
       <div class="row">
@@ -1054,8 +1056,7 @@ function renderDebrief(){
       <div class="stack">
         ${privateList.map(c=>{
           const owner = S.participants.find(p=>p.cardId===c.id);
-          const credited = owner ? owner.credited : null;
-          const note = credited===true ? 'Avisó en privado, y sí quedó a su favor.' : credited===false ? 'Avisó en privado, pero no quedó registrado.' : 'Alguien avisó en privado. En la sala, nadie se enteró.';
+          const note = owner && owner.fired ? 'Avisó en privado, y terminó despedido por asuntos internos.' : owner && owner.credited ? 'Avisó en privado, y siguió en el equipo.' : 'Alguien avisó en privado. En la sala, nadie se enteró.';
           return `<div class="wall-line">${esc(c.name)}: ${note}</div>`;
         }).join('')}
         ${hiddenList.map(c=>`<div class="wall-line">${esc(c.name)}: no se dijo en ningún lado.</div>`).join('')}
