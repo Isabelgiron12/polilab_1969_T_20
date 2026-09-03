@@ -319,6 +319,14 @@ const MINIGAMES = {
   5:{title:'Triki del ángulo de reentrada', names:'el ángulo de reentrada'},
   6:{title:'Triki de la presión de cabina', names:'la presión de cabina'},
 };
+const FIRE_REASONS = [
+  'una reestructuración del área',
+  'recorte de personal por presupuesto',
+  'una evaluación interna',
+  'un cambio en la política de la empresa',
+  'decisión del comité directivo',
+  'protocolo de seguridad de la misión',
+];
 const AVATARS = {
   1:{role:'Ingeniera de Propulsión', ability:'Conoce cada motor de la nave, tornillo por tornillo.', color:'var(--amber)'},
   2:{role:'Especialista de Soporte de Vida', ability:'Cuenta cada litro de aire de la tripulación.', color:'var(--accent-2)'},
@@ -424,7 +432,7 @@ function shuffle(arr){
 }
 
 function resetSubstateFor(id){
-  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', clearedPending:false, clearedName:''};
+  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:''};
 }
 
 function startMission(){
@@ -434,7 +442,7 @@ function startMission(){
     S.participants.push({name:'Jugador '+(i+1), cardId:pool[i], fired:false, credited:null});
   }
   S.elapsed = 0; S.running = true; S._lastPhase = null;
-  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', clearedPending:false, clearedName:''};
+  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:''};
   S._bitStore = {};
   S.decision = null; S.verifText=''; S.signed={}; S.prediction=null;
   S.savedRound = false; S.reflectionSubmitted=0;
@@ -576,6 +584,7 @@ function finalizeParticipant(q2){
       S.sys.firedPending = true;
       S.sys.firedWait = 60;
       S.sys.firedName = role;
+      S.sys.firedReason = FIRE_REASONS[Math.floor(Math.random()*FIRE_REASONS.length)];
     } else {
       S.sys.clearedPending = true;
       S.sys.clearedName = role;
@@ -883,7 +892,7 @@ function renderFiredWait(){
     <h2 style="text-align:center">Anuncio de la dirección</h2>
     ${panel(`
       <p style="text-align:center;color:var(--ink)">Los directivos llaman al equipo para anunciar:</p>
-      <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)}. Continúen con la misión."</p>
+      <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)} por ${esc(S.sys.firedReason)}. Continúen con la misión."</p>
       <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} pierde el juego.</p>
     `, 'flash-nogo')}
     ${panel(`
@@ -972,7 +981,7 @@ function renderSistemas(){
           <div class="card-field-body">${esc(formatDuration(DELAY_HOURS[sys.id]))}</div>
         </div>
       `)}
-      <div class="donow" style="margin-top:4px">▸ Ojo: admitirlo tiene 50% de probabilidad de que te despidan por asuntos internos. Si te despiden, pierdes el juego.</div>
+      <div class="donow" style="margin-top:4px">▸ Ojo: decirlo en la sala podría costarte el puesto por asuntos internos. Si te despiden, pierdes el juego.</div>
       ${panel(`
         <div class="field-label" style="text-align:center;margin-bottom:12px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
         <div class="row">
@@ -988,7 +997,7 @@ function renderSistemas(){
     ${eyebrow(currentPhase().code+' · segunda decisión')}
     <h2>${esc(p.name)}, no lo vas a decir en la sala</h2>
     <div class="donow">▸ Queda una vía: avisarle solo a la directora de vuelo, en privado. La sala nunca se entera.</div>
-    <div class="donow" style="margin-top:4px">▸ Ojo: avisarle a ella también tiene 50% de probabilidad de que te despidan por asuntos internos.</div>
+    <div class="donow" style="margin-top:4px">▸ Ojo: avisarle a ella también podría costarte el puesto por asuntos internos.</div>
     ${panel(`
       <div class="field-label" style="text-align:center;margin-bottom:12px">¿SE LO DICES EN PRIVADO?</div>
       <div class="row">
