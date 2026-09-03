@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: admitir la falla arriesga tu puesto, con una decision de la direccion que se toma en vivo.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: los resultados solo muestran las fallas segun los jugadores en juego, y reconocen lo dicho a tiempo.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -732,6 +732,16 @@ function systemsStrip(){
     return `<div class="sysdot ${cls}">${esc(sys.name.slice(0,3))}</div>`;
   }).join('')}</div>`;
 }
+function blackBoxHTML(){
+  const pool = POOL_BY_COUNT[S.count];
+  const lines = SYSTEMS.filter(s=>pool.includes(s.id)).map(s=>{
+    const rec = S._bitStore[s.id];
+    const said = !!(rec && rec.q1==='YES');
+    const tag = said ? '<span style="color:var(--go)">[DICHO A TIEMPO]</span> ' : '';
+    return `<span class="n">${s.id}.</span> ${tag}${esc(INFORME[s.id-1])}`;
+  });
+  return `<div class="telex">${lines.join('\n\n')}</div>`;
+}
 function prepBar(){
   const n = S.participants.length;
   const done = Math.min(S.sys.idx, n);
@@ -983,7 +993,8 @@ function renderSistemas(){
       `)}
       <div class="donow" style="margin-top:4px">▸ Ojo: decirlo en la sala podría costarte el puesto por asuntos internos. Si te despiden, pierdes el juego.</div>
       ${panel(`
-        <div class="field-label" style="text-align:center;margin-bottom:12px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
+        ${eyebrow('Momento de conversación con el equipo y dirección', true)}
+        <div class="field-label" style="text-align:center;margin-bottom:12px;margin-top:6px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
         <div class="row">
           <button class="decision-btn go grow" onclick="pickQ1('YES')"><div class="dtitle"><span class="dot go"></span>SÍ</div></button>
           <button class="decision-btn nogo grow" onclick="pickQ1('NO')"><div class="dtitle"><span class="dot nogo"></span>NO</div></button>
@@ -1084,6 +1095,7 @@ function renderEntrega(){
 /* ---- launch / end sequence ---- */
 function renderDebrief(){
   const src = (S.launch && S.launch.contributions) ? S.launch : computeRisk();
+  const publicList = src.contributions.filter(c=>!c.hidden);
   const privateList = src.contributions.filter(c=>c.privateOnly);
   const hiddenList = src.contributions.filter(c=>c.hidden);
   return `
@@ -1099,6 +1111,12 @@ function renderDebrief(){
       <div style="text-align:center;margin-top:6px"><span class="stat-num amber" style="font-size:38px">${formatDuration(TOTAL_DELAY_HOURS)}</span></div>
       <div class="gap-line" style="margin-top:4px">de retraso total. Así se arma la presión para lanzar de todos modos.</div>
     `)}
+    ${publicList.length ? panel(`
+      <div class="field-label" style="margin-bottom:8px">Lo que sí se dijo a tiempo</div>
+      <div class="stack">
+        ${publicList.map(c=>`<div class="wall-line" style="border-left-color:var(--go)">${esc(c.name)}: alguien lo dijo en voz alta, delante de todos.</div>`).join('')}
+      </div>
+    `) : ''}
     ${(privateList.length||hiddenList.length) ? panel(`
       <div class="field-label" style="margin-bottom:8px">Lo que la sala nunca supo</div>
       <div class="stack">
@@ -1176,7 +1194,7 @@ function renderLaunchResolved(){
     ${eyebrow(success?'SEÑAL NOMINAL':'PÉRDIDA DE VEHÍCULO', true)}
     <h1 class="outcome-head">${success?'La nave despegó y llegó':'La nave despegó y no llegó'}</h1>
     ${rocketSVG(success?'success':'failure')}
-    ${panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div><div class="telex">${INFORME.map((l,i)=>`<span class="n">${i+1}.</span> ${esc(l)}`).join('\n\n')}</div>`)}
+    ${panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}`)}
     ${panel(`
       ${success
         ? `<p style="color:var(--ink)">Esta vez no pasó nada.</p>`
@@ -1204,7 +1222,7 @@ function renderAborted(){
     `)}
     ${!S.launch.boxOpen
       ? `<button class="ghost" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`
-      : panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div><div class="telex">${INFORME.map((l,i)=>`<span class="n">${i+1}.</span> ${esc(l)}`).join('\n\n')}</div><div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`)}
+      : panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`)}
     ${backRow()}
     ${renderDebrief()}
   `;
