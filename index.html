@@ -217,12 +217,24 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .queue span.done{color:var(--ink-faint);text-decoration:line-through;opacity:.5}
 
 .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:14px auto 0}
-.ttt-cell{aspect-ratio:1;font-family:var(--mono);font-size:26px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.ttt-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:26px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
 .ttt-cell.filled{color:var(--ink-dim)}
 .ttt-cell.win-x{border-color:var(--go);background:var(--go-dim);color:var(--go);box-shadow:0 0 14px -4px var(--go)}
 .ttt-cell.win-o{border-color:var(--nogo);background:var(--nogo-dim);color:var(--nogo);box-shadow:0 0 14px -4px var(--nogo)}
 .ttt-cell:disabled{cursor:default}
 .ttt-cell:active{filter:brightness(1.3)}
+.ttt-cell .avatar{display:block;margin:0 auto}
+
+.avatar .avatar-collar{fill:var(--panel-2);stroke:var(--accent-2);stroke-width:2}
+.avatar .avatar-helmet{fill:var(--bg);stroke:var(--accent-2);stroke-width:2.5}
+.avatar .avatar-badge{fill:none;stroke:var(--accent-2);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.avatar .avatar-badge .fill{fill:var(--accent-2);stroke:none}
+.avatar .avatar-shine{fill:rgba(255,255,255,.12);stroke:none}
+.avatar.dim .avatar-helmet,.avatar.dim .avatar-collar,.avatar.dim .avatar-badge{stroke:var(--ink-faint);opacity:.5}
+
+.roster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.roster-card{background:var(--panel-2);border:1px solid var(--border);padding:10px 6px;text-align:center;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.roster-card .role{font-size:10.5px;color:var(--ink-dim);margin-top:6px;line-height:1.3}
 
 .footer-note{font-size:12.5px;color:var(--ink-faint);text-align:center;line-height:1.55}
 .wcount{font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:right}
@@ -302,6 +314,33 @@ const MINIGAMES = {
   5:{title:'Triki del ángulo de reentrada', names:'el ángulo de reentrada'},
   6:{title:'Triki de la presión de cabina', names:'la presión de cabina'},
 };
+const AVATARS = {
+  1:{role:'Ingeniera de Propulsión', ability:'Conoce cada motor de la nave, tornillo por tornillo.'},
+  2:{role:'Especialista de Soporte de Vida', ability:'Cuenta cada litro de aire de la tripulación.'},
+  3:{role:'Piloto de Rumbo', ability:'Traza la ruta y confía en su instinto.'},
+  4:{role:'Oficial de Comunicaciones', ability:'Es la única voz que llega hasta la Tierra.'},
+  5:{role:'Ingeniera de Escudo Térmico', ability:'Calculó cada grado del reingreso.'},
+  6:{role:'Médica de a Bordo', ability:'Responde por la salud de los cuatro que van adentro.'},
+};
+function avatarBadge(sysId){
+  switch(sysId){
+    case 1: return '<polygon points="50,34 60,54 40,54"></polygon>';
+    case 2: return '<circle cx="50" cy="46" r="10"></circle><circle cx="50" cy="46" r="4" class="fill"></circle>';
+    case 3: return '<polygon points="50,36 60,46 50,56 40,46"></polygon>';
+    case 4: return '<rect x="37" y="48" width="5" height="10"></rect><rect x="45" y="42" width="5" height="16"></rect><rect x="53" y="36" width="5" height="22"></rect>';
+    case 5: return '<polygon points="50,32 62,38 62,52 50,60 38,52 38,38"></polygon>';
+    case 6: return '<rect x="45" y="34" width="10" height="24"></rect><rect x="38" y="41" width="24" height="10"></rect>';
+    default: return '';
+  }
+}
+function avatarSVG(sysId, size, cls){
+  return `<svg class="avatar ${cls||''}" width="${size||64}" height="${size||64}" viewBox="0 0 100 100">
+    <polygon class="avatar-collar" points="26,72 74,72 86,100 14,100"></polygon>
+    <circle class="avatar-helmet" cx="50" cy="44" r="28"></circle>
+    <g class="avatar-badge">${avatarBadge(sysId)}</g>
+    <ellipse class="avatar-shine" cx="37" cy="30" rx="7" ry="4"></ellipse>
+  </svg>`;
+}
 const VERIF_PRESETS = {
   GO: ['Sala de sistemas confirma GO. Todo nominal.', 'Sala de sistemas autoriza el lanzamiento sin objeciones.', 'GO confirmado por toda la sala.'],
   COND: ['Sala de sistemas confirma GO con condición. Vigilar en vuelo.', 'Lanzamiento autorizado con monitoreo activo en ascenso.', 'GO con condición: revisar telemetría todo el vuelo.'],
@@ -737,6 +776,19 @@ function renderSetup(){
       </div>
     `)}
 
+    ${panel(`
+      <div class="field-label" style="text-align:center;margin-bottom:10px">La tripulación de hoy</div>
+      <div class="roster-grid">
+        ${POOL_BY_COUNT[S.count].map(id=>`
+          <div class="roster-card">
+            ${avatarSVG(id, 52)}
+            <div class="role">${esc(AVATARS[id].role)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="footer-note" style="margin-top:10px">El sistema de cada quien se asigna al azar cuando empiece la misión.</div>
+    `)}
+
     <button class="primary" onclick="startMission()">INICIAR CUENTA REGRESIVA</button>
     <div class="footer-note">La cuenta regresiva corre sola, sin pausas.<br>Cuando llegue a cero, se decide si la nave despega.</div>
   `;
@@ -780,16 +832,21 @@ function renderSistemas(){
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
       <h2>Pásale el dispositivo a</h2>
-      <div class="turn-name">${esc(p.name)}</div>
+      <div style="text-align:center">
+        ${avatarSVG(sys.id, 76)}
+        <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
+        <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
+      </div>
       ${prepBar()}
       ${panel(`
         <div class="field-label" style="text-align:center">${esc(mg.title)}</div>
-        <div class="donow" style="text-align:center;margin-top:8px">▸ Gana el triki para revisar tu sistema. Tú eres X.</div>
+        <div class="donow" style="text-align:center;margin-top:8px">▸ Gana el triki para revisar tu sistema.</div>
         <div class="ttt-grid">
           ${t.board.map((v,i)=>{
             const win = t.winLine && t.winLine.includes(i);
             const cls = win ? (t.winner==='X'?'win-x':'win-o') : (v?'filled':'');
-            return `<button class="ttt-cell ${cls}" onclick="tttTap(${i})" ${(v||t.over||t.botThinking)?'disabled':''}>${v?esc(v):''}</button>`;
+            const mark = v==='X' ? avatarSVG(sys.id, 30) : v==='O' ? '<span class="dot nogo" style="width:14px;height:14px"></span>' : '';
+            return `<button class="ttt-cell ${cls}" onclick="tttTap(${i})" ${(v||t.over||t.botThinking)?'disabled':''}>${mark}</button>`;
           }).join('')}
         </div>
         ${t.botThinking ? `<div class="footer-note" style="margin-top:10px">La máquina está pensando…</div>` : ''}
@@ -807,12 +864,18 @@ function renderSistemas(){
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
       <h2>Pásale el dispositivo a</h2>
-      <div class="turn-name">${esc(p.name)}</div>
-      ${S.sys.miniResult?`<div class="footer-note" style="margin-top:-6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':S.sys.miniResult==='draw'?'Triki empatado en '+MINIGAMES[sys.id].names+'.':'Revisaste '+MINIGAMES[sys.id].names+' antes de decidir.')}</div>`:''}
+      <div style="text-align:center">
+        ${avatarSVG(sys.id, 76)}
+        <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
+        <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
+      </div>
+      ${S.sys.miniResult?`<div class="footer-note" style="margin-top:6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':'Triki empatado en '+MINIGAMES[sys.id].names+'.')}</div>`:''}
       ${prepBar()}
       ${panel(`
         <div class="card-system">
           <div class="name">${esc(sys.name)}</div>
+          <div class="card-field-label">Habilidad</div>
+          <div class="card-field-body">${esc(AVATARS[sys.id].ability)}</div>
           <div class="card-field-label">De qué respondes</div>
           <div class="card-field-body">${esc(sys.does)}</div>
           <div class="card-field-label">Lo que pasó, y solo tú lo sabes</div>
@@ -927,9 +990,11 @@ function renderDebrief(){
   const privateList = src.contributions.filter(c=>c.privateOnly);
   const hiddenList = src.contributions.filter(c=>c.hidden);
   return `
+    ${eyebrow('Esto no les pasó a ustedes · ocurrió de verdad, en 1986')}
+    <h2>El caso Challenger</h2>
     ${panel(`
       <p style="color:var(--ink)">El 28 de enero de 1986, la noche anterior al lanzamiento del transbordador Challenger, varios ingenieros advirtieron que las piezas de los cohetes no respondían bien con temperaturas bajas, y recomendaron no lanzar. Los escucharon. En un receso, la dirección de su propia empresa cambió la recomendación y firmó la autorización. Ninguno volvió a levantar la mano.</p>
-      <p style="margin-top:10px;color:var(--nogo);font-weight:600">Al día siguiente hacía frío. La nave se destruyó setenta y tres segundos después de despegar. Iban siete personas.</p>
+      <p style="margin-top:10px;color:var(--nogo);font-weight:600">Al día siguiente hacía frío. Esa nave, la del Challenger, se destruyó setenta y tres segundos después de despegar. Iban siete personas.</p>
       <p style="margin-top:10px">No encontraron a un mentiroso. Encontraron una sala llena de gente que sabía una parte, pensó que probablemente no importaba, y calculó lo que le costaba decirlo una vez más.</p>
     `)}
     ${panel(`
@@ -1110,6 +1175,18 @@ function renderMuro(){
   `;
 }
 
+function renderKey(){
+  if(S.screen==='end'){
+    const l = S.launch;
+    return 'end|'+(l?l.stage+'|'+l.outcome+'|'+(l.boxOpen?1:0):'');
+  }
+  if(S.screen!=='mission'){ return S.screen+'|'+S.view; }
+  const ph = currentPhase();
+  let extra = '';
+  if(ph.id==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||''); }
+  return 'mission|'+S.view+'|'+ph.id+extra;
+}
+let _lastRenderKey = null;
 function renderBody(){
   const body = document.getElementById('body');
   let html;
@@ -1127,7 +1204,10 @@ function renderBody(){
     };
     html = map[id]();
   }
-  body.innerHTML = '<div class="screen-in">'+html+'</div>';
+  const key = renderKey();
+  const animate = key !== _lastRenderKey;
+  _lastRenderKey = key;
+  body.innerHTML = animate ? '<div class="screen-in">'+html+'</div>' : html;
 }
 
 function render(){ renderHUD(); renderBody(); }
