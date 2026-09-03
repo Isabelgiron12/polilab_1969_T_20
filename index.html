@@ -219,6 +219,8 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:14px auto 0}
 .ttt-cell{aspect-ratio:1;font-family:var(--mono);font-size:26px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
 .ttt-cell.filled{color:var(--ink-dim)}
+.ttt-cell.win-x{border-color:var(--go);background:var(--go-dim);color:var(--go);box-shadow:0 0 14px -4px var(--go)}
+.ttt-cell.win-o{border-color:var(--nogo);background:var(--nogo-dim);color:var(--nogo);box-shadow:0 0 14px -4px var(--nogo)}
 .ttt-cell:disabled{cursor:default}
 .ttt-cell:active{filter:brightness(1.3)}
 
@@ -457,32 +459,40 @@ function goBack(){
   render();
 }
 
-function tttInit(){ return {board:Array(9).fill(null), over:false, winner:null}; }
+function tttInit(){ return {board:Array(9).fill(null), over:false, winner:null, winLine:null, botThinking:false}; }
 function tttCheckWinner(board){
   const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for(const [a,b,c] of lines){ if(board[a] && board[a]===board[b] && board[a]===board[c]) return board[a]; }
-  if(board.every(c=>c)) return 'draw';
+  for(const line of lines){
+    const [a,b,c] = line;
+    if(board[a] && board[a]===board[b] && board[a]===board[c]) return {winner:board[a], line:line};
+  }
+  if(board.every(c=>c)) return {winner:'draw', line:null};
   return null;
 }
 function tttTap(i){
   const t = S.sys.ttt;
-  if(!t || t.over || t.board[i]) return;
+  if(!t || t.over || t.board[i] || t.botThinking) return;
   t.board[i] = 'X';
-  let w = tttCheckWinner(t.board);
-  if(!w){
+  const w1 = tttCheckWinner(t.board);
+  if(w1){ t.over = true; t.winner = w1.winner; t.winLine = w1.line; render(); return; }
+  t.botThinking = true;
+  render();
+  setTimeout(function(){
     const empties = t.board.map((v,idx)=>v?null:idx).filter(v=>v!==null);
     if(empties.length){
       const pick = empties[Math.floor(Math.random()*empties.length)];
       t.board[pick] = 'O';
-      w = tttCheckWinner(t.board);
     }
-  }
-  if(w){ t.over = true; t.winner = w; }
-  render();
+    const w2 = tttCheckWinner(t.board);
+    t.botThinking = false;
+    if(w2){ t.over = true; t.winner = w2.winner; t.winLine = w2.line; }
+    render();
+  }, 500);
 }
+function tttRetry(){ S.sys.ttt = tttInit(); render(); }
 function tttContinue(){
   const w = S.sys.ttt ? S.sys.ttt.winner : null;
-  S.sys.miniResult = w==='X' ? 'win' : w==='draw' ? 'draw' : 'ok';
+  S.sys.miniResult = w==='X' ? 'win' : 'draw';
   S.sys.miniDone = true;
   render();
 }
@@ -739,10 +749,10 @@ function renderLectura(){
     <div class="donow">▸ Uno de ustedes lee esto en voz alta. Los demás escuchan.</div>
     ${panel(`
       <ol class="protocol-list">
-        <li><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</li>
-        <li>En la discusión, todos hablan libre. Nadie está obligado a hablar.</li>
-        <li>La sala manda <b>una sola verificación</b>, firmada por todos.</li>
-        <li>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</li>
+        <li><span><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</span></li>
+        <li><span>En la discusión, todos hablan libre. Nadie está obligado a hablar.</span></li>
+        <li><span>La sala manda <b>una sola verificación</b>, firmada por todos.</span></li>
+        <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
       </ol>
     `)}
     ${backRow(`<button class="primary" onclick="advanceNow()">Ya la leímos, seguir →</button>`)}
@@ -774,13 +784,20 @@ function renderSistemas(){
       ${prepBar()}
       ${panel(`
         <div class="field-label" style="text-align:center">${esc(mg.title)}</div>
-        <div class="donow" style="text-align:center;margin-top:8px">▸ Un triki rápido antes de decidir. Tú eres X.</div>
+        <div class="donow" style="text-align:center;margin-top:8px">▸ Gana el triki para revisar tu sistema. Tú eres X.</div>
         <div class="ttt-grid">
-          ${t.board.map((v,i)=>`<button class="ttt-cell ${v?'filled':''}" onclick="tttTap(${i})" ${(v||t.over)?'disabled':''}>${v?esc(v):''}</button>`).join('')}
+          ${t.board.map((v,i)=>{
+            const win = t.winLine && t.winLine.includes(i);
+            const cls = win ? (t.winner==='X'?'win-x':'win-o') : (v?'filled':'');
+            return `<button class="ttt-cell ${cls}" onclick="tttTap(${i})" ${(v||t.over||t.botThinking)?'disabled':''}>${v?esc(v):''}</button>`;
+          }).join('')}
         </div>
+        ${t.botThinking ? `<div class="footer-note" style="margin-top:10px">La máquina está pensando…</div>` : ''}
         ${t.over ? `
-          <div class="footer-note" style="margin-top:10px">${t.winner==='X'?'¡Ganaste el triki!':t.winner==='draw'?'Empate. Buena partida.':'La estación quedó revisada.'}</div>
-          <button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>
+          <div class="footer-note" style="margin-top:10px;font-weight:700;color:${t.winner==='X'?'var(--go)':t.winner==='draw'?'var(--ink)':'var(--nogo)'}">${t.winner==='X'?'GANASTE EL TRIKI':t.winner==='draw'?'EMPATE':'PERDISTE EL TRIKI'}</div>
+          ${t.winner==='O'
+            ? `<button class="primary" style="margin-top:10px" onclick="tttRetry()">REINTENTAR</button>`
+            : `<button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>`}
         ` : ''}
       `)}
       ${backRow()}
