@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: callar una falla ya cuesta caro, y la caja negra revela la verdad despues del lanzamiento.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano: callar una sola falla ya garantiza el fallo, y la caja negra revela la verdad despues del lanzamiento.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -216,11 +216,11 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .queue span.now{color:var(--accent-2);border-color:var(--accent-2)}
 .queue span.done{color:var(--ink-faint);text-decoration:line-through;opacity:.5}
 
-.mini-track{position:relative;height:16px;background:var(--panel-2);border:1px solid var(--border);margin:16px 0 18px;overflow:hidden}
-.mini-zone{position:absolute;top:0;bottom:0;left:35%;width:30%;background:var(--go-dim);border-left:1px solid var(--go);border-right:1px solid var(--go)}
-.mini-marker{position:absolute;top:-3px;bottom:-3px;width:10px;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2);animation:miniSweep 1.6s linear infinite}
-@keyframes miniSweep{0%{left:0%}50%{left:calc(100% - 10px)}100%{left:0%}}
-@media(prefers-reduced-motion:reduce){.mini-marker{animation:none}}
+.ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:14px auto 0}
+.ttt-cell{aspect-ratio:1;font-family:var(--mono);font-size:26px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.ttt-cell.filled{color:var(--ink-dim)}
+.ttt-cell:disabled{cursor:default}
+.ttt-cell:active{filter:brightness(1.3)}
 
 .footer-note{font-size:12.5px;color:var(--ink-faint);text-align:center;line-height:1.55}
 .wcount{font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:right}
@@ -293,12 +293,12 @@ const SYSTEMS = [
 const POOL_BY_COUNT = {6:[1,2,3,4,5,6], 5:[1,2,3,5,6], 4:[1,2,3,5], 3:[1,2,5]};
 const HIDDEN_P = {1:0.45, 2:0.30, 3:0.25, 4:0.20, 5:0.40, 6:0.25};
 const MINIGAMES = {
-  1:{title:'Sincroniza el empuje', names:'los motores'},
-  2:{title:'Calibra el flujo de aire', names:'el flujo de aire'},
-  3:{title:'Alinea el rumbo', names:'el rumbo'},
-  4:{title:'Sintoniza la frecuencia', names:'la frecuencia'},
-  5:{title:'Ajusta el ángulo de reentrada', names:'el ángulo de reentrada'},
-  6:{title:'Regula la presión de cabina', names:'la presión de cabina'},
+  1:{title:'Triki de los motores', names:'los motores'},
+  2:{title:'Triki del flujo de aire', names:'el flujo de aire'},
+  3:{title:'Triki del rumbo', names:'el rumbo'},
+  4:{title:'Triki de la frecuencia', names:'la frecuencia'},
+  5:{title:'Triki del ángulo de reentrada', names:'el ángulo de reentrada'},
+  6:{title:'Triki de la presión de cabina', names:'la presión de cabina'},
 };
 const VERIF_PRESETS = {
   GO: ['Sala de sistemas confirma GO. Todo nominal.', 'Sala de sistemas autoriza el lanzamiento sin objeciones.', 'GO confirmado por toda la sala.'],
@@ -351,7 +351,7 @@ let S = {
   screen:'intro', view:'mission',
   count:6,
   participants:[], running:false, elapsed:0, _lastPhase:null,
-  sys:{idx:0, q1:null, miniDone:false, miniStart:null, miniResult:null},
+  sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
   decision:null, verifText:'', signed:{}, prediction:null,
   savedRound:false, reflectionSubmitted:0,
   _bitStore:{}, launch:null,
@@ -377,7 +377,7 @@ function shuffle(arr){
 }
 
 function resetSubstateFor(id){
-  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, miniStart:null, miniResult:null};
+  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null};
 }
 
 function startMission(){
@@ -387,7 +387,7 @@ function startMission(){
     S.participants.push({name:'Jugador '+(i+1), cardId:pool[i]});
   }
   S.elapsed = 0; S.running = true; S._lastPhase = null;
-  S.sys = {idx:0, q1:null, miniDone:false, miniStart:null, miniResult:null};
+  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null};
   S._bitStore = {};
   S.decision = null; S.verifText=''; S.signed={}; S.prediction=null;
   S.savedRound = false; S.reflectionSubmitted=0;
@@ -442,8 +442,8 @@ function goBack(){
   const ph = currentPhase();
   if(ph.id==='sistemas'){
     if(S.sys.q1!=null){ S.sys.q1=null; render(); return; }
-    if(S.sys.miniDone){ S.sys.miniDone=false; S.sys.miniStart=null; render(); return; }
-    if(S.sys.idx>0){ S.sys.idx--; S.sys.miniDone=true; S.sys.miniStart=null; render(); return; }
+    if(S.sys.miniDone){ S.sys.miniDone=false; S.sys.ttt=null; render(); return; }
+    if(S.sys.idx>0){ S.sys.idx--; S.sys.miniDone=true; S.sys.ttt=null; render(); return; }
   }
   if(ph.id==='discusion' && S.decision!=null){ S.decision=null; render(); return; }
 
@@ -453,19 +453,36 @@ function goBack(){
   S.elapsed = prev.at;
   S._lastPhase = prev.id;
   resetSubstateFor(prev.id);
-  if(prev.id==='sistemas'){ S.sys = {idx:S.participants.length-1, q1:null, miniDone:true, miniStart:null, miniResult:null}; }
+  if(prev.id==='sistemas'){ S.sys = {idx:S.participants.length-1, q1:null, miniDone:true, ttt:null, miniResult:null}; }
   render();
 }
 
-function confirmMinigame(){
-  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced){ S.sys.miniResult='hit'; S.sys.miniDone=true; render(); return; }
-  const cycle = 1600;
-  const elapsed = (Date.now() - (S.sys.miniStart||Date.now())) % cycle;
-  const t = elapsed/cycle;
-  const pos = t<0.5 ? (t/0.5) : (1-(t-0.5)/0.5);
-  const inZone = pos>=0.35 && pos<=0.65;
-  S.sys.miniResult = inZone ? 'hit' : 'miss';
+function tttInit(){ return {board:Array(9).fill(null), over:false, winner:null}; }
+function tttCheckWinner(board){
+  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const [a,b,c] of lines){ if(board[a] && board[a]===board[b] && board[a]===board[c]) return board[a]; }
+  if(board.every(c=>c)) return 'draw';
+  return null;
+}
+function tttTap(i){
+  const t = S.sys.ttt;
+  if(!t || t.over || t.board[i]) return;
+  t.board[i] = 'X';
+  let w = tttCheckWinner(t.board);
+  if(!w){
+    const empties = t.board.map((v,idx)=>v?null:idx).filter(v=>v!==null);
+    if(empties.length){
+      const pick = empties[Math.floor(Math.random()*empties.length)];
+      t.board[pick] = 'O';
+      w = tttCheckWinner(t.board);
+    }
+  }
+  if(w){ t.over = true; t.winner = w; }
+  render();
+}
+function tttContinue(){
+  const w = S.sys.ttt ? S.sys.ttt.winner : null;
+  S.sys.miniResult = w==='X' ? 'win' : w==='draw' ? 'draw' : 'ok';
   S.sys.miniDone = true;
   render();
 }
@@ -479,7 +496,7 @@ function pickQ2(ans){ finalizeParticipant(ans); }
 function finalizeParticipant(q2){
   const p = S.participants[S.sys.idx];
   S._bitStore[p.cardId] = {q1:S.sys.q1, q2:q2};
-  S.sys.idx++; S.sys.q1=null; S.sys.miniDone=false; S.sys.miniStart=null; S.sys.miniResult=null;
+  S.sys.idx++; S.sys.q1=null; S.sys.miniDone=false; S.sys.ttt=null; S.sys.miniResult=null;
   render();
 }
 
@@ -508,25 +525,20 @@ function submitPresetReflection(i){
   render();
 }
 
-/* ---------- risk model ---------- */
+/* ---------- risk model: todo o nada ---------- */
 function computeRisk(){
   const pool = POOL_BY_COUNT[S.count];
-  let survive = 1;
+  let allPublic = true;
   const contributions = [];
   for(const sys of SYSTEMS){
     const inPlay = pool.includes(sys.id);
     const rec = inPlay ? S._bitStore[sys.id] : null;
-    let factor, hidden=false, privateOnly=false;
-    if(!inPlay || !rec || (rec.q1!=='YES' && rec.q2!=='YES')){ factor=1; hidden=true; }
-    else if(rec.q1==='YES'){ factor=0.06; }
-    else { factor=0.25; privateOnly=true; }
-    const p = HIDDEN_P[sys.id] * factor;
-    survive *= (1-p);
-    contributions.push({id:sys.id, name:sys.name, happened:sys.happened, contrib:p, hidden, privateOnly});
+    const isPublic = !!(inPlay && rec && rec.q1==='YES');
+    const privateOnly = !!(inPlay && rec && rec.q1!=='YES' && rec.q2==='YES');
+    if(!isPublic) allPublic = false;
+    contributions.push({id:sys.id, name:sys.name, happened:sys.happened, contrib:HIDDEN_P[sys.id], hidden:!isPublic, privateOnly});
   }
-  let risk = (1-survive)*100;
-  if(S.decision==='COND') risk *= 0.75;
-  risk = Math.max(4, Math.min(96, Math.round(risk)));
+  const risk = allPublic ? 0 : 100;
   contributions.sort((a,b)=>b.contrib-a.contrib);
   return {risk, contributions};
 }
@@ -752,9 +764,9 @@ function renderSistemas(){
   const p = S.participants[S.sys.idx];
   const sys = SYSTEMS.find(s=>s.id===p.cardId);
   if(!S.sys.miniDone){
-    if(!S.sys.miniStart) S.sys.miniStart = Date.now();
+    if(!S.sys.ttt) S.sys.ttt = tttInit();
     const mg = MINIGAMES[sys.id];
-    const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const t = S.sys.ttt;
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
       <h2>Pásale el dispositivo a</h2>
@@ -762,9 +774,14 @@ function renderSistemas(){
       ${prepBar()}
       ${panel(`
         <div class="field-label" style="text-align:center">${esc(mg.title)}</div>
-        <div class="donow" style="text-align:center;margin-top:8px">▸ Toca CONFIRMAR cuando el marcador esté en la zona verde.</div>
-        <div class="mini-track"><div class="mini-zone"></div>${reduced?'':'<div class="mini-marker"></div>'}</div>
-        <button class="primary" onclick="confirmMinigame()">CONFIRMAR</button>
+        <div class="donow" style="text-align:center;margin-top:8px">▸ Un triki rápido antes de decidir. Tú eres X.</div>
+        <div class="ttt-grid">
+          ${t.board.map((v,i)=>`<button class="ttt-cell ${v?'filled':''}" onclick="tttTap(${i})" ${(v||t.over)?'disabled':''}>${v?esc(v):''}</button>`).join('')}
+        </div>
+        ${t.over ? `
+          <div class="footer-note" style="margin-top:10px">${t.winner==='X'?'¡Ganaste el triki!':t.winner==='draw'?'Empate. Buena partida.':'La estación quedó revisada.'}</div>
+          <button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>
+        ` : ''}
       `)}
       ${backRow()}
     `;
@@ -774,7 +791,7 @@ function renderSistemas(){
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
       <h2>Pásale el dispositivo a</h2>
       <div class="turn-name">${esc(p.name)}</div>
-      ${S.sys.miniResult?`<div class="footer-note" style="margin-top:-6px">${esc(S.sys.miniResult==='hit'?'Ajuste perfecto en '+MINIGAMES[sys.id].names+'.':'Ajuste dentro de rango en '+MINIGAMES[sys.id].names+'.')}</div>`:''}
+      ${S.sys.miniResult?`<div class="footer-note" style="margin-top:-6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':S.sys.miniResult==='draw'?'Triki empatado en '+MINIGAMES[sys.id].names+'.':'Revisaste '+MINIGAMES[sys.id].names+' antes de decidir.')}</div>`:''}
       ${prepBar()}
       ${panel(`
         <div class="card-system">
@@ -825,7 +842,7 @@ function renderDiscusion(){
         <div class="dtitle" style="justify-content:flex-start"><span class="dot go"></span>GO</div><div class="dsub" style="text-align:left;margin-left:18px">La nave despega tal como está.</div>
       </button>
       <button class="decision-btn cond ${S.decision==='COND'?'sel':''}" onclick="setDecision('COND')" style="text-align:left">
-        <div class="dtitle" style="justify-content:flex-start"><span class="dot cond"></span>GO CON CONDICIÓN</div><div class="dsub" style="text-align:left;margin-left:18px">Despega, pero la sala vigila en vuelo. Reduce el riesgo.</div>
+        <div class="dtitle" style="justify-content:flex-start"><span class="dot cond"></span>GO CON CONDICIÓN</div><div class="dsub" style="text-align:left;margin-left:18px">Despega, y la sala se compromete a vigilar en vuelo.</div>
       </button>
       <button class="decision-btn nogo ${S.decision==='NOGO'?'sel':''}" onclick="setDecision('NOGO')" style="text-align:left">
         <div class="dtitle" style="justify-content:flex-start"><span class="dot nogo"></span>NO GO</div><div class="dsub" style="text-align:left;margin-left:18px">Se aborta. Próximo intento en cuatro meses.</div>
@@ -988,7 +1005,7 @@ function renderLaunchResolved(){
     ${panel(`
       <div class="field-label" style="text-align:center">Costo de la misión</div>
       <div style="text-align:center;margin-top:6px"><span class="stat-num" style="font-size:52px;color:${success?'var(--amber)':'var(--nogo)'}">${S.launch.risk}%</span></div>
-      <div class="gap-line" style="margin-top:4px">de riesgo real que la sala cargó sin saberlo con certeza.</div>
+      <div class="gap-line" style="margin-top:4px">${S.launch.risk===100 ? 'Faltó decir algo en voz alta. Todo o nada.' : 'Se dijo todo en voz alta. Cero secretos.'}</div>
     `)}
     ${renderDebrief()}
   `;
