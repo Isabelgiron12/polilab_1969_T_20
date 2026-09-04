@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano, ahora con sonido ambiental y efectos generados por codigo.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano, con sonido futurista generado por codigo: barridos, reverberacion y ruido filtrado.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -289,7 +289,8 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 const Sound = (function(){
-  let ctx = null, master = null, enabled = true;
+  let ctx = null, master = null, enabled = true, reverb = null, noiseBuf = null;
+
   function ensure(){
     if(ctx) return;
     try{
@@ -299,49 +300,98 @@ const Sound = (function(){
       master = ctx.createGain();
       master.gain.value = enabled ? 0.5 : 0;
       master.connect(ctx.destination);
+      buildNoise();
+      buildReverb();
       startAmbient();
     }catch(e){ ctx = null; }
   }
-  function startAmbient(){
-    if(!ctx) return;
-    const g = ctx.createGain();
-    g.gain.value = 0.035;
-    g.connect(master);
-    const filt = ctx.createBiquadFilter();
-    filt.type = 'lowpass'; filt.frequency.value = 300;
-    filt.connect(g);
-    const o1 = ctx.createOscillator(); o1.type='sine'; o1.frequency.value=55;
-    const o2 = ctx.createOscillator(); o2.type='sine'; o2.frequency.value=82.5;
-    o1.connect(filt); o2.connect(filt);
-    const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.07;
-    const lfoGain = ctx.createGain(); lfoGain.gain.value=60;
-    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
-    o1.start(); o2.start(); lfo.start();
+  function buildNoise(){
+    const len = ctx.sampleRate * 1.5;
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
   }
-  function tone(freq, dur, type, gainVal, delay){
+  function buildReverb(){
+    reverb = ctx.createGain();
+    reverb.gain.value = 1;
+    const damp = ctx.createBiquadFilter(); damp.type='lowpass'; damp.frequency.value=2400;
+    damp.connect(master);
+    [[0.041,0.32],[0.067,0.26],[0.101,0.2],[0.139,0.15]].forEach(([t,fb])=>{
+      const dl = ctx.createDelay(1); dl.delayTime.value = t;
+      const g = ctx.createGain(); g.gain.value = fb;
+      reverb.connect(dl); dl.connect(g); g.connect(dl); dl.connect(damp);
+    });
+  }
+  function sendReverb(node, amount){
+    if(!reverb) return;
+    const send = ctx.createGain(); send.gain.value = amount==null?0.4:amount;
+    node.connect(send); send.connect(reverb);
+  }
+  function startAmbient(){
+    const g = ctx.createGain(); g.gain.value = 0.03; g.connect(master);
+    const filt = ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=260; filt.connect(g);
+    const o1 = ctx.createOscillator(); o1.type='sine'; o1.frequency.value=54;
+    const o2 = ctx.createOscillator(); o2.type='sine'; o2.frequency.value=80.8;
+    o1.connect(filt); o2.connect(filt);
+    const air = ctx.createBufferSource(); air.buffer = noiseBuf; air.loop = true;
+    const airFilt = ctx.createBiquadFilter(); airFilt.type='bandpass'; airFilt.frequency.value=680; airFilt.Q.value=0.5;
+    const airGain = ctx.createGain(); airGain.gain.value = 0.01;
+    air.connect(airFilt); airFilt.connect(airGain); airGain.connect(master);
+    const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.055;
+    const lfoGain = ctx.createGain(); lfoGain.gain.value = 45;
+    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
+    o1.start(); o2.start(); air.start(); lfo.start();
+  }
+  function sweep(f0, f1, dur, type, gainVal, delay, opts){
     if(!ctx || !enabled) return;
+    opts = opts || {};
     const t0 = ctx.currentTime + (delay||0);
     const osc = ctx.createOscillator();
     osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freq, t0);
+    osc.frequency.setValueAtTime(Math.max(20,f0), t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20,f1), t0+dur*0.72);
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(opts.filterStart||6000, t0);
+    if(opts.filterEnd) filt.frequency.exponentialRampToValueAtTime(Math.max(80,opts.filterEnd), t0+dur);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(gainVal||0.16, t0+0.008);
+    g.gain.linearRampToValueAtTime(gainVal||0.14, t0+0.006);
     g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
-    osc.connect(g); g.connect(master);
-    osc.start(t0); osc.stop(t0+dur+0.02);
+    osc.connect(filt); filt.connect(g); g.connect(master);
+    if(opts.reverb) sendReverb(g, opts.reverb);
+    osc.start(t0); osc.stop(t0+dur+0.03);
   }
+  function noiseHit(dur, gainVal, freq, q, delay){
+    if(!ctx || !enabled) return;
+    const t0 = ctx.currentTime + (delay||0);
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    const filt = ctx.createBiquadFilter(); filt.type='bandpass'; filt.frequency.value = freq||1800; filt.Q.value = q||3;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gainVal||0.1, t0+0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    src.connect(filt); filt.connect(g); g.connect(master);
+    src.start(t0); src.stop(t0+dur+0.02);
+  }
+
   return {
-    click(){ ensure(); tone(720, 0.055, 'square', 0.09); },
-    placeX(){ ensure(); tone(660, 0.09, 'sine', 0.14); },
-    placeO(){ ensure(); tone(330, 0.09, 'sine', 0.12); },
-    win(){ ensure(); tone(660,0.12,'triangle',0.14,0); tone(880,0.16,'triangle',0.14,0.09); tone(1100,0.2,'triangle',0.14,0.18); },
-    lose(){ ensure(); tone(300,0.25,'sawtooth',0.10,0); tone(220,0.3,'sawtooth',0.10,0.12); },
-    tick(){ ensure(); tone(440,0.07,'square',0.13); },
-    success(){ ensure(); tone(523,0.18,'triangle',0.16,0); tone(659,0.18,'triangle',0.16,0.1); tone(784,0.32,'triangle',0.18,0.2); },
-    failure(){ ensure(); tone(200,0.4,'sawtooth',0.14,0); tone(150,0.5,'sawtooth',0.14,0.15); },
-    fired(){ ensure(); tone(180,0.3,'square',0.12,0); tone(140,0.35,'square',0.12,0.15); },
-    cleared(){ ensure(); tone(587,0.1,'triangle',0.13,0); tone(784,0.16,'triangle',0.13,0.1); },
+    primaryClick(){ ensure(); sweep(360,920,0.14,'sawtooth',0.11,0,{filterStart:500,filterEnd:5200,reverb:0.16}); noiseHit(0.05,0.045,4200,6,0.012); },
+    ghostClick(){ ensure(); sweep(680,480,0.06,'triangle',0.06,0,{filterStart:2600}); },
+    tabClick(){ ensure(); sweep(980,860,0.045,'sine',0.06,0,{filterStart:3000}); },
+    selectGo(){ ensure(); sweep(480,980,0.13,'triangle',0.13,0,{filterStart:1000,filterEnd:4200,reverb:0.16}); },
+    selectCond(){ ensure(); sweep(420,640,0.12,'triangle',0.12,0,{filterStart:1000,filterEnd:2600,reverb:0.1}); },
+    selectNogo(){ ensure(); sweep(380,170,0.18,'sawtooth',0.1,0,{filterStart:1400,filterEnd:450,reverb:0.12}); },
+    stamp(){ ensure(); noiseHit(0.07,0.1,850,2.2,0); sweep(220,150,0.1,'square',0.07,0.01); },
+    placeX(){ ensure(); sweep(700,1080,0.1,'sine',0.13,0,{filterStart:5000,reverb:0.12}); },
+    placeO(){ ensure(); sweep(300,190,0.11,'sine',0.11,0,{filterStart:3000}); },
+    win(){ ensure(); [0,0.09,0.18].forEach((d,i)=>sweep([660,880,1108][i],[680,900,1140][i],0.18,'triangle',0.13,d,{reverb:0.2})); },
+    lose(){ ensure(); sweep(340,150,0.32,'sawtooth',0.11,0,{filterStart:1300,filterEnd:280,reverb:0.15}); },
+    tick(){ ensure(); sweep(540,500,0.06,'square',0.11,0,{filterStart:3200}); noiseHit(0.03,0.03,3200,8,0); },
+    success(){ ensure(); [0,0.1,0.22].forEach((d,i)=>sweep([523,659,880][i],[540,680,920][i],0.3,'triangle',0.15,d,{filterStart:4000,reverb:0.3})); },
+    failure(){ ensure(); sweep(260,55,0.6,'sawtooth',0.13,0,{filterStart:1400,filterEnd:130,reverb:0.32}); noiseHit(0.4,0.08,280,1.3,0.06); },
+    fired(){ ensure(); sweep(230,85,0.42,'square',0.11,0,{filterStart:900,filterEnd:180,reverb:0.2}); noiseHit(0.15,0.05,500,1.8,0.05); },
+    cleared(){ ensure(); sweep(560,880,0.2,'triangle',0.12,0,{filterStart:1400,filterEnd:3600,reverb:0.22}); },
     toggle(){
       enabled = !enabled;
       if(ctx) master.gain.setTargetAtTime(enabled?0.5:0, ctx.currentTime, 0.05);
@@ -1407,8 +1457,20 @@ function renderBody(){
 function render(){ renderHUD(); renderBody(); }
 render();
 document.addEventListener('click', function(e){
-  const btn = e.target.closest && e.target.closest('button');
-  if(btn) Sound.click();
+  const btn = e.target.closest && e.target.closest('button, .seg-opt');
+  if(!btn) return;
+  const cls = btn.className || '';
+  if(cls.indexOf('ttt-cell')>=0) return; // ya suena por tttTap
+  if(cls.indexOf('decision-btn')>=0){
+    if(cls.indexOf('go')>=0) Sound.selectGo();
+    else if(cls.indexOf('nogo')>=0) Sound.selectNogo();
+    else if(cls.indexOf('cond')>=0) Sound.selectCond();
+    else Sound.tabClick();
+  } else if(cls.indexOf('sign-row')>=0){ Sound.stamp(); }
+  else if(cls.indexOf('tab-btn')>=0 || cls.indexOf('seg-opt')>=0){ Sound.tabClick(); }
+  else if(cls.indexOf('primary')>=0){ Sound.primaryClick(); }
+  else if(cls.indexOf('ghost')>=0){ Sound.ghostClick(); }
+  else { Sound.ghostClick(); }
 }, true);
 </script>
 </body>
