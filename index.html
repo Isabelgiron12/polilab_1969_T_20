@@ -512,7 +512,7 @@ let S = {
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
   decision:null, verifText:'', signed:{}, prediction:null,
   savedRound:false, reflectionSubmitted:0,
-  _bitStore:{}, launch:null,
+  _bitStore:{}, launch:null, fixedDelayHours:0,
 };
 let timerHandle = null;
 
@@ -535,7 +535,7 @@ function shuffle(arr){
 }
 
 function resetSubstateFor(id){
-  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:''};
+  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
 }
 
 function startMission(){
@@ -546,8 +546,9 @@ function startMission(){
     S.participants.push({name:'Jugador '+(i+1), cardId:pool[i], fired:false, credited:null});
   }
   S.elapsed = 0; S.running = true; S._lastPhase = null;
-  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:''};
+  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
   S._bitStore = {};
+  S.fixedDelayHours = 0;
   S.decision = null; S.verifText=''; S.signed={}; S.prediction=null;
   S.savedRound = false; S.reflectionSubmitted=0;
   S.launch = null;
@@ -676,6 +677,17 @@ function finalizeParticipant(q2){
   const p = S.participants[S.sys.idx];
   S._bitStore[p.cardId] = {q1:S.sys.q1, q2:q2};
   const admitted = (S.sys.q1==='YES' || q2==='YES');
+  const saidInRoom = S.sys.q1==='YES';
+
+  if(saidInRoom){
+    const sysDef = SYSTEMS.find(s=>s.id===p.cardId);
+    const hrs = DELAY_HOURS[p.cardId] || 0;
+    S.fixedDelayHours += hrs;
+    S.sys.fixName = sysDef ? sysDef.name : '';
+    S.sys.fixHours = hrs;
+  } else {
+    S.sys.fixName = ''; S.sys.fixHours = 0;
+  }
 
   S.sys.idx++; S.sys.q1=null; S.sys.miniDone=false; S.sys.ttt=null; S.sys.miniResult=null;
 
@@ -734,7 +746,7 @@ function submitPresetReflection(i){
 
 /* ---------- risk model: todo o nada ---------- */
 function computeRisk(){
-  const pool = POOL_BY_COUNT[S.count];
+  const pool = S.selectedSystems;
   let allPublic = true;
   const contributions = [];
   for(const sys of SYSTEMS){
@@ -750,7 +762,7 @@ function computeRisk(){
   return {risk, contributions};
 }
 function disclosureCounts(){
-  const pool = POOL_BY_COUNT[S.count];
+  const pool = S.selectedSystems;
   let pub=0, priv=0, hidden=0;
   SYSTEMS.forEach(sys=>{
     const inPlay = pool.includes(sys.id);
@@ -851,7 +863,7 @@ function backRow(forwardHTML){
   return `<div class="row"><button class="ghost grow" onclick="goBack()">ATRÁS</button>${forwardHTML?`<div class="grow">${forwardHTML}</div>`:''}</div>`;
 }
 function systemsStrip(){
-  const pool = POOL_BY_COUNT[S.count];
+  const pool = S.selectedSystems;
   return `<div class="sysstrip">${SYSTEMS.map(sys=>{
     const inPlay = pool.includes(sys.id);
     const rec = inPlay ? S._bitStore[sys.id] : null;
@@ -860,7 +872,7 @@ function systemsStrip(){
   }).join('')}</div>`;
 }
 function blackBoxHTML(){
-  const pool = POOL_BY_COUNT[S.count];
+  const pool = S.selectedSystems;
   const lines = SYSTEMS.filter(s=>pool.includes(s.id)).map(s=>{
     const rec = S._bitStore[s.id];
     const said = !!(rec && rec.q1==='YES');
@@ -1023,6 +1035,10 @@ function renderCleared(){
       <p style="text-align:center;color:var(--ink)">Los directivos revisaron el caso de ${esc(S.sys.clearedName)}.</p>
       <p style="text-align:center;margin-top:8px;color:var(--go);font-weight:700">Sigue en el equipo.</p>
     `, 'flash-go')}
+    ${S.sys.fixName ? panel(`
+      <p style="text-align:center;color:var(--ink)">Como se dijo en voz alta, ya están arreglando <b>${esc(S.sys.fixName)}</b>.</p>
+      <p style="text-align:center;margin-top:6px;color:var(--amber)">Retraso: +${esc(formatDuration(S.sys.fixHours))}.</p>
+    `) : ''}
     <button class="primary" onclick="clearCleared()">CONTINUAR</button>
   `;
 }
@@ -1036,6 +1052,10 @@ function renderFiredWait(){
       <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)} por ${esc(S.sys.firedReason)}. Continúen con la misión."</p>
       <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} pierde el juego.</p>
     `, 'flash-nogo')}
+    ${S.sys.fixName ? panel(`
+      <p style="text-align:center;color:var(--ink)">Aun así, como se dijo en voz alta, el equipo ya está arreglando <b>${esc(S.sys.fixName)}</b>.</p>
+      <p style="text-align:center;margin-top:6px;color:var(--amber)">Retraso: +${esc(formatDuration(S.sys.fixHours))}.</p>
+    `) : ''}
     ${panel(`
       <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar un minuto para buscar el reemplazo'}</div>
       <div class="stat-num nogo" style="text-align:center;display:block;margin-top:8px;font-size:44px">${done?'00':String(S.sys.firedWait).padStart(2,'0')}s</div>
@@ -1210,8 +1230,9 @@ function renderEntrega(){
     ${panel(`
       <div class="checklist">
         <div class="checkline"><span class="box"></span>Decisión: <span class="badge ${decisionClass(S.decision)}" style="margin-left:4px">${decisionLabel(S.decision)}</span></div>
-        <div class="checkline"><span class="box"></span>Dicho en la sala: ${d.pub} de 6</div>
+        <div class="checkline"><span class="box"></span>Dicho en la sala: ${d.pub} de ${S.count}</div>
         <div class="checkline"><span class="box"></span>Mensaje: <em>${S.verifText? '"'+esc(S.verifText)+'"' : '(sin escribir)'}</em></div>
+        ${S.fixedDelayHours>0 ? `<div class="checkline"><span class="box"></span>Retraso por arreglos ya hechos: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b></div>` : ''}
       </div>
     `)}
     ${prepBar()}
@@ -1278,6 +1299,11 @@ function renderLaunchReady(){
     <p class="lede" style="text-align:center">Decisión de la sala: <span class="badge ${decisionClass(S.decision)}">${decisionLabel(S.decision)}</span></p>
     ${rocketSVG('idle')}
     ${systemsStrip()}
+    ${panel(`
+      <div class="field-label" style="text-align:center">Probabilidad de error en el vuelo</div>
+      <div style="text-align:center;margin-top:6px"><span class="stat-num" style="font-size:52px;color:${S.launch.risk>0?'var(--nogo)':'var(--go)'}">${S.launch.risk}%</span></div>
+      <div class="gap-line" style="margin-top:4px">${S.launch.risk===100 ? 'Falta algo por decir en voz alta. Todo o nada.' : 'Se dijo todo en voz alta. Cero secretos.'}</div>
+    `)}
     ${panel(`
       <div class="field-label" style="text-align:center;margin-bottom:12px">¿CREEN QUE LA NAVE VA A LLEGAR?</div>
       <div class="row">
