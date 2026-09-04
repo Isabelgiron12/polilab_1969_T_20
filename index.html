@@ -561,16 +561,17 @@ function runTimer(){
   clearInterval(timerHandle);
   timerHandle = setInterval(()=>{
     if(!S.running) return;
+    const busy = S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending);
     S.elapsed++;
     const ph = currentPhase();
-    const phaseChanged = S._lastPhase !== ph.id;
+    const phaseChanged = !busy && S._lastPhase !== ph.id;
     if(phaseChanged){ S._lastPhase = ph.id; resetSubstateFor(ph.id); }
     let firedTick = false;
-    if(ph.id==='sistemas' && S.sys.firedPending && S.sys.firedWait>0){
+    if(S.sys.firedPending && S.sys.firedWait>0){
       S.sys.firedWait--;
       firedTick = true;
     }
-    const hitEnd = S.elapsed >= TOTAL;
+    const hitEnd = !busy && S.elapsed >= TOTAL;
     if(hitEnd){ S.elapsed = TOTAL; S.running = false; enterEnd(); }
     renderHUD();
     if(phaseChanged || hitEnd || firedTick){ renderBody(); }
@@ -830,7 +831,10 @@ function registerRound(){
 }
 
 function newCrew(){ registerRound(); S.screen = 'setup'; clearInterval(timerHandle); render(); }
-function setView(v){ S.view = v; render(); }
+function setView(v){
+  if(S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending)) return;
+  S.view = v; render();
+}
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1457,17 +1461,20 @@ function renderKey(){
     return 'end|'+(l?l.stage+'|'+l.outcome+'|'+(l.boxOpen?1:0):'');
   }
   if(S.screen!=='mission'){ return S.screen+'|'+S.view; }
-  const ph = currentPhase();
+  const busy = S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending);
+  const phId = busy ? 'sistemas' : currentPhase().id;
   let extra = '';
-  if(ph.id==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|deciding:'+(S.sys.deciding?1:0)+'|cleared:'+(S.sys.clearedPending?1:0)+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0); }
-  return 'mission|'+S.view+'|'+ph.id+extra;
+  if(phId==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|deciding:'+(S.sys.deciding?1:0)+'|cleared:'+(S.sys.clearedPending?1:0)+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0); }
+  return 'mission|'+S.view+'|'+phId+extra;
 }
 let _lastRenderKey = null;
 function renderBody(){
   const body = document.getElementById('body');
   let html;
+  const busy = S.screen==='mission' && S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending);
   if(S.screen==='intro'){ html = renderIntro(); }
   else if(S.screen==='setup'){ html = renderSetup(); }
+  else if(busy){ html = renderSistemas(); }
   else if(S.view==='tablero'){ html = renderTablero(); }
   else if(S.view==='muro'){ html = renderMuro(); }
   else if(S.screen==='end'){ html = renderEnd(); }
