@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Caja Negra</title>
-<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano, con sonido futurista generado por codigo: barridos, reverberacion y ruido filtrado.">
+<meta name="description" content="Simulacion de sala de control del Politecnico Grancolombiano, con efectos de sonido en cada boton y cargos de tripulacion neutros en genero.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -302,7 +302,6 @@ const Sound = (function(){
       master.connect(ctx.destination);
       buildNoise();
       buildReverb();
-      startAmbient();
     }catch(e){ ctx = null; }
   }
   function buildNoise(){
@@ -326,21 +325,6 @@ const Sound = (function(){
     if(!reverb) return;
     const send = ctx.createGain(); send.gain.value = amount==null?0.4:amount;
     node.connect(send); send.connect(reverb);
-  }
-  function startAmbient(){
-    const g = ctx.createGain(); g.gain.value = 0.03; g.connect(master);
-    const filt = ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=260; filt.connect(g);
-    const o1 = ctx.createOscillator(); o1.type='sine'; o1.frequency.value=54;
-    const o2 = ctx.createOscillator(); o2.type='sine'; o2.frequency.value=80.8;
-    o1.connect(filt); o2.connect(filt);
-    const air = ctx.createBufferSource(); air.buffer = noiseBuf; air.loop = true;
-    const airFilt = ctx.createBiquadFilter(); airFilt.type='bandpass'; airFilt.frequency.value=680; airFilt.Q.value=0.5;
-    const airGain = ctx.createGain(); airGain.gain.value = 0.01;
-    air.connect(airFilt); airFilt.connect(airGain); airGain.connect(master);
-    const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.055;
-    const lfoGain = ctx.createGain(); lfoGain.gain.value = 45;
-    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
-    o1.start(); o2.start(); air.start(); lfo.start();
   }
   function sweep(f0, f1, dur, type, gainVal, delay, opts){
     if(!ctx || !enabled) return;
@@ -442,12 +426,12 @@ const FIRE_REASONS = [
   'protocolo de seguridad de la misión',
 ];
 const AVATARS = {
-  1:{role:'Ingeniera de Propulsión', ability:'Conoce cada motor de la nave, tornillo por tornillo.', color:'var(--amber)'},
-  2:{role:'Especialista de Soporte de Vida', ability:'Cuenta cada litro de aire de la tripulación.', color:'var(--accent-2)'},
-  3:{role:'Piloto de Rumbo', ability:'Traza la ruta y confía en su instinto.', color:'var(--cond)'},
-  4:{role:'Oficial de Comunicaciones', ability:'Es la única voz que llega hasta la Tierra.', color:'var(--violet)'},
-  5:{role:'Ingeniera de Escudo Térmico', ability:'Calculó cada grado del reingreso.', color:'var(--go)'},
-  6:{role:'Médica de a Bordo', ability:'Responde por la salud de los cuatro que van adentro.', color:'var(--rose)'},
+  1:{role:'Jefatura de Propulsión', ability:'Conoce cada motor de la nave, tornillo por tornillo.', color:'var(--amber)'},
+  2:{role:'Jefatura de Oxígeno', ability:'Cuenta cada litro de aire de la tripulación.', color:'var(--accent-2)'},
+  3:{role:'Jefatura de Navegación', ability:'Traza la ruta y confía en su instinto.', color:'var(--cond)'},
+  4:{role:'Jefatura de Comunicaciones', ability:'Es la única voz que llega hasta la Tierra.', color:'var(--violet)'},
+  5:{role:'Jefatura de Escudo Térmico', ability:'Calculó cada grado del reingreso.', color:'var(--go)'},
+  6:{role:'Jefatura de Soporte Vital', ability:'Responde por la salud de los cuatro que van adentro.', color:'var(--rose)'},
 };
 function avatarBadge(sysId){
   switch(sysId){
@@ -950,7 +934,7 @@ function renderSetup(){
     ${panel(`
       <div style="text-align:center">
         <div class="field-label">Tu rol</div>
-        <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">Cada uno controla un sistema clave de la nave.</div>
+        <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">Cada uno controla un sistema de la nave.</div>
         <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.</div>
       </div>
     `, 'notice')}
