@@ -705,7 +705,7 @@ function finalizeParticipant(q2){
       Sound.fired();
       p.fired = true;
       S.sys.firedPending = true;
-      S.sys.firedWait = 60;
+      S.sys.firedWait = 30;
       S.sys.firedName = role;
       S.sys.firedReason = FIRE_REASONS[Math.floor(Math.random()*FIRE_REASONS.length)];
     } else {
@@ -1057,7 +1057,7 @@ function renderFiredWait(){
       <p style="text-align:center;margin-top:6px;color:var(--amber)">Retraso: +${esc(formatDuration(S.sys.fixHours))}.</p>
     `) : ''}
     ${panel(`
-      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar un minuto para buscar el reemplazo'}</div>
+      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar 30 segundos para buscar el reemplazo'}</div>
       <div class="stat-num nogo" style="text-align:center;display:block;margin-top:8px;font-size:44px">${done?'00':String(S.sys.firedWait).padStart(2,'0')}s</div>
     `)}
     ${done ? `<button class="primary" onclick="clearFired()">CONTINUAR</button>` : ''}
