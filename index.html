@@ -78,7 +78,7 @@ body{
 .nav-item .nav-ic{width:18px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--nav-c, currentColor);opacity:.9}
 .nav-item:hover .nav-ic,.nav-item.active .nav-ic{opacity:1}
 
-.main{flex:1;min-width:0;min-height:0;display:flex;justify-content:center;overflow-y:auto}
+.main{flex:1;min-width:0;min-height:0;display:flex;justify-content:center;overflow:hidden}
 @media(max-width:760px){
   .shell-body{flex-direction:column}
   .sidebar{width:100%;min-width:0;height:auto;position:relative;flex-direction:row;overflow-x:auto;padding:8px calc(10px + env(safe-area-inset-left)) 8px calc(10px + env(safe-area-inset-right));gap:6px;border-right:none;border-bottom:1px solid var(--border-soft)}
@@ -565,22 +565,22 @@ function toggleSound(){ Sound.toggle(); render(); }
 
 const SYSTEMS = [
   {id:1, name:'PROPULSIÓN', weight:20, does:'Responder por los motores.',
-   happened:'Una válvula falló en la prueba de hace dos semanas. La cambiaron, pero la pieza nueva no se volvió a probar en frío. Esta madrugada la temperatura bajó más de lo previsto.',
+   happened:'La válvula que falló hace dos semanas ya se cambió. El protocolo pedía repetir la prueba en frío después del cambio, no alcanzó a hacerse por la ventana de lanzamiento. La pieza pasó sin problema todas las demás pruebas.',
    costs:'La firma de que no hacía falta repetir la prueba en frío es tuya.'},
   {id:2, name:'OXÍGENO', weight:12, does:'Responder por el aire de la tripulación.',
-   happened:'Hay una fuga mínima, dentro del margen permitido. El detalle es que ese margen lo calcularon para una misión de seis días y esta misión es de nueve.',
+   happened:'El cálculo de consumo da el margen justo para nueve días, exacto, sin margen adicional. Nadie más lo ha revisado todavía, y quien lo hizo confía en él.',
    costs:'Nadie más ha revisado tu cálculo todavía.'},
   {id:3, name:'NAVEGACIÓN', weight:10, does:'Responder por el rumbo y por el sistema de respaldo.',
-   happened:'El sistema de respaldo lleva tres días lanzando un error que aparece y desaparece. Cada vez que lo reinicias, se va.',
+   happened:'El sistema de respaldo pasó sin errores la última prueba, ayer. Antes de eso, tres días seguidos con un error intermitente que nadie más alcanzó a ver repetirse.',
    costs:'Llevas tres días viendo el mismo error sin decir nada.'},
   {id:4, name:'COMUNICACIONES', weight:8, does:'Responder por el contacto con la nave.',
-   happened:'La antena secundaria quedó desalineada dos grados. En simulación no pasa nada. Si la principal falla, con dos grados no alcanza.',
+   happened:'La antena secundaria quedó desalineada dos grados en el último ajuste. Solo se usa si la principal falla, y eso no ha pasado en las últimas veinte misiones.',
    costs:'Arreglarlo son ocho horas que ya no quedan.'},
   {id:5, name:'ESCUDO TÉRMICO', weight:18, does:'Responder por el reingreso de la nave.',
-   happened:'En la inspección viste una placa con una fisura del tamaño de una uña. El manual dice que se reemplaza. El técnico que la revisó dijo, delante de ti, que eso no es nada.',
+   happened:'En la inspección viste una marca del tamaño de una uña en una placa. El manual no es específico sobre marcas de ese tamaño, pide usar criterio. El técnico que la revisó contigo lleva quince años en el puesto, dice que la ha visto muchas veces y nunca fue un problema.',
    costs:'El técnico con más experiencia ya lo revisó y dijo que no era nada.'},
   {id:6, name:'SOPORTE VITAL', weight:10, does:'Responder por los filtros y las provisiones.',
-   happened:'Los filtros de repuesto llegaron de otro lote, sin el certificado de calidad. Funcionan igual, los probaste.',
+   happened:'Los filtros de repuesto llegaron de un lote distinto al habitual, sin el certificado de calidad que exige el protocolo. Los probaste tú mismo con el equipo del laboratorio y dieron los mismos valores que los certificados.',
    costs:'Si lo dices, el reemplazo certificado tarda semanas, y todo el cronograma se mueve con él.'},
 ];
 const POOL_BY_COUNT = {6:[1,2,3,4,5,6], 5:[1,2,3,5,6], 4:[1,2,3,5], 3:[1,2,5], 2:[1,5]};
@@ -637,7 +637,7 @@ function avatarSVG(sysId, size, cls){
   </svg>`;
 }
 const VERIF_PRESETS = {
-  GO: ['Sala de sistemas confirma GO. Todo nominal.', 'Sala de sistemas autoriza el lanzamiento sin objeciones.', 'GO confirmado por toda la sala.'],
+  GO: ['Sala de sistemas confirma GO. No hay objeciones formales.', 'Sala de sistemas autoriza el lanzamiento sin objeciones.', 'GO confirmado por toda la sala.'],
   COND: ['Sala de sistemas confirma GO con condición. Vigilar en vuelo.', 'Lanzamiento autorizado con monitoreo activo en ascenso.', 'GO con condición: revisar telemetría todo el vuelo.'],
   NOGO: ['Sala de sistemas confirma NO GO. Se aborta por precaución.', 'NO GO: la sala no autoriza el lanzamiento.', 'Se aborta la misión hasta la próxima ventana.'],
 };
@@ -648,7 +648,20 @@ const REFLECTION_PRESETS = [
   'Porque alguien con más experiencia dijo que estaba bien.',
   'Porque el grupo ya había decidido, y no quise frenar todo.',
   'No me lo guardé: dije todo lo que sabía.',
+  'Porque el consejero dijo que estaba bien, y hasta ese momento no se había equivocado.',
+  'Porque nadie más lo mencionó, y no quise ser el único.',
+  'Porque no hablar era lo más simple, y a mí no me iba a pasar nada.',
 ];
+const ADVISOR_LINES = {
+  hit: [
+    'Con lo que se ha dicho hasta ahora, yo firmaría. Pero es su firma, no la mía.',
+    'Si algo no se ha dicho todavía, este es el momento. Después de esto ya no hay ventana.',
+    'Lo que están a punto de decidir se parece a un caso de hace dos misiones. Ese salió bien.',
+    'En estos casos, uno confía o no confía. Ustedes ya se conocen mejor que yo.',
+    'Hasta ahora nadie me ha dado una razón para preocuparme. Eso no es lo mismo que no haberla.',
+  ],
+  fail: 'Con lo que se ha dicho hasta ahora, yo firmaría.',
+};
 const DELAY_HOURS = {1:48, 2:24, 3:72, 4:8, 5:168, 6:336};
 const TOTAL_DELAY_HOURS = Object.values(DELAY_HOURS).reduce((a,b)=>a+b,0);
 function formatDuration(hours){
@@ -684,12 +697,13 @@ function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); retu
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 let S = {
-  nav:'inicio',
+  nav:'inicio', introStep:0,
   screen:'setup', view:'mission',
   count:6, selectedSystems:[1,2,3,4,5,6],
   participants:[], running:false, elapsed:0, _lastPhase:null,
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
   decision:null, verifText:'', signed:{}, prediction:null,
+  watchedSystems:[], advisorLine:null, advisorFailureShown:false,
   savedRound:false, reflectionSubmitted:0,
   _bitStore:{}, launch:null, fixedDelayHours:0,
 };
@@ -715,6 +729,7 @@ function shuffle(arr){
 
 function resetSubstateFor(id){
   if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
+  if(id==='discusion' && !S.advisorFailureShown) S.advisorLine = ADVISOR_LINES.hit[Math.floor(Math.random()*ADVISOR_LINES.hit.length)];
 }
 
 function startMission(){
@@ -729,6 +744,7 @@ function startMission(){
   S._bitStore = {};
   S.fixedDelayHours = 0;
   S.decision = null; S.verifText=''; S.signed={}; S.prediction=null;
+  S.watchedSystems = []; S.advisorLine = null; S.advisorFailureShown = false;
   S.savedRound = false; S.reflectionSubmitted=0;
   S.launch = null;
   S.screen = 'mission'; S.view = 'mission';
@@ -750,10 +766,19 @@ function runTimer(){
       S.sys.firedWait--;
       firedTick = true;
     }
+    let advisorTick = false;
+    if(!S.advisorFailureShown && ph.id==='verificacion'){
+      const vPhase = PHASES.find(function(pp){ return pp.id==='verificacion'; });
+      if(S.elapsed >= vPhase.at + vPhase.dur*0.85){
+        S.advisorFailureShown = true;
+        S.advisorLine = ADVISOR_LINES.fail;
+        advisorTick = true;
+      }
+    }
     const hitEnd = !busy && S.elapsed >= TOTAL;
     if(hitEnd){ S.elapsed = TOTAL; S.running = false; enterEnd(); }
     renderHUD();
-    if(phaseChanged || hitEnd || firedTick){ renderBody(); }
+    if(phaseChanged || hitEnd || firedTick || advisorTick){ renderBody(); }
   }, 1000);
 }
 
@@ -881,7 +906,11 @@ function finalizeParticipant(q2){
   render();
   const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(function(){
-    const fired = Math.random() < 0.5;
+    const sysDef = SYSTEMS.find(s=>s.id===p.cardId);
+    const maxWeight = Math.max.apply(null, SYSTEMS.map(function(s){ return s.weight; }));
+    const severity = sysDef ? sysDef.weight / maxWeight : 0;
+    const fireProb = Math.min(0.85, Math.max(0.20, 0.40 + 0.40*severity));
+    const fired = Math.random() < fireProb;
     p.credited = !fired;
     S.sys.deciding = false;
     const role = AVATARS[p.cardId] ? AVATARS[p.cardId].role : p.name;
@@ -903,7 +932,7 @@ function finalizeParticipant(q2){
 function clearFired(){ S.sys.firedPending=false; S.sys.firedWait=0; render(); }
 function clearCleared(){ S.sys.clearedPending=false; render(); }
 
-function setDecision(d){ S.decision = d; render(); }
+function setDecision(d){ S.decision = d; if(d!=='COND'){ S.watchedSystems = []; } render(); }
 function toggleSign(i){ S.signed[i] = !S.signed[i]; render(); }
 function setPrediction(p){ S.prediction = p; render(); }
 function openBlackBox(){ if(S.launch) S.launch.boxOpen = true; render(); }
@@ -931,18 +960,19 @@ function submitPresetReflection(i){
 /* ---------- risk model: todo o nada ---------- */
 function computeRisk(){
   const pool = S.selectedSystems;
-  let allPublic = true;
   const contributions = [];
+  let survival = 1;
   for(const sys of SYSTEMS){
-    const inPlay = pool.includes(sys.id);
-    if(!inPlay) continue;
+    if(!pool.includes(sys.id)) continue;
     const rec = S._bitStore[sys.id];
     const isPublic = !!(rec && rec.q1==='YES');
     const privateOnly = !!(rec && rec.q1!=='YES' && rec.q2==='YES');
-    if(!isPublic) allPublic = false;
+    let frac = isPublic ? 0 : privateOnly ? HIDDEN_P[sys.id]/2 : HIDDEN_P[sys.id];
+    if(S.decision==='COND' && S.watchedSystems && S.watchedSystems.includes(sys.id)){ frac = frac/3; }
+    survival *= (1-frac);
     contributions.push({id:sys.id, name:sys.name, happened:sys.happened, contrib:HIDDEN_P[sys.id], hidden:!isPublic, privateOnly});
   }
-  const risk = allPublic ? 0 : 100;
+  const risk = Math.max(4, Math.round((1-survival)*100));
   contributions.sort((a,b)=>b.contrib-a.contrib);
   return {risk, contributions};
 }
@@ -1049,6 +1079,18 @@ function cardField(label, body, colorVar){
 function alertBanner(text){ return `<div class="alert-banner">${text}</div>`; }
 function backRow(forwardHTML){
   return `<div class="row"><button class="ghost grow" onclick="goBack()">ATRÁS</button>${forwardHTML?`<div class="grow">${forwardHTML}</div>`:''}</div>`;
+}
+function toggleWatched(id){
+  const idx = S.watchedSystems.indexOf(id);
+  if(idx>=0){ S.watchedSystems.splice(idx,1); } else { S.watchedSystems.push(id); }
+  render();
+}
+function advisorPanel(){
+  if(!S.advisorLine) return '';
+  return panel(`
+    <div class="field-label" style="color:var(--violet)">CONSEJERO</div>
+    <p style="margin-top:6px;color:var(--ink);font-style:italic">"${esc(S.advisorLine)}"</p>
+  `, '', '--violet');
 }
 function systemsStrip(){
   const pool = S.selectedSystems;
@@ -1258,37 +1300,55 @@ function renderSidebar(){
   `).join('');
 }
 
+function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); }
 function renderInicio(){
-  return `
-    <div class="inicio-columns">
-      <div class="area-crumb breadcrumb"><b>SALA DE CONTROL</b><span class="sep">›</span>CAJA NEGRA</div>
-      <div class="area-text">
-        <h1 class="inicio-title">POLILab</h1>
-        <div class="inicio-subtitle">Laboratorio virtual de competencias</div>
-        <p class="lede">POLILab es el laboratorio virtual de competencias del Politécnico Grancolombiano. Un espacio innovador que conecta el aprendizaje con las necesidades reales de desarrollo de nuestros colaboradores.</p>
-        <p>Aquí fortalecemos las habilidades de nuestra comunidad para que enfrenten con éxito los retos del presente y del futuro.</p>
-        ${panel(`
-          <div class="creado-panel">
-            <div class="creado-ic">${navIcon('team')}</div>
-            <div class="creado-body">
-              <div class="field-label">Creado por</div>
-              <div class="creado-name">Escuela de Psicología, Talento Humano y Sociedad</div>
-              <div class="creado-name">Grupo de investigación CVSSL</div>
-              <div class="creado-year">Girón-Madroñero (2026)</div>
+  const introStep = S.introStep||0;
+  if(introStep===0){
+    return `
+      <div class="inicio-columns">
+        <div class="area-crumb breadcrumb"><b>SALA DE CONTROL</b><span class="sep">›</span>CAJA NEGRA</div>
+        <div class="area-text">
+          <h1 class="inicio-title">POLILab</h1>
+          <div class="inicio-subtitle">Laboratorio virtual de competencias</div>
+          <p class="lede">POLILab es el laboratorio virtual de competencias del Politécnico Grancolombiano. Un espacio innovador que conecta el aprendizaje con las necesidades reales de desarrollo de nuestros colaboradores.</p>
+          <p>Aquí fortalecemos las habilidades de nuestra comunidad para que enfrenten con éxito los retos del presente y del futuro.</p>
+          ${panel(`
+            <div class="creado-panel">
+              <div class="creado-ic">${navIcon('team')}</div>
+              <div class="creado-body">
+                <div class="field-label">Creado por</div>
+                <div class="creado-name">Escuela de Psicología, Talento Humano y Sociedad</div>
+                <div class="creado-name">Grupo de investigación CVSSL</div>
+                <div class="creado-year">Girón-Madroñero (2026)</div>
+              </div>
+              <div class="creado-bank">${navIcon('bank')}</div>
             </div>
-            <div class="creado-bank">${navIcon('bank')}</div>
+          `)}
+          <button class="primary" onclick="advanceIntro()">CONTINUAR →</button>
+        </div>
+        <div class="area-showcase">
+          <div class="showcase-card">
+            ${poliMark(64)}
+            <div class="orbit-wrap">${orbitGraphic()}</div>
+            <div class="showcase-tags"><span style="color:var(--accent-2)">APRENDER</span><span class="sep">•</span><span style="color:var(--amber)">COLABORAR</span><span class="sep">•</span><span style="color:var(--rose)">TRANSFORMAR</span></div>
           </div>
-        `)}
-        <button class="primary" onclick="setNav('cajanegra')">CONTINUAR →</button>
-      </div>
-      <div class="area-showcase">
-        <div class="showcase-card">
-          ${poliMark(64)}
-          <div class="orbit-wrap">${orbitGraphic()}</div>
-          <div class="showcase-tags"><span style="color:var(--accent-2)">APRENDER</span><span class="sep">•</span><span style="color:var(--amber)">COLABORAR</span><span class="sep">•</span><span style="color:var(--rose)">TRANSFORMAR</span></div>
         </div>
       </div>
-    </div>
+    `;
+  }
+  if(introStep===1){
+    return `
+      ${eyebrow('Sala de control', true, '--accent-2')}
+      <h2 style="text-align:center">Faltan veinte minutos</h2>
+      ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
+      <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
+    `;
+  }
+  return `
+    ${eyebrow('Sala de control', true, '--amber')}
+    <h2 style="text-align:center">La decisión es de todos</h2>
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">En los próximos veinte minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
+    <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
 
@@ -1520,7 +1580,7 @@ function renderSistemas(){
           `)}
         </div>
         <div class="area-triki">
-          ${alertBanner('⚠ Ojo: decirlo en la sala podría costarte el puesto por asuntos internos. Si te despiden, pierdes el juego.')}
+          ${alertBanner('⚠ Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.')}
           ${panel(`
             ${eyebrow('Momento de conversación con el equipo y dirección', true)}
             <div class="field-label" style="text-align:center;margin-bottom:12px;margin-top:6px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
@@ -1539,7 +1599,7 @@ function renderSistemas(){
     ${eyebrow(currentPhase().code+' · segunda decisión')}
     <h2>${esc(p.name)}, no lo vas a decir en la sala</h2>
     <div class="donow">▸ Queda una vía: avisarle solo a la directora de vuelo, en privado. La sala nunca se entera.</div>
-    ${alertBanner('⚠ Ojo: avisarle a ella también podría costarte el puesto por asuntos internos.')}
+    ${alertBanner('⚠ Avisarle a ella tampoco es gratis. Es una persona, no un buzón: puede protegerte o puede no hacerlo, y no vas a saber cuál de las dos hasta que sea tarde.')}
     ${panel(`
       <div class="field-label" style="text-align:center;margin-bottom:12px">¿SE LO DICES EN PRIVADO?</div>
       <div class="row">
@@ -1552,6 +1612,7 @@ function renderSistemas(){
 }
 
 function renderDiscusion(){
+  const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
   return `
     ${eyebrow(currentPhase().code)}
     <h2>Discusión libre</h2>
@@ -1569,14 +1630,29 @@ function renderDiscusion(){
             <div class="dtitle" style="justify-content:flex-start"><span class="dot nogo"></span>NO GO</div><div class="dsub" style="text-align:left;margin-left:18px">Se aborta. Próximo intento en cuatro meses.</div>
           </button>
         </div>
+        ${S.decision==='COND' ? panel(`
+          <div class="field-label" style="text-align:center">Sistemas a vigilar en vuelo</div>
+          <div class="footer-note" style="margin-top:4px">▸ Marquen los sistemas que la sala se compromete a monitorear. Reduce su riesgo, no lo elimina.</div>
+          <div class="stack" style="gap:6px;margin-top:10px">
+            ${S.selectedSystems.map(id=>{
+              const sys = SYSTEMS.find(s=>s.id===id);
+              const checked = S.watchedSystems.includes(id);
+              return `<button class="sign-row ${checked?'on':''}" onclick="toggleWatched(${id})">
+                <span class="box"></span>
+                <span class="grow" style="text-align:left">${esc(sys.name)}</span>
+                <span class="sign-state">${checked?'VIGILANDO':'TOCAR PARA MARCAR'}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        `, '', '--cond') : ''}
       </div>
       <div class="col-b">
         ${panel(`
           <div class="field-label" style="text-align:center">Estado público de la nave</div>
-          <div class="footer-note" style="margin-top:4px">▸ Verde: se dijo en la sala. Rojo: nadie lo dijo.</div>
-          ${systemsStrip()}
+          <div class="footer-note" style="margin-top:4px">▸ ${confirmados} de ${S.selectedSystems.length} sistemas confirmados en la sala. No se dice cuáles.</div>
           ${S.fixedDelayHours>0 ? `<div class="gap-line" style="margin-top:10px">Retraso ya asumido por lo dicho a tiempo: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b></div>` : ''}
         `, '', '--accent-2')}
+        ${advisorPanel()}
       </div>
     </div>
     ${backRow(S.decision?`<button class="primary" onclick="advanceNow()">Confirmar y seguir →</button>`:'')}
@@ -1617,6 +1693,7 @@ function renderVerificacion(){
             </div>
           `}
         `, '', '--rose')}
+        ${advisorPanel()}
       </div>
     </div>
     ${backRow(`<button class="ghost" onclick="advanceNow()">Continuar →</button>`)}
@@ -1773,7 +1850,11 @@ function renderLaunchResolved(){
     ${panel(`
       <div class="field-label" style="text-align:center">Costo de la misión</div>
       <div style="text-align:center;margin-top:6px"><span class="stat-num" style="font-size:52px;color:${success?'var(--amber)':'var(--nogo)'}">${S.launch.risk}%</span></div>
-      <div class="gap-line" style="margin-top:4px">${S.launch.risk===100 ? 'Faltó decir algo en voz alta. Todo o nada.' : 'Se dijo todo en voz alta. Cero secretos.'}</div>
+      <div class="gap-line" style="margin-top:4px">${(function(){
+        const fullyDisclosed = S.launch.contributions.every(c=>!c.hidden);
+        if(!fullyDisclosed) return 'Algo se quedó en la sala sin decir en voz alta. No fue la única razón, pero fue parte.';
+        return success ? 'Todo lo que sabían, lo dijeron en voz alta. Eso no garantizaba nada, y aun así llegaron.' : 'Todo lo que sabían, lo dijeron en voz alta. Eso no garantizaba nada, y esta vez no alcanzó.';
+      })()}</div>
     `)}
     ${renderDebrief()}
   `;
@@ -1785,7 +1866,7 @@ function renderAborted(){
     ${rocketSVG('idle')}
     ${panel(`
       <p style="color:var(--ink)">No despegaron. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-      <p style="margin-top:10px;color:var(--ink)"><b>No hizo falta abrir la caja negra. Evitaron la apuesta. Tomaron la decisión correcta.</b></p>
+      <p style="margin-top:10px;color:var(--ink)"><b>No hizo falta abrir la caja negra. Evitaron la apuesta. Nunca van a saber si la nave habría llegado.</b></p>
     `)}
     ${!S.launch.boxOpen
       ? `<button class="ghost" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`
@@ -2011,7 +2092,40 @@ function renderBody(){
   body.innerHTML = animate ? '<div class="screen-in">'+html+'</div>' : html;
 }
 
-function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); }
+function fitScreen(){
+  const stage = document.querySelector('.stage');
+  const main = document.querySelector('.main');
+  if(!stage || !main) return;
+  stage.style.transform = 'none';
+  stage.style.width = '100%';
+  const availH = main.clientHeight;
+  const contentH = stage.scrollHeight;
+  const minScale = 0.55;
+  let scale = contentH > 0 ? availH / contentH : 1;
+  if(scale > 1) scale = 1;
+  if(scale < minScale){
+    scale = minScale;
+    main.style.overflowY = 'auto';
+  } else {
+    main.style.overflowY = 'hidden';
+  }
+  if(scale < 1){
+    stage.style.width = (100/scale) + '%';
+    stage.style.transform = `scale(${scale})`;
+  }
+}
+let _fitRaf = null, _fitTimeout = null;
+function scheduleFit(){
+  if(_fitRaf) cancelAnimationFrame(_fitRaf);
+  _fitRaf = requestAnimationFrame(fitScreen);
+  if(_fitTimeout) clearTimeout(_fitTimeout);
+  _fitTimeout = setTimeout(fitScreen, 300);
+}
+window.addEventListener('resize', scheduleFit);
+window.addEventListener('load', scheduleFit);
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFit); }
+
+function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); scheduleFit(); }
 render();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
