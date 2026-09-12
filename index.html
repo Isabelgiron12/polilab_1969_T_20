@@ -278,18 +278,18 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .queue span.done{color:var(--ink-faint);text-decoration:line-through;opacity:.5}
 
 .sistemas-columns{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"turn" "triki"}
-.sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;gap:14px;min-width:0}
-.sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
+.sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
 
 .two-col{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"a" "b"}
-.two-col .col-a{grid-area:a;display:flex;flex-direction:column;gap:14px;min-width:0}
-.two-col .col-b{grid-area:b;display:flex;flex-direction:column;gap:14px;min-width:0}
-@media(min-width:860px){.two-col{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:start;grid-template-areas:"a b"}}
+.two-col .col-a{grid-area:a;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
+.two-col .col-b{grid-area:b;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
+@media(min-width:860px){.two-col{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch;grid-template-areas:"a b"}}
 .body > *:not(.screen-in),.body > .screen-in > *{max-width:860px;margin-left:auto;margin-right:auto;width:100%}
 .body > .inicio-columns,.body > .sistemas-columns,.body > .setup-columns,.body > .two-col,
 .body > .screen-in > .inicio-columns,.body > .screen-in > .sistemas-columns,.body > .screen-in > .setup-columns,.body > .screen-in > .two-col{max-width:none}
 @media(min-width:860px){
-  .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:start}
+  .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:stretch}
 }
 .triki-intro{display:flex;align-items:center;gap:12px;text-align:left}
 .triki-intro-ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber)}
@@ -867,7 +867,7 @@ function tttTap(i){
 function tttRetry(){ S.sys.ttt = tttInit(); render(); }
 function tttContinue(){
   const w = S.sys.ttt ? S.sys.ttt.winner : null;
-  S.sys.miniResult = w==='X' ? 'win' : 'draw';
+  S.sys.miniResult = w==='X' ? 'win' : w==='O' ? 'lose' : 'draw';
   S.sys.miniDone = true;
   render();
 }
@@ -1546,7 +1546,7 @@ function renderSistemas(){
             ${t.over ? `
               <div class="footer-note" style="margin-top:10px;font-weight:700;color:${t.winner==='X'?'var(--go)':t.winner==='draw'?'var(--ink)':'var(--nogo)'}">${t.winner==='X'?'GANASTE EL TRIKI':t.winner==='draw'?'EMPATE':'PERDISTE EL TRIKI'}</div>
               ${t.winner==='O'
-                ? `<button class="primary" style="margin-top:10px" onclick="tttRetry()">REINTENTAR</button>`
+                ? `<div class="row" style="margin-top:10px"><button class="ghost grow" onclick="tttRetry()">REINTENTAR</button><button class="primary grow" onclick="tttContinue()">CONTINUAR IGUAL →</button></div>`
                 : `<button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>`}
             ` : ''}
           `)}
@@ -1566,7 +1566,7 @@ function renderSistemas(){
             <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
             <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
           </div>
-          ${S.sys.miniResult?`<div class="footer-note" style="margin-top:6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':'Triki empatado en '+MINIGAMES[sys.id].names+'.')}</div>`:''}
+          ${S.sys.miniResult?`<div class="footer-note" style="margin-top:6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':S.sys.miniResult==='lose'?'Perdiste el triki de '+MINIGAMES[sys.id].names+', pero igual revisas tu sistema.':'Triki empatado en '+MINIGAMES[sys.id].names+'.')}</div>`:''}
           ${prepBar()}
           ${panel(`
             <div class="card-system">
