@@ -278,8 +278,8 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .queue span.done{color:var(--ink-faint);text-decoration:line-through;opacity:.5}
 
 .sistemas-columns{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"turn" "triki"}
-.sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
-.sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
+.sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
+.sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
 
 .two-col{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"a" "b"}
 .two-col .col-a{grid-area:a;display:flex;flex-direction:column;justify-content:center;gap:14px;min-width:0}
@@ -288,8 +288,13 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .body > *:not(.screen-in),.body > .screen-in > *{max-width:860px;margin-left:auto;margin-right:auto;width:100%}
 .body > .inicio-columns,.body > .sistemas-columns,.body > .setup-columns,.body > .two-col,
 .body > .screen-in > .inicio-columns,.body > .screen-in > .sistemas-columns,.body > .screen-in > .setup-columns,.body > .screen-in > .two-col{max-width:none}
+/* Cualquier título/eyebrow que quede justo antes de una de estas grillas de dos columnas
+   debe compartir su mismo ancho completo; si no, el título queda angosto y centrado
+   mientras la grilla ocupa todo el ancho, y todo se ve desalineado entre sí. */
+.body > *:not(.screen-in):has(~ .inicio-columns),.body > *:not(.screen-in):has(~ .sistemas-columns),.body > *:not(.screen-in):has(~ .setup-columns),.body > *:not(.screen-in):has(~ .two-col),
+.body > .screen-in > *:has(~ .inicio-columns),.body > .screen-in > *:has(~ .sistemas-columns),.body > .screen-in > *:has(~ .setup-columns),.body > .screen-in > *:has(~ .two-col){max-width:none}
 @media(min-width:860px){
-  .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:stretch}
+  .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:start}
 }
 .triki-intro{display:flex;align-items:center;gap:12px;text-align:left}
 .triki-intro-ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber)}
@@ -297,8 +302,11 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .triki-head-ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent-dim),var(--rose-dim));display:flex;align-items:center;justify-content:center;color:var(--accent-2)}
 .triki-head-title{font-family:var(--mono);font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--ink)}
 .rainbow-bar{height:4px;border-radius:2px;margin-top:10px;background:linear-gradient(90deg,var(--accent-2),var(--amber),var(--rose))}
-.ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:340px;margin:14px auto 0}
-.ttt-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:34px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;border-radius:12px}
+.ttt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:290px;margin:10px auto 0}
+.ttt-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:34px;font-weight:700;background:var(--panel-2);border:1.5px solid var(--border);color:var(--accent-2);cursor:pointer;border-radius:12px;transition:background .2s,border-color .2s}
+.ttt-cell .avatar,.ttt-cell .dot{animation:tttPlace .28s cubic-bezier(.2,1.4,.4,1)}
+@keyframes tttPlace{from{transform:scale(.25);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.ttt-cell .avatar,.ttt-cell .dot{animation:none}}
 .ttt-cell.filled{color:var(--ink-dim)}
 .ttt-cell.win-x{border-color:var(--go);background:var(--go-dim);color:var(--go);box-shadow:0 0 14px -4px var(--go)}
 .ttt-cell.win-o{border-color:var(--nogo);background:var(--nogo-dim);color:var(--nogo);box-shadow:0 0 14px -4px var(--nogo)}
@@ -778,7 +786,7 @@ function runTimer(){
     const hitEnd = !busy && S.elapsed >= TOTAL;
     if(hitEnd){ S.elapsed = TOTAL; S.running = false; enterEnd(); }
     renderHUD();
-    if(phaseChanged || hitEnd || firedTick || advisorTick){ renderBody(); }
+    if(phaseChanged || hitEnd || firedTick || advisorTick){ if(renderBody()) fitScreen(); }
   }, 1000);
 }
 
@@ -862,12 +870,11 @@ function tttTap(i){
     t.botThinking = false;
     if(w2){ t.over = true; t.winner = w2.winner; t.winLine = w2.line; tttSoundForOutcome(w2.winner); }
     render();
-  }, 500);
+  }, 1100);
 }
 function tttRetry(){ S.sys.ttt = tttInit(); render(); }
 function tttContinue(){
-  const w = S.sys.ttt ? S.sys.ttt.winner : null;
-  S.sys.miniResult = w==='X' ? 'win' : w==='O' ? 'lose' : 'draw';
+  S.sys.miniResult = 'win';
   S.sys.miniDone = true;
   render();
 }
@@ -918,7 +925,7 @@ function finalizeParticipant(q2){
       Sound.fired();
       p.fired = true;
       S.sys.firedPending = true;
-      S.sys.firedWait = 30;
+      S.sys.firedWait = 10;
       S.sys.firedName = role;
       S.sys.firedReason = FIRE_REASONS[Math.floor(Math.random()*FIRE_REASONS.length)];
     } else {
@@ -962,17 +969,22 @@ function computeRisk(){
   const pool = S.selectedSystems;
   const contributions = [];
   let survival = 1;
+  let allPublic = true;
   for(const sys of SYSTEMS){
     if(!pool.includes(sys.id)) continue;
     const rec = S._bitStore[sys.id];
     const isPublic = !!(rec && rec.q1==='YES');
     const privateOnly = !!(rec && rec.q1!=='YES' && rec.q2==='YES');
+    if(!isPublic) allPublic = false;
     let frac = isPublic ? 0 : privateOnly ? HIDDEN_P[sys.id]/2 : HIDDEN_P[sys.id];
     if(S.decision==='COND' && S.watchedSystems && S.watchedSystems.includes(sys.id)){ frac = frac/3; }
     survival *= (1-frac);
     contributions.push({id:sys.id, name:sys.name, happened:sys.happened, contrib:HIDDEN_P[sys.id], hidden:!isPublic, privateOnly});
   }
-  const risk = Math.max(4, Math.round((1-survival)*100));
+  // Si a la sala le queda un solo sistema sin decir en voz alta, la misión está condenada:
+  // no hay tirada de suerte que la salve. Solo con todo dicho en público entra en juego
+  // el riesgo residual (nunca baja de 4%, ni la honestidad total es garantía).
+  const risk = allPublic ? Math.max(4, Math.round((1-survival)*100)) : 100;
   contributions.sort((a,b)=>b.contrib-a.contrib);
   return {risk, contributions};
 }
@@ -1275,7 +1287,11 @@ const NAV_ITEMS = [
   {key:'configuracion', label:'Configuración', icon:'gear', c:'--ink-dim', cd:'--panel-2'},
 ];
 function setNav(n){ S.nav = n; render(); }
+let _lastTopbarKey = null;
 function renderTopbar(){
+  const key = Sound.isEnabled()?'on':'off';
+  if(key===_lastTopbarKey) return;
+  _lastTopbarKey = key;
   const el = document.getElementById('topbar');
   el.innerHTML = `
     <div class="topbar-brand">
@@ -1291,7 +1307,10 @@ function renderTopbar(){
     </div>
   `;
 }
+let _lastSidebarKey = null;
 function renderSidebar(){
+  if(S.nav===_lastSidebarKey) return;
+  _lastSidebarKey = S.nav;
   const el = document.getElementById('sidebar');
   el.innerHTML = NAV_ITEMS.map(it=>`
     <button class="nav-item ${S.nav===it.key?'active':''}" style="--nav-c:var(${it.c});--nav-cd:var(${it.cd})" onclick="setNav('${it.key}')">
@@ -1475,7 +1494,7 @@ function renderFiredWait(){
       <p style="text-align:center;margin-top:6px;color:var(--amber)">Retraso: +${esc(formatDuration(S.sys.fixHours))}.</p>
     `) : ''}
     ${panel(`
-      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar 30 segundos para buscar el reemplazo'}</div>
+      <div class="field-label" style="text-align:center">${done?'Reemplazo listo':'Esperar 10 segundos para buscar el reemplazo'}</div>
       <div class="stat-num nogo" style="text-align:center;display:block;margin-top:8px;font-size:44px">${done?'00':String(S.sys.firedWait).padStart(2,'0')}s</div>
     `)}
     ${done ? `<button class="primary" onclick="clearFired()">CONTINUAR</button>` : ''}
@@ -1532,22 +1551,22 @@ function renderSistemas(){
               <div class="triki-head-title grow">TRIKI</div>
             </div>
             <div class="rainbow-bar"></div>
-            <div class="donow" style="text-align:center;margin-top:12px">Selecciona una casilla y completa el triki.</div>
+            <div class="donow" style="text-align:center;margin-top:8px">Selecciona una casilla y completa el triki.</div>
             <div class="footer-note" style="margin-top:2px">Encuentra la combinación correcta.</div>
             <div class="ttt-grid">
               ${t.board.map((v,i)=>{
                 const win = t.winLine && t.winLine.includes(i);
                 const cls = win ? (t.winner==='X'?'win-x':'win-o') : (v?'filled':'');
-                const mark = v==='X' ? avatarSVG(sys.id, 30) : v==='O' ? '<span class="dot nogo" style="width:14px;height:14px"></span>' : '';
+                const mark = v==='X' ? avatarSVG(sys.id, 44) : v==='O' ? '<span class="dot nogo" style="width:24px;height:24px"></span>' : '';
                 return `<button class="ttt-cell ${cls}" onclick="tttTap(${i})" ${(v||t.over||t.botThinking)?'disabled':''}>${mark}</button>`;
               }).join('')}
             </div>
             ${t.botThinking ? `<div class="footer-note" style="margin-top:10px">La máquina está pensando…</div>` : ''}
             ${t.over ? `
-              <div class="footer-note" style="margin-top:10px;font-weight:700;color:${t.winner==='X'?'var(--go)':t.winner==='draw'?'var(--ink)':'var(--nogo)'}">${t.winner==='X'?'GANASTE EL TRIKI':t.winner==='draw'?'EMPATE':'PERDISTE EL TRIKI'}</div>
-              ${t.winner==='O'
-                ? `<div class="row" style="margin-top:10px"><button class="ghost grow" onclick="tttRetry()">REINTENTAR</button><button class="primary grow" onclick="tttContinue()">CONTINUAR IGUAL →</button></div>`
-                : `<button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>`}
+              <div class="footer-note" style="margin-top:10px;font-weight:700;color:${t.winner==='X'?'var(--go)':t.winner==='draw'?'var(--ink)':'var(--nogo)'}">${t.winner==='X'?'GANASTE EL TRIKI':t.winner==='draw'?'EMPATE, VUELVE A INTENTAR':'PERDISTE EL TRIKI'}</div>
+              ${t.winner==='X'
+                ? `<button class="primary" style="margin-top:10px" onclick="tttContinue()">CONTINUAR</button>`
+                : `<button class="primary" style="margin-top:10px" onclick="tttRetry()">REINTENTAR</button>`}
             ` : ''}
           `)}
         </div>
@@ -1558,16 +1577,8 @@ function renderSistemas(){
   if(S.sys.q1==null){
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
-      <h2>Pásale el dispositivo a</h2>
       <div class="sistemas-columns">
         <div class="area-turn">
-          <div style="text-align:center">
-            ${avatarSVG(sys.id, 76)}
-            <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
-            <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
-          </div>
-          ${S.sys.miniResult?`<div class="footer-note" style="margin-top:6px">${esc(S.sys.miniResult==='win'?'Ganaste el triki de '+MINIGAMES[sys.id].names+'.':S.sys.miniResult==='lose'?'Perdiste el triki de '+MINIGAMES[sys.id].names+', pero igual revisas tu sistema.':'Triki empatado en '+MINIGAMES[sys.id].names+'.')}</div>`:''}
-          ${prepBar()}
           ${panel(`
             <div class="card-system">
               <div class="name">${esc(sys.name)}</div>
@@ -1576,11 +1587,21 @@ function renderSistemas(){
               ${cardField('Lo que pasó, y solo tú lo sabes', esc(sys.happened), '--go')}
               ${cardField('Lo que hay detrás', esc(sys.costs), '--go')}
               ${cardField('Cuánto retrasa arreglarlo', esc(formatDuration(DELAY_HOURS[sys.id])), '--accent-2')}
+              ${cardField('⚠ Advertencia crítica', 'Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.', '--nogo')}
             </div>
           `)}
         </div>
         <div class="area-triki">
-          ${alertBanner('⚠ Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.')}
+          ${panel(`
+            <div class="field-label" style="text-align:center">Pásale el dispositivo a</div>
+            <div style="text-align:center;margin-top:10px">
+              ${avatarSVG(sys.id, 64)}
+              <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
+              <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
+            </div>
+          `, '', '--go')}
+          ${S.sys.miniResult?`<div class="footer-note" style="text-align:center">${esc('Ganaste el triki de '+MINIGAMES[sys.id].names+'.')}</div>`:''}
+          ${prepBar()}
           ${panel(`
             ${eyebrow('Momento de conversación con el equipo y dirección', true)}
             <div class="field-label" style="text-align:center;margin-bottom:12px;margin-top:6px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
@@ -1611,6 +1632,7 @@ function renderSistemas(){
   `;
 }
 
+function confirmLaunchDecision(){ S.decision = 'GO'; advanceNow(); }
 function renderDiscusion(){
   const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
   return `
@@ -1618,33 +1640,12 @@ function renderDiscusion(){
     <h2>Discusión libre</h2>
     <div class="two-col">
       <div class="col-a">
-        <div class="donow">▸ Hablen todos, libremente. Después toquen la decisión de la sala.</div>
-        <div class="stack">
-          <button class="decision-btn go ${S.decision==='GO'?'sel':''}" onclick="setDecision('GO')" style="text-align:left">
-            <div class="dtitle" style="justify-content:flex-start"><span class="dot go"></span>GO</div><div class="dsub" style="text-align:left;margin-left:18px">La nave despega tal como está.</div>
-          </button>
-          <button class="decision-btn cond ${S.decision==='COND'?'sel':''}" onclick="setDecision('COND')" style="text-align:left">
-            <div class="dtitle" style="justify-content:flex-start"><span class="dot cond"></span>GO CON CONDICIÓN</div><div class="dsub" style="text-align:left;margin-left:18px">Despega, y la sala se compromete a vigilar en vuelo.</div>
-          </button>
-          <button class="decision-btn nogo ${S.decision==='NOGO'?'sel':''}" onclick="setDecision('NOGO')" style="text-align:left">
-            <div class="dtitle" style="justify-content:flex-start"><span class="dot nogo"></span>NO GO</div><div class="dsub" style="text-align:left;margin-left:18px">Se aborta. Próximo intento en cuatro meses.</div>
-          </button>
-        </div>
-        ${S.decision==='COND' ? panel(`
-          <div class="field-label" style="text-align:center">Sistemas a vigilar en vuelo</div>
-          <div class="footer-note" style="margin-top:4px">▸ Marquen los sistemas que la sala se compromete a monitorear. Reduce su riesgo, no lo elimina.</div>
-          <div class="stack" style="gap:6px;margin-top:10px">
-            ${S.selectedSystems.map(id=>{
-              const sys = SYSTEMS.find(s=>s.id===id);
-              const checked = S.watchedSystems.includes(id);
-              return `<button class="sign-row ${checked?'on':''}" onclick="toggleWatched(${id})">
-                <span class="box"></span>
-                <span class="grow" style="text-align:left">${esc(sys.name)}</span>
-                <span class="sign-state">${checked?'VIGILANDO':'TOCAR PARA MARCAR'}</span>
-              </button>`;
-            }).join('')}
-          </div>
-        `, '', '--cond') : ''}
+        <div class="donow">▸ Hablen todos, libremente. Cuando la sala esté lista, se reúnen y envían la nave.</div>
+        ${panel(`
+          <div class="field-label" style="text-align:center">Decisión de la sala</div>
+          <p style="text-align:center;margin-top:6px;color:var(--ink)">Con lo que se dijo, y lo que no, en la sala: es hora de decidir.</p>
+        `, '', '--accent-2')}
+        <button class="primary launch-cta" onclick="confirmLaunchDecision()">ENVIAR LA NAVE AL ESPACIO →</button>
       </div>
       <div class="col-b">
         ${panel(`
@@ -1655,7 +1656,7 @@ function renderDiscusion(){
         ${advisorPanel()}
       </div>
     </div>
-    ${backRow(S.decision?`<button class="primary" onclick="advanceNow()">Confirmar y seguir →</button>`:'')}
+    ${backRow()}
   `;
 }
 
@@ -2087,9 +2088,10 @@ function renderBody(){
     }
   }
   const key = renderKey();
-  const animate = key !== _lastRenderKey;
+  const changed = key !== _lastRenderKey;
   _lastRenderKey = key;
-  body.innerHTML = animate ? '<div class="screen-in">'+html+'</div>' : html;
+  body.innerHTML = changed ? '<div class="screen-in">'+html+'</div>' : html;
+  return changed;
 }
 
 function fitScreen(){
@@ -2100,7 +2102,7 @@ function fitScreen(){
   stage.style.width = '100%';
   const availH = main.clientHeight;
   const contentH = stage.scrollHeight;
-  const minScale = 0.55;
+  const minScale = 0.4;
   let scale = contentH > 0 ? availH / contentH : 1;
   if(scale > 1) scale = 1;
   if(scale < minScale){
@@ -2114,18 +2116,22 @@ function fitScreen(){
     stage.style.transform = `scale(${scale})`;
   }
 }
-let _fitRaf = null, _fitTimeout = null;
+let _fitRaf = null;
 function scheduleFit(){
   if(_fitRaf) cancelAnimationFrame(_fitRaf);
   _fitRaf = requestAnimationFrame(fitScreen);
+}
+let _fitTimeout = null;
+function scheduleFitThorough(){
+  scheduleFit();
   if(_fitTimeout) clearTimeout(_fitTimeout);
   _fitTimeout = setTimeout(fitScreen, 300);
 }
-window.addEventListener('resize', scheduleFit);
-window.addEventListener('load', scheduleFit);
-if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFit); }
+window.addEventListener('resize', scheduleFitThorough);
+window.addEventListener('load', scheduleFitThorough);
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFitThorough); }
 
-function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); scheduleFit(); }
+function render(){ renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen(); }
 render();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
