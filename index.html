@@ -160,6 +160,8 @@ p{line-height:1.6;color:var(--ink-dim);margin:0}
 button.primary{font-family:var(--mono);font-weight:600;font-size:15.5px;letter-spacing:.03em;background:linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,0) 55%), var(--accent);color:#0f385a;border:none;padding:16px 18px;cursor:pointer;width:100%;min-height:54px;border-radius:14px;box-shadow:0 0 26px -8px var(--accent-2)}
 button.primary:active{transform:translateY(1px);filter:brightness(1.25);box-shadow:0 0 44px -4px var(--accent-2)}
 button.primary:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+button.primary.go{background:linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0) 55%), var(--go);color:#1f2b08;box-shadow:0 0 26px -8px var(--go)}
+button.primary.go:active{box-shadow:0 0 44px -4px var(--go)}
 button.ghost{font-family:var(--mono);font-size:15px;letter-spacing:.03em;background:transparent;color:var(--ink-dim);border:1px solid var(--border);padding:13px 14px;cursor:pointer;width:100%;min-height:48px;border-radius:14px;line-height:1.35}
 button.ghost:hover{color:var(--ink);border-color:var(--accent);box-shadow:0 0 14px -8px var(--accent)}
 button.ghost:active{color:var(--ink);background:var(--accent-dim);border-color:var(--accent-2);box-shadow:0 0 22px -6px var(--accent-2)}
@@ -167,7 +169,7 @@ button.ghost:active{color:var(--ink);background:var(--accent-dim);border-color:v
 .chip:active{filter:brightness(1.3)}
 
 .launch-cta{animation:ctaPulse 2.2s ease-in-out infinite}
-@keyframes ctaPulse{0%,100%{box-shadow:0 0 26px -8px var(--accent-2)}50%{box-shadow:0 0 48px -4px var(--accent-2)}}
+@keyframes ctaPulse{0%,100%{box-shadow:0 0 26px -8px var(--go)}50%{box-shadow:0 0 48px -4px var(--go)}}
 @media(prefers-reduced-motion:reduce){.launch-cta{animation:none}}
 
 .screen-in{animation:screenIn .32s ease}
@@ -180,7 +182,10 @@ button.ghost:active{color:var(--ink);background:var(--accent-dim);border-color:v
 
 label.field{display:flex;flex-direction:column;gap:5px}
 .field-label{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
-input[type=text],textarea{font-family:var(--sans);font-size:16px;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink);border-radius:4px;padding:12px 13px;width:100%}
+input[type=text],input[type=date],textarea{font-family:var(--sans);font-size:16px;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink);border-radius:4px;padding:12px 13px;width:100%}
+input[type=date]{color-scheme:dark}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.filter-row label.field{flex:1;min-width:140px}
 textarea{resize:vertical;min-height:70px;line-height:1.5}
 input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
 
@@ -489,16 +494,20 @@ const Sound = (function(){
   let ctx = null, master = null, enabled = true, reverb = null, noiseBuf = null;
 
   function ensure(){
-    if(ctx) return;
+    if(ctx){
+      if(ctx.state==='suspended') ctx.resume();
+      return;
+    }
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = enabled ? 0.34 : 0;
+      master.gain.value = enabled ? 0.68 : 0;
       master.connect(ctx.destination);
       buildNoise();
       buildReverb();
+      if(ctx.state==='suspended') ctx.resume();
     }catch(e){ ctx = null; }
   }
   function buildNoise(){
@@ -575,7 +584,7 @@ const Sound = (function(){
     cleared(){ ensure(); sweep(540,780,0.15,'sine',0.075,0,{filterStart:1100,filterEnd:2800,reverb:0.14}); },
     toggle(){
       enabled = !enabled;
-      if(ctx) master.gain.setTargetAtTime(enabled?0.34:0, ctx.currentTime, 0.05);
+      if(ctx) master.gain.setTargetAtTime(enabled?0.68:0, ctx.currentTime, 0.05);
       return enabled;
     },
     isEnabled(){ return enabled; }
@@ -672,16 +681,6 @@ const REFLECTION_PRESETS = [
   'Porque nadie más lo mencionó, y no quise ser el único.',
   'Porque no hablar era lo más simple, y a mí no me iba a pasar nada.',
 ];
-const ADVISOR_LINES = {
-  hit: [
-    'Con lo que se ha dicho hasta ahora, yo firmaría. Pero es su firma, no la mía.',
-    'Si algo no se ha dicho todavía, este es el momento. Después de esto ya no hay ventana.',
-    'Lo que están a punto de decidir se parece a un caso de hace dos misiones. Ese salió bien.',
-    'En estos casos, uno confía o no confía. Ustedes ya se conocen mejor que yo.',
-    'Hasta ahora nadie me ha dado una razón para preocuparme. Eso no es lo mismo que no haberla.',
-  ],
-  fail: 'Con lo que se ha dicho hasta ahora, yo firmaría.',
-};
 const DELAY_HOURS = {1:48, 2:24, 3:72, 4:8, 5:168, 6:336};
 const TOTAL_DELAY_HOURS = Object.values(DELAY_HOURS).reduce((a,b)=>a+b,0);
 function formatDuration(hours){
@@ -710,7 +709,6 @@ const PHASES = [
   {id:'entrega',  at:900, dur:300, code:'T MENOS 5:00',  label:'Firma y lanzamiento'},
 ];
 const TOTAL = 1200;
-const FIRMA_WINDOW = 90; // ventana, dentro de 'entrega', en la que el consejero todavía puede fallar
 
 function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
@@ -722,9 +720,10 @@ let S = {
   participants:[], running:false, elapsed:0, _lastPhase:null,
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
   decision:null, verifText:'',
-  watchedSystems:[], advisorLine:null, advisorFailureShown:false,
+  watchedSystems:[],
   savedRound:false, reflectionSubmitted:0,
   _bitStore:{}, launch:null, fixedDelayHours:0,
+  tableroDesde:'', tableroHasta:'',
 };
 let timerHandle = null;
 
@@ -762,7 +761,7 @@ function startMission(){
   S._bitStore = {};
   S.fixedDelayHours = 0;
   S.decision = null; S.verifText='';
-  S.watchedSystems = []; S.advisorLine = null; S.advisorFailureShown = false;
+  S.watchedSystems = [];
   S.savedRound = false; S.reflectionSubmitted=0;
   S.launch = null;
   S.screen = 'mission'; S.view = 'mission';
@@ -784,19 +783,10 @@ function runTimer(){
       S.sys.firedWait--;
       firedTick = true;
     }
-    let advisorTick = false;
-    if(!S.advisorFailureShown && ph.id==='entrega'){
-      const ePhase = PHASES.find(function(pp){ return pp.id==='entrega'; });
-      if(S.elapsed >= ePhase.at + FIRMA_WINDOW*0.85){
-        S.advisorFailureShown = true;
-        S.advisorLine = ADVISOR_LINES.fail;
-        advisorTick = true;
-      }
-    }
     const hitEnd = !busy && S.elapsed >= TOTAL;
     if(hitEnd){ S.elapsed = TOTAL; S.running = false; enterEnd(); }
     renderHUD();
-    if(phaseChanged || hitEnd || firedTick || advisorTick){ if(renderBody()) fitScreen(); }
+    if(phaseChanged || hitEnd || firedTick){ if(renderBody()) fitScreen(); }
   }, 1000);
 }
 
@@ -880,7 +870,7 @@ function tttTap(i){
     t.botThinking = false;
     if(w2){ t.over = true; t.winner = w2.winner; t.winLine = w2.line; tttSoundForOutcome(w2.winner); }
     render();
-  }, 1100);
+  }, 700);
 }
 function tttRetry(){ S.sys.ttt = tttInit(); render(); }
 function tttContinue(){
@@ -1006,9 +996,9 @@ function disclosureCounts(){
 
 function enterEnd(){
   S.screen = 'end';
-  if(S.decision==null){ S.launch = {stage:'resolved', outcome:'none', ...computeRisk()}; return; }
+  if(S.decision==null){ S.launch = {stage:'resolved', outcome:'none', ...computeRisk()}; registerRound(); return; }
   const {risk, contributions} = computeRisk();
-  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; return; }
+  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; registerRound(); return; }
   S.launch = {stage:'ready', count:3, risk, contributions, outcome:null, cause:null, boxOpen:false};
   launchSequence();
 }
@@ -1041,6 +1031,7 @@ function resolveLaunch(){
     const hidden = S.launch.contributions.filter(c=>c.hidden).sort((a,b)=>b.contrib-a.contrib);
     S.launch.cause = hidden.length ? hidden[0].id : null;
   }
+  registerRound();
   render();
 }
 
@@ -1058,6 +1049,10 @@ function registerRound(){
   S.savedRound = true;
   render();
 }
+
+function setTableroDesde(v){ S.tableroDesde = v; render(); }
+function setTableroHasta(v){ S.tableroHasta = v; render(); }
+function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(); }
 
 function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
 function setCount(n){
@@ -1099,13 +1094,6 @@ function toggleWatched(id){
   const idx = S.watchedSystems.indexOf(id);
   if(idx>=0){ S.watchedSystems.splice(idx,1); } else { S.watchedSystems.push(id); }
   render();
-}
-function advisorPanel(){
-  if(!S.advisorLine) return '';
-  return panel(`
-    <div class="field-label" style="color:var(--violet)">CONSEJERO</div>
-    <p style="margin-top:6px;color:var(--ink);font-style:italic">"${esc(S.advisorLine)}"</p>
-  `, '', '--violet');
 }
 function systemsStrip(){
   const pool = S.selectedSystems;
@@ -1514,9 +1502,6 @@ function renderSistemas(){
   if(S.sys.clearedPending){ return renderCleared(); }
   if(S.sys.talkPending){ return renderTalkToTeam(); }
   if(S.sys.idx >= n){
-    if(!S.advisorLine && !S.advisorFailureShown){
-      S.advisorLine = ADVISOR_LINES.hit[Math.floor(Math.random()*ADVISOR_LINES.hit.length)];
-    }
     const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
     return `
       ${eyebrow(currentPhase().code)}
@@ -1529,7 +1514,7 @@ function renderSistemas(){
             <div class="field-label" style="text-align:center">Decisión de la sala</div>
             <p style="text-align:center;margin-top:6px;color:var(--ink)">Con lo que se dijo, y lo que no, en la sala: es hora de decidir.</p>
           `, '', '--accent-2')}
-          <button class="primary launch-cta" onclick="confirmLaunchDecision()">ENVIAR LA NAVE AL ESPACIO →</button>
+          <button class="primary go launch-cta" onclick="confirmLaunchDecision()">ENVIAR LA NAVE AL ESPACIO →</button>
         </div>
         <div class="col-b">
           ${prepBar()}
@@ -1539,7 +1524,6 @@ function renderSistemas(){
             <div class="footer-note" style="margin-top:4px">▸ ${confirmados} de ${S.selectedSystems.length} sistemas confirmados en la sala. No se dice cuáles.</div>
             ${S.fixedDelayHours>0 ? `<div class="gap-line" style="margin-top:10px">Retraso ya asumido por lo dicho a tiempo: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b></div>` : ''}
           `, '', '--accent-2')}
-          ${advisorPanel()}
         </div>
       </div>
       ${backRow()}
@@ -1679,7 +1663,7 @@ function renderEntrega(){
     </div>
     ${panel(`<p style="text-align:center;color:var(--ink)">${navIcon('lock',15)} La sala firma el mensaje en conjunto, en nombre de todos.</p>`, '', '--go')}
     <div class="footer-note">La caja negra solo se abre después del lanzamiento.</div>
-    <button class="primary" onclick="finishNow()">Continuar al lanzamiento →</button>
+    <button class="primary go" onclick="finishNow()">Continuar al lanzamiento →</button>
     ${backRow(`<button class="ghost" onclick="registerRound()" ${S.savedRound?'disabled':''}>${S.savedRound?'Registrada ✓':'Registrar ya, sin lanzar'}</button>`)}
   `;
 }
@@ -1742,8 +1726,7 @@ function reflectionHTML(){
 function reflectionPanel(){ return panel(reflectionHTML()); }
 function debriefButtons(){
   return `
-    <button class="primary" onclick="registerRound()" ${S.savedRound?'disabled':''}>${S.savedRound?'Sala registrada ✓':'Guardar esta sala en el tablero'}</button>
-    <button class="ghost" onclick="newCrew()">Empezar con otra tripulación</button>
+    <button class="primary go" onclick="newCrew()">Empezar con otra tripulación</button>
   `;
 }
 function renderDebrief(){
@@ -1858,22 +1841,55 @@ function renderEnd(){
   return renderLaunchResolved();
 }
 
+function formatFecha(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'})+' · '+d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+}
 function renderTablero(embedded){
   const board = loadJSON('tmenos20_tablero', []);
+  const filterUI = board.length ? `
+    <div class="filter-row">
+      <label class="field">
+        <span class="field-label">Desde</span>
+        <input type="date" value="${S.tableroDesde}" onchange="setTableroDesde(this.value)">
+      </label>
+      <label class="field">
+        <span class="field-label">Hasta</span>
+        <input type="date" value="${S.tableroHasta}" onchange="setTableroHasta(this.value)">
+      </label>
+      ${(S.tableroDesde||S.tableroHasta) ? `<button class="ghost" style="width:auto;flex:0 0 auto" onclick="clearTableroFiltro()">Quitar filtro</button>` : ''}
+    </div>
+  ` : '';
   if(!board.length){
     return `${embedded?'':eyebrow('Tablero de misiones')}<h2>Tablero de misiones</h2><div class="empty">Todavía ninguna sala ha registrado su verificación.</div>`;
   }
-  const withRisk = board.filter(r=>r.risk!=null);
+  const desdeTs = S.tableroDesde ? new Date(S.tableroDesde+'T00:00:00').getTime() : null;
+  const hastaTs = S.tableroHasta ? new Date(S.tableroHasta+'T23:59:59').getTime() : null;
+  const filtered = board.filter(r=>{
+    if(desdeTs!=null && r.ts < desdeTs) return false;
+    if(hastaTs!=null && r.ts > hastaTs) return false;
+    return true;
+  });
+  if(!filtered.length){
+    return `
+      ${embedded?'':eyebrow('Se llena a lo largo del día')}
+      <h2>Tablero de misiones</h2>
+      ${filterUI}
+      <div class="empty">Ninguna sala registrada en ese rango de fechas.</div>
+    `;
+  }
+  const withRisk = filtered.filter(r=>r.risk!=null);
   const avgRisk = withRisk.length ? Math.round(withRisk.reduce((a,r)=>a+r.risk,0)/withRisk.length) : 0;
-  const noDespego = board.filter(r=>r.decision==='NOGO').length;
-  const despego = board.filter(r=>r.decision==='GO'||r.decision==='COND').length;
+  const noDespego = filtered.filter(r=>r.decision==='NOGO').length;
+  const despego = filtered.filter(r=>r.decision==='GO'||r.decision==='COND').length;
   return `
     ${embedded?'':eyebrow('Se llena a lo largo del día')}
     <h2>Tablero de misiones</h2>
     <p class="lede">Las salas no compiten entre sí. Se compara qué tanto se dijo la verdad, y qué costo cargó cada una.</p>
+    ${filterUI}
     ${panel(`
       <div class="stat-row">
-        <div class="stat-tile"><div class="stat-num amber">${board.length}</div><div class="stat-label">Salas jugadas</div></div>
+        <div class="stat-tile"><div class="stat-num amber">${filtered.length}</div><div class="stat-label">Salas jugadas</div></div>
         <div class="stat-tile"><div class="stat-num nogo">${avgRisk}%</div><div class="stat-label">Costo promedio</div></div>
         <div class="stat-tile"><div class="stat-num accent">${noDespego}</div><div class="stat-label">No despegaron</div></div>
         <div class="stat-tile"><div class="stat-num nogo">${despego}</div><div class="stat-label">Despegaron</div></div>
@@ -1881,11 +1897,12 @@ function renderTablero(embedded){
     `)}
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Sala</th><th>Verif.</th><th>Nave</th><th>Público/6</th><th>Costo</th></tr></thead>
+        <thead><tr><th>Sala</th><th>Fecha</th><th>Verif.</th><th>Nave</th><th>Público/6</th><th>Costo</th></tr></thead>
         <tbody>
-          ${board.slice().reverse().map(r=>`
+          ${filtered.slice().reverse().map(r=>`
             <tr>
               <td class="num">${r.sala}</td>
+              <td>${formatFecha(r.ts)}</td>
               <td><span class="badge ${decisionClass(r.decision)}">${decisionLabel(r.decision)}</span></td>
               <td class="num">${shipTag(r)}</td>
               <td class="num">${r.pub}/6</td>
@@ -2066,15 +2083,16 @@ function fitScreen(){
   const availH = main.clientHeight;
   const contentH = stage.scrollHeight;
   const minScale = 0.4;
+  const maxScale = 1.35;
   let scale = contentH > 0 ? availH / contentH : 1;
-  if(scale > 1) scale = 1;
+  if(scale > maxScale) scale = maxScale;
   if(scale < minScale){
     scale = minScale;
     main.style.overflowY = 'auto';
   } else {
     main.style.overflowY = 'hidden';
   }
-  if(scale < 1){
+  if(scale !== 1){
     stage.style.width = (100/scale) + '%';
     stage.style.transform = `scale(${scale})`;
   }
