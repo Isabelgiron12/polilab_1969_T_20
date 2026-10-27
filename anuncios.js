@@ -179,7 +179,29 @@ const Anuncios = (() => {
 
     // REFLEXIÓN FINAL - MÁS PROFUNDA
     reflexionFinal: () =>
-      `Hemos llegado al final. La nave ha despegado... o no. Pero lo importante es que cada uno de ustedes enfrentó una decisión real. En un equipo verdadero, no todos están de acuerdo. Algunos querían despegar, otros querían esperar. Pero todos trabajaron juntos. Eso es lo que define a un equipo. No la decisión correcta, sino la valentía de tomarla juntos. La próxima vez, sabrán que se pueden confiar. Y eso vale más que cualquier misión.`
+      `Hemos llegado al final. La nave ha despegado... o no. Pero lo importante es que cada uno de ustedes enfrentó una decisión real. En un equipo verdadero, no todos están de acuerdo. Algunos querían despegar, otros querían esperar. Pero todos trabajaron juntos. Eso es lo que define a un equipo. No la decisión correcta, sino la valentía de tomarla juntos. La próxima vez, sabrán que se pueden confiar. Y eso vale más que cualquier misión.`,
+
+    // ESTRATEGIA PSICOLÓGICA - Para crear presión
+    advertenciaRiesgo: (porcentaje) =>
+      `El riesgo actual es del ${porcentaje}%. Están en zona roja. Cualquier error más y no hay vuelta atrás.`,
+
+    presionTiempo: () =>
+      `Quedan minutos. El combustible no espera. Las decisiones lentas son decisiones malas.`,
+
+    sospechaEquipo: (nombre) =>
+      `${nombre} ha cometido errores. ¿Pueden confiar realmente en este equipo para una misión de vida o muerte?`,
+
+    ultimatum: () =>
+      `Esta es su última oportunidad. Si no despegan ahora, todo termina. No habrá segunda ronda.`,
+
+    perdidaInminente: () =>
+      `El sistema falla. La nave se desestabiliza. Es demasiado tarde. Deberían haber decidido hace minutos.`,
+
+    falsoExito: () =>
+      `Parece que todo está bajo control. Pero el riesgo acecha en cada decisión. ¿Realmente creen que van a lograrlo?`,
+
+    manipulacionMiedo: () =>
+      `Los astronautas están contando con ustedes. Su vida está en sus manos. ¿Están seguros de su decisión?`
   };
 
   // Reproducir una frase predefinida
