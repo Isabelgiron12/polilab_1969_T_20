@@ -72,8 +72,8 @@ const Anuncios = (() => {
     faseDecision: () =>
       `Es momento crítico. Se requiere toma de decisión del equipo.`,
 
-    faseMiniJuego: (jugador = 'Jugador') =>
-      `Preparando desafío para ${jugador}. Diríjase al área de entrenamiento.`,
+    faseMiniJuego: (area = 'entrenamiento') =>
+      `Preparando desafío. Diríjase al área de ${area}.`,
 
     faseTiempoMuerto: () =>
       `Tiempo muerto de operaciones. Aprovechen para revisar sistemas.`,
