@@ -1564,25 +1564,18 @@ function renderSistemas(){
     const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
     return `
       ${eyebrow(currentPhase().code)}
-      <h2>Discusión libre</h2>
-      <p>Cada quien decidió a solas. Nadie vio la carta de nadie más. Ahora hablen, y decidan juntos.</p>
-      <div class="two-col">
-        <div class="col-a">
-          <div class="donow">▸ Hablen todos, libremente. Cuando la sala esté lista, se reúnen y envían la nave.</div>
-          ${panel(`
-            <div class="field-label" style="text-align:center">Decisión de la sala</div>
-            <p style="text-align:center;margin-top:6px;color:var(--ink)">Con lo que se dijo, y lo que no, en la sala: es hora de decidir.</p>
-          `, '', '--accent-2')}
-          <button class="primary go launch-cta" onclick="confirmLaunchDecision()">ENVIAR LA NAVE AL ESPACIO →</button>
+      <h2>La nave está lista. Decidan ahora.</h2>
+      <p>Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?</p>
+      <div class="stack" style="gap:16px;margin-top:24px">
+        ${prepBar()}
+        <div class="row" style="gap:12px;flex-direction:column">
+          <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR CON NOVEDADES →</button>
+          <button class="ghost" onclick="S.decision='NO-GO'; advanceNow()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
         </div>
-        <div class="col-b">
-          ${prepBar()}
-          ${panel(`<div class="field-label" style="margin-bottom:8px">Sistemas cerrados</div><div class="folded-row">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'CERRADO'}</span></div>`).join('')}</div>`)}
-          ${panel(`
-            <div class="field-label" style="text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">${navIcon('bars',14)}Estado público de la nave</div>
-            <div class="footer-note" style="margin-top:4px">▸ ${confirmados} de ${S.selectedSystems.length} sistemas confirmados en la sala. No se dice cuáles.</div>
-            ${S.fixedDelayHours>0 ? `<div class="gap-line" style="margin-top:10px">Retraso ya asumido por lo dicho a tiempo: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b></div>` : ''}
-          `, '', '--accent-2')}
+        <div class="panel" style="text-align:center">
+          <div class="field-label" style="margin-bottom:8px">Estado de sistemas</div>
+          <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'CERRADO'}</span></div>`).join('')}</div>
+          <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} confirmados. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
         </div>
       </div>
       ${backRow()}
