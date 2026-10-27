@@ -1154,7 +1154,7 @@ function enterEnd(){
   S.screen = 'end';
   if(S.decision==null){ S.launch = {stage:'resolved', outcome:'none', ...computeRisk()}; registerRound(); return; }
   const {risk, contributions} = computeRisk();
-  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; registerRound(); return; }
+  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; Sound.win(); registerRound(); return; }
   S.launch = {stage:'ready', count:3, risk, contributions, outcome:null, cause:null, boxOpen:false};
   launchSequence();
 }
@@ -2051,18 +2051,25 @@ function renderLaunchResolved(){
 }
 function renderAborted(){
   return `
-    ${eyebrow('MISIÓN ABORTADA', true)}
-    <h1 class="outcome-head">La nave no despegó</h1>
+    ${eyebrow('MISIÓN ABORTADA · GANARON', true)}
+    <h1 class="outcome-head" style="color:var(--go)">¡Hicieron las cosas correctas!</h1>
     ${cockpitSVG()}
     ${panel(`
-      <p style="color:var(--ink)">No despegaron. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-      <p style="margin-top:10px;color:var(--ink)"><b>No hizo falta abrir la caja negra. Evitaron la apuesta. Nunca van a saber si la nave habría llegado.</b></p>
-    `)}
+      <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
+      <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
+    `, 'flash-go')}
+    ${panel(`
+      <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
+      <h2 style="margin-top:0">El caso Challenger</h2>
+      ${challengerStoryHTML()}
+    `, 'tarjeta-caso')}
     ${!S.launch.boxOpen
       ? `<button class="ghost" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`
       : panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`)}
     ${backRow()}
-    ${renderDebrief()}
+    ${disclosurePanels()}
+    ${reflectionPanel()}
+    ${debriefButtons()}
   `;
 }
 function renderNoDecision(){
