@@ -162,7 +162,20 @@ const Anuncios = (() => {
       `Reflexiona sobre lo que pasó. Elige una reflexión o escribe la tuya propia.`,
 
     pantallaFinal: () =>
-      `Fin del juego. Puedes comenzar con un nuevo equipo o revisar lo que aprendiste.`
+      `Fin del juego. Puedes comenzar con un nuevo equipo o revisar lo que aprendiste.`,
+
+    // EVENTOS ESPECIALES
+    direccionHabla: (mensaje) =>
+      `La dirección comunica: ${mensaje}. Presten atención.`,
+
+    casoCerrado: (caso) =>
+      `Caso cerrado. ${caso}. El equipo puede continuar.`,
+
+    casoCerradoExito: () =>
+      `Caso cerrado exitosamente. Muy bien, el equipo demostró competencia.`,
+
+    casoCerradoFallo: () =>
+      `Caso cerrado por fallo. El equipo no cumplió los objetivos. Se requiere análisis.`
   };
 
   // Reproducir una frase predefinida
