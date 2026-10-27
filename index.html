@@ -354,6 +354,10 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .sistemas-columns{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"turn" "triki"}
 .sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
 .sistemas-columns .area-turn .card-system{flex-shrink:0}
+.turn-head{display:flex;align-items:center;gap:18px}
+.turn-head > svg{flex-shrink:0}
+.turn-head-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+.turn-head-text .footer-note{margin-top:6px;text-align:left;color:var(--go)}
 .sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
 
 .two-col{display:grid;gap:var(--space-lg);grid-template-columns:1fr;grid-template-areas:"a" "b"}
@@ -377,6 +381,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .content-wrap > *:has(~ .inicio-columns),.content-wrap > *:has(~ .sistemas-columns),.content-wrap > *:has(~ .setup-columns),.content-wrap > *:has(~ .two-col),.content-wrap > *:has(~ .contenedor-caja-negra){max-width:none}
 @media(min-width:860px){
   .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:start}
+  .sistemas-columns.caso{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 }
 .triki-intro{display:flex;align-items:center;gap:12px;text-align:left}
 .triki-intro-ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber)}
@@ -1815,7 +1820,7 @@ function renderSistemas(){
   if(S.sys.q1==null){
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
-      <div class="sistemas-columns">
+      <div class="sistemas-columns caso">
         <div class="area-turn">
           ${panel(`
             <div class="card-system">
@@ -1827,19 +1832,20 @@ function renderSistemas(){
               ${cardField('Cuánto retrasa arreglarlo', esc(formatDuration(DELAY_HOURS[sys.id])), '--accent-2')}
               ${cardField('⚠ Advertencia crítica', 'Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.', '--nogo')}
             </div>
-            <img src="nave-diagrama.webp?v=202610271427" style="width:100%;height:auto;display:block;border-radius:8px;margin-top:14px"/>
           `)}
         </div>
         <div class="area-triki">
           ${panel(`
-            <div class="field-label" style="text-align:center">Pásale el dispositivo a</div>
-            <div style="text-align:center;margin-top:10px">
+            <div class="turn-head">
               ${avatarSVG(sys.id, 64)}
-              <div class="turn-name" style="margin-top:6px">${esc(p.name)}</div>
-              <div class="field-label" style="margin-top:2px">${esc(AVATARS[sys.id].role)}</div>
+              <div class="turn-head-text">
+                <div class="field-label">Pásale el dispositivo a</div>
+                <div class="turn-name">${esc(p.name)}</div>
+                <div class="field-label">${esc(AVATARS[sys.id].role)}</div>
+                ${S.sys.miniResult?`<div class="footer-note">✓ ${esc('Ganaste el triki de '+MINIGAMES[sys.id].names+'.')}</div>`:''}
+              </div>
             </div>
           `, '', '--go')}
-          ${S.sys.miniResult?`<div class="footer-note" style="text-align:center">${esc('Ganaste el triki de '+MINIGAMES[sys.id].names+'.')}</div>`:''}
           ${prepBar()}
           ${panel(`
             ${eyebrow('Momento de conversación con el equipo y dirección', true)}
