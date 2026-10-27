@@ -175,7 +175,11 @@ const Anuncios = (() => {
       `Caso cerrado exitosamente. Muy bien, el equipo demostró competencia.`,
 
     casoCerradoFallo: () =>
-      `Caso cerrado por fallo. El equipo no cumplió los objetivos. Se requiere análisis.`
+      `Caso cerrado por fallo. El equipo no cumplió los objetivos. Se requiere análisis.`,
+
+    // REFLEXIÓN FINAL - MÁS PROFUNDA
+    reflexionFinal: () =>
+      `Hemos llegado al final. Cada decisión que tomaste moldeó el resultado. Recuerda: en la vida real, como en esta misión, no siempre hay respuestas correctas. Lo que importa es entender las consecuencias, aprender de los errores y crecer como equipo. La próxima vez, serás mejor.`
   };
 
   // Reproducir una frase predefinida
