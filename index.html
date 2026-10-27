@@ -516,6 +516,14 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 @keyframes orbitSpin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.orbit-spin{animation:none}}
 
+.dev-navigator{position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;z-index:40;font-family:var(--mono);font-size:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.dev-navigator-label{color:var(--ink-dim);margin-bottom:8px;text-align:center;letter-spacing:.05em}
+.dev-navigator-controls{display:flex;gap:8px;align-items:center;justify-content:center}
+.dev-nav-btn{background:var(--accent-dim);color:var(--accent-2);border:1px solid var(--accent-2);border-radius:6px;padding:6px 10px;cursor:pointer;font-family:var(--mono);font-size:11px;transition:all .15s}
+.dev-nav-btn:hover{background:var(--accent-2);color:var(--void)}
+.dev-nav-select{background:var(--panel-2);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:6px 8px;cursor:pointer;font-family:var(--mono);font-size:11px;transition:all .15s}
+.dev-nav-select:hover{border-color:var(--accent-2)}
+
 ::selection{background:var(--accent-dim);color:var(--ink)}
 </style>
 </head>
@@ -530,6 +538,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
       <div class="stage">
         <div class="hud" id="hud"></div>
         <div class="body" id="body"></div>
+        <div id="devNav"></div>
       </div>
     </div>
   </div>
@@ -1103,6 +1112,27 @@ function setTableroHasta(v){ S.tableroHasta = v; render(); }
 function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(); }
 
 function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
+
+function jumpToStep(stepIdx){
+  if(!S.running || S.nav!=='cajanegra' || S.screen==='setup') return;
+  const n = S.participants.length;
+  if(stepIdx < 0 || stepIdx >= n) return;
+  S.sys.idx = stepIdx;
+  S.sys.q1 = null;
+  S.sys.miniDone = false;
+  S.sys.ttt = null;
+  S.sys.miniResult = null;
+  S.sys.deciding = false;
+  S.sys.firedPending = false;
+  S.sys.clearedPending = false;
+  S.decision = null;
+  render();
+}
+
+function setCurrentStep(val){
+  jumpToStep(parseInt(val));
+}
+
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1279,14 +1309,18 @@ function cockpitSVG(){
 
 function renderHUD(){
   const hud = document.getElementById('hud');
+  const devNav = document.getElementById('devNav');
   if(S.nav!=='cajanegra' || S.screen==='setup'){
     hud.innerHTML = '';
+    devNav.innerHTML = '';
     return;
   }
   const ph = currentPhase();
   const idx = phaseIndex();
   const remain = TOTAL - S.elapsed;
   const crit = remain <= 90;
+  const n = S.participants ? S.participants.length : 0;
+  const stepOpts = Array.from({length:n}, (_,i) => `<option value="${i}" ${S.sys.idx===i?'selected':''}>${i+1}</option>`).join('');
   hud.innerHTML = `
     <div class="clock-row">
       <div class="phase-meta">
@@ -1297,6 +1331,16 @@ function renderHUD(){
       <button class="pausebtn" onclick="togglePause()" ${S.screen==='end'?'style=visibility:hidden':''}>${S.running?'PAUSAR':'SEGUIR'}</button>
     </div>
     <div class="progress-track"><div class="progress-fill" style="width:${(S.elapsed/TOTAL*100).toFixed(2)}%"></div></div>
+  `;
+  devNav.innerHTML = `
+    <div class="dev-navigator">
+      <div class="dev-navigator-label">PASO ${S.sys.idx+1} DE ${n}</div>
+      <div class="dev-navigator-controls">
+        <button class="dev-nav-btn" onclick="jumpToStep(Math.max(0,S.sys.idx-1))">◀</button>
+        <select class="dev-nav-select" onchange="setCurrentStep(this.value)">${stepOpts}</select>
+        <button class="dev-nav-btn" onclick="jumpToStep(Math.min(${n}-1,S.sys.idx+1))">▶</button>
+      </div>
+    </div>
   `;
 }
 
