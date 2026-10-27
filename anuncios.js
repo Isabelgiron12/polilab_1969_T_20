@@ -5,7 +5,7 @@ const Anuncios = (() => {
 
   const config = {
     lang: 'es-MX',  // Acento latino (México)
-    rate: 0.95,
+    rate: 1.2,  // Más rápido para fluidez
     pitch: 1,
     volume: 1
   };
