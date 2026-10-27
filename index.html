@@ -1337,6 +1337,187 @@ function cockpitSVG(){
   </div>`;
 }
 
+function cockpitDrawingSVG(){
+  const stars = [
+    [46,38,1.4],[92,26,1],[150,32,1.2],[338,30,1],[360,60,1.4],[372,120,1],
+    [30,90,1],[36,150,1.3],[28,180,1],[350,170,1.2],[110,190,1],[70,20,1],
+  ];
+  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:380px;max-width:100%" aria-hidden="true">
+    <style>
+      @keyframes orbit { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+      @keyframes orbitSlow { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+      @keyframes planetRotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+      .orbit-group { animation: orbit 20s linear infinite; transform-origin: 200px 110px; }
+      .planet-g { animation: planetRotate 30s linear infinite; transform-origin: 200px 110px; }
+    </style>
+    <defs>
+      <linearGradient id="rocketFire" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ff6b00" stop-opacity=".8"/>
+        <stop offset="50%" stop-color="#fbaf17" stop-opacity=".6"/>
+        <stop offset="100%" stop-color="#ff6b00" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="rocketGlow">
+        <feGaussianBlur stdDeviation="1.2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="energyRing">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <clipPath id="cpClip"><rect x="18" y="18" width="364" height="168" rx="16"></rect></clipPath>
+      <style>
+        @keyframes energyPulse { 0%,100%{opacity:.3;stroke-width:2} 50%{opacity:.8;stroke-width:3} }
+        .energy-ring { animation: energyPulse 2.5s ease-in-out infinite; }
+      </style>
+    </defs>
+    <rect class="cp-frame" x="4" y="4" width="392" height="196" rx="24"></rect>
+    <g clip-path="url(#cpClip)">
+      <rect x="18" y="18" width="364" height="168" fill="var(--bg)"></rect>
+      ${stars.map(([x,y,r],i)=>`<circle class="cp-star${i%3===0?' dim':''}" cx="${x}" cy="${y}" r="${r}"></circle>`).join('')}
+
+      <!-- Planeta en el centro -->
+      <g transform="translate(200, 110)">
+        <!-- Órbitas alrededor del planeta -->
+        <circle cx="0" cy="0" r="42" fill="none" stroke="rgba(31,178,222,.15)" stroke-width="1" stroke-dasharray="2,2"/>
+        <circle cx="0" cy="0" r="52" fill="none" stroke="rgba(251,175,23,.1)" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- Planeta Tierra -->
+        <defs>
+          <radialGradient id="planetGlow">
+            <stop offset="0%" stop-color="rgba(31,178,222,.4)"/>
+            <stop offset="100%" stop-color="rgba(31,178,222,.1)"/>
+          </radialGradient>
+        </defs>
+
+        <circle cx="0" cy="0" r="28" fill="#1a4d7a" stroke="rgba(31,178,222,.3)" stroke-width="1.5" filter="url(#energyRing)"/>
+        <!-- Océanos -->
+        <path d="M -20,-10 Q -15,-20 0,-22 Q 15,-20 20,-10 Q 18,0 15,10 Q 10,15 0,16 Q -10,15 -15,10 Q -18,0 -20,-10 Z" fill="rgba(15,178,222,.6)" opacity=".4"/>
+        <!-- Continentes -->
+        <ellipse cx="-8" cy="-8" rx="6" ry="4" fill="rgba(166,206,56,.5)" opacity=".5"/>
+        <ellipse cx="10" cy="6" rx="5" ry="6" fill="rgba(166,206,56,.4)" opacity=".5"/>
+        <!-- Brillo del planeta -->
+        <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2" opacity=".6"/>
+
+        <!-- Cohete en órbita -->
+        <g class="orbit-group">
+          <g transform="translate(0, -50)">
+            <!-- Cohete en órbita con movimiento -->
+            <path d="M 0,-12 L 3,-5 L 3,10 Q 3,14 0,15 Q -3,14 -3,10 L -3,-5 Z" fill="var(--accent-2)" filter="url(#rocketGlow)" stroke="rgba(31,178,222,.9)" stroke-width="1.5"/>
+            <!-- Anillos de energía del cohete -->
+            <circle cx="0" cy="0" r="18" fill="none" stroke="var(--go)" opacity=".3" stroke-width="1" filter="url(#energyRing)"/>
+            <circle cx="0" cy="0" r="22" fill="none" stroke="var(--amber)" opacity=".2" stroke-width="0.8" filter="url(#energyRing)"/>
+            <!-- Aletas -->
+            <path d="M -3,4 L -10,11 L -3,9 Z" fill="var(--go)" opacity=".8"/>
+            <path d="M 3,4 L 10,11 L 3,9 Z" fill="var(--go)" opacity=".8"/>
+            <!-- Fuego -->
+            <path d="M -1,14 Q -2,18 -1,22" fill="url(#rocketFire)" opacity=".7"/>
+            <path d="M 1,14 Q 2,18 1,22" fill="url(#rocketFire)" opacity=".7"/>
+          </g>
+        </g>
+
+        <!-- Satélite pequeño -->
+        <g class="orbit-group" style="animation-duration:30s;animation-direction:reverse">
+          <circle cx="0" cy="-38" r="2.5" fill="var(--amber)" opacity=".8" filter="url(#energyRing)"/>
+        </g>
+      </g>
+
+      <g transform="translate(200, 65)">
+        <!-- Cuerpo principal del cohete - Modelo azul profesional -->
+        <!-- Nariz blanca/plateada -->
+        <path d="M 0,-50 L 8,-38 L -8,-38 Z" fill="#f0f0f0" filter="url(#rocketGlow)" stroke="rgba(200,220,255,.5)" stroke-width="1.5"/>
+
+        <!-- Cuerpo azul metalizado -->
+        <defs>
+          <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#1a5a99" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#2a7acc" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#0f3a6f" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="fireGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/>
+            <stop offset="20%" stop-color="#ffff00" stop-opacity=".8"/>
+            <stop offset="60%" stop-color="#00ccff" stop-opacity=".6"/>
+            <stop offset="100%" stop-color="#ff6600" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+
+        <path d="M -12,-38 L 12,-38 L 16,25 Q 16,40 0,45 Q -16,40 -16,25 Z" fill="url(#bodyGrad)" stroke="rgba(100,180,255,.6)" stroke-width="2"/>
+
+        <!-- Anillo de motor/estructura central -->
+        <ellipse cx="0" cy="15" rx="13" ry="6" fill="none" stroke="rgba(0,200,255,.4)" stroke-width="2" opacity=".7"/>
+        <ellipse cx="0" cy="15" rx="10" ry="4" fill="none" stroke="rgba(100,150,200,.3)" stroke-width="1" opacity=".5"/>
+
+        <!-- Aletas amarillas grandes -->
+        <path d="M -16,5 L -35,30 L -16,25 Q -14,15 -16,8 Z" fill="#f4d100" filter="url(#rocketGlow)" opacity=".95"/>
+        <path d="M 16,5 L 35,30 L 16,25 Q 14,15 16,8 Z" fill="#f4d100" filter="url(#rocketGlow)" opacity=".95"/>
+
+        <!-- Detalle de aleta trasera -->
+        <path d="M -16,20 L -28,35 L -16,30 Z" fill="#e5c200" opacity=".7"/>
+        <path d="M 16,20 L 28,35 L 16,30 Z" fill="#e5c200" opacity=".7"/>
+
+        <!-- Ventanas/Portholes -->
+        <circle cx="0" cy="-28" r="6" fill="rgba(200,230,255,.3)" stroke="rgba(100,200,255,.7)" stroke-width="1.5" filter="url(#rocketGlow)"/>
+        <circle cx="0" cy="-28" r="4" fill="rgba(255,255,200,.4)" opacity=".6"/>
+        <circle cx="-0.5" cy="-30" r="1.5" fill="#ffffff" opacity=".8"/>
+
+        <!-- LEDs de estado amarillos del cohete -->
+        <circle cx="-9" cy="-15" r="2.2" fill="#ffdd00" filter="url(#rocketGlow)" opacity="1"/>
+        <circle cx="9" cy="-15" r="2.2" fill="#ffdd00" filter="url(#rocketGlow)" opacity="1"/>
+        <circle cx="0" cy="-8" r="1.8" fill="#ffdd00" opacity=".8"/>
+
+        <!-- Panel estructural del motor -->
+        <rect x="-10" y="20" width="20" height="8" fill="none" stroke="rgba(50,150,200,.4)" stroke-width="1.5" rx="2"/>
+
+        <!-- Anillos de energía pulsantes alrededor -->
+        <circle class="energy-ring" cx="0" cy="0" r="50" fill="none" stroke="rgba(100,200,255,.5)" opacity=".4" stroke-width="2" filter="url(#energyRing)"/>
+        <circle class="energy-ring" cx="0" cy="0" r="62" fill="none" stroke="rgba(255,200,0,.4)" opacity=".3" stroke-width="1.5" filter="url(#energyRing)" style="animation-delay:.4s"/>
+
+        <!-- Toberas de propulsión complejas -->
+        <ellipse cx="-7" cy="43" rx="4" ry="7" fill="rgba(100,100,100,.6)" stroke="rgba(50,50,50,.5)" stroke-width="1"/>
+        <ellipse cx="7" cy="43" rx="4" ry="7" fill="rgba(100,100,100,.6)" stroke="rgba(50,50,50,.5)" stroke-width="1"/>
+        <ellipse cx="0" cy="45" rx="3" ry="5" fill="rgba(80,80,80,.5)"/>
+
+        <!-- Fuego azul-amarillo-blanco profesional -->
+        <path d="M -6,45 Q -12,60 -8,85" fill="url(#fireGrad)" opacity=".9" filter="url(#rocketGlow)"/>
+        <path d="M 6,45 Q 12,60 8,85" fill="url(#fireGrad)" opacity=".9" filter="url(#rocketGlow)"/>
+        <path d="M -2,47 Q 0,70 0,90" fill="#00ddff" opacity=".5" filter="url(#rocketGlow)"/>
+        <path d="M 2,47 Q 0,70 0,90" fill="#00ddff" opacity=".5" filter="url(#rocketGlow)"/>
+
+        <!-- Núcleo del fuego interno -->
+        <path d="M -1,48 Q 0,65 0,80" fill="#ffeeaa" opacity=".4" filter="url(#rocketGlow)"/>
+        <path d="M 1,48 Q 0,65 0,80" fill="#ffeeaa" opacity=".4" filter="url(#rocketGlow)"/>
+
+        <!-- Partículas de fuego animadas -->
+        <circle cx="-7" cy="60" r="2.5" fill="#ffff00" opacity=".7" filter="url(#rocketGlow)"/>
+        <circle cx="7" cy="60" r="2.5" fill="#ffff00" opacity=".7" filter="url(#rocketGlow)"/>
+        <circle cx="-3" cy="75" r="2" fill="#ff9900" opacity=".5" filter="url(#rocketGlow)"/>
+        <circle cx="3" cy="75" r="2" fill="#ff9900" opacity=".5" filter="url(#rocketGlow)"/>
+
+        <!-- Brillo especular del cuerpo -->
+        <ellipse cx="-8" cy="-5" rx="4" ry="15" fill="rgba(255,255,255,.15)" opacity=".4"/>
+      </g>
+    </g>
+    <circle class="cp-rivet" cx="16" cy="16" r="3"></circle>
+    <circle class="cp-rivet" cx="384" cy="16" r="3"></circle>
+    <circle class="cp-rivet" cx="16" cy="196" r="3"></circle>
+    <circle class="cp-rivet" cx="384" cy="196" r="3"></circle>
+    <rect class="cp-panel" x="16" y="192" width="52" height="20" rx="3"></rect>
+    <circle class="cp-led go blink" cx="27" cy="202" r="2.4"></circle>
+    <circle class="cp-led warn" cx="42" cy="202" r="2.4"></circle>
+    <circle class="cp-led go" cx="57" cy="202" r="2.4"></circle>
+    <rect class="cp-panel" x="332" y="192" width="52" height="20" rx="3"></rect>
+    <circle class="cp-led go" cx="343" cy="202" r="2.4"></circle>
+    <circle class="cp-led go" cx="358" cy="202" r="2.4"></circle>
+    <circle class="cp-led warn blink" cx="373" cy="202" r="2.4"></circle>
+  </svg>`;
+}
+
 function renderHUD(){
   const hud = document.getElementById('hud');
   const topbar = document.getElementById('topbar');
@@ -1986,7 +2167,6 @@ function renderDebrief(){
     <h2>El caso Challenger</h2>
     ${challengerStoryPanel()}
     ${disclosurePanels()}
-    ${reflectionPanel()}
     ${debriefButtons()}
   `;
 }
@@ -2004,7 +2184,7 @@ function renderLaunchCountdown(){
       </svg>
       <div class="ignition">${S.launch.count}</div>
     </div>
-    ${cockpitSVG()}
+    ${cockpitDrawingSVG()}
     <p style="text-align:center;color:var(--ink-faint)">La sala ya no puede cambiar nada.</p>
   `;
 }
@@ -2015,7 +2195,7 @@ function renderLaunchResolved(){
     return `
       ${eyebrow(success?'SEÑAL NOMINAL':'PÉRDIDA DE VEHÍCULO', true)}
       <h1 class="outcome-head">${success?'La nave despegó y llegó':'La nave despegó y no llegó'}</h1>
-      ${cockpitSVG()}
+      ${cockpitDrawingSVG()}
       ${panel(`
         <p style="text-align:center;color:var(--ink)">Toca para abrir la caja negra y ver qué pasó de verdad.</p>
         <button class="primary" style="margin-top:12px" onclick="openBlackBox()">ABRIR LA CAJA NEGRA</button>
@@ -2063,7 +2243,7 @@ function renderAborted(){
   return `
     ${eyebrow('MISIÓN ABORTADA · GANARON', true)}
     <h1 class="outcome-head" style="color:var(--go)">¡Hicieron las cosas correctas!</h1>
-    ${cockpitSVG()}
+    ${cockpitDrawingSVG()}
     ${panel(`
       <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
       <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
@@ -2078,7 +2258,6 @@ function renderAborted(){
       : panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`)}
     ${backRow()}
     ${disclosurePanels()}
-    ${reflectionPanel()}
     ${debriefButtons()}
   `;
 }
