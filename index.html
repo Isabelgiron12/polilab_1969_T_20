@@ -353,6 +353,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 
 .sistemas-columns{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"turn" "triki"}
 .sistemas-columns .area-turn{grid-area:turn;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
+.sistemas-columns .area-turn .card-system{flex-shrink:0}
 .sistemas-columns .area-triki{grid-area:triki;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;min-width:0}
 
 .two-col{display:grid;gap:var(--space-lg);grid-template-columns:1fr;grid-template-areas:"a" "b"}
@@ -1817,7 +1818,16 @@ function renderSistemas(){
       <div class="sistemas-columns">
         <div class="area-turn">
           ${panel(`
-            <img src="nave-diagrama.webp?v=202610271427" style="width:100%;height:auto;display:block;border-radius:8px"/>
+            <div class="card-system">
+              <div class="name">${esc(sys.name)}</div>
+              ${cardField('Habilidad', esc(AVATARS[sys.id].ability), '--rose')}
+              ${cardField('De qué respondes', esc(sys.does), '--amber')}
+              ${cardField('Lo que pasó, y solo tú lo sabes', esc(sys.happened), '--go')}
+              ${cardField('Lo que hay detrás', esc(sys.costs), '--go')}
+              ${cardField('Cuánto retrasa arreglarlo', esc(formatDuration(DELAY_HOURS[sys.id])), '--accent-2')}
+              ${cardField('⚠ Advertencia crítica', 'Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.', '--nogo')}
+            </div>
+            <img src="nave-diagrama.webp?v=202610271427" style="width:100%;height:auto;display:block;border-radius:8px;margin-top:14px"/>
           `)}
         </div>
         <div class="area-triki">
