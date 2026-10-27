@@ -5,7 +5,7 @@ const Anuncios = (() => {
 
   const config = {
     lang: 'es-MX',  // Acento latino (México)
-    rate: 0.95,
+    rate: 1.2,  // Más rápido para fluidez
     pitch: 1,
     volume: 1
   };
@@ -98,10 +98,10 @@ const Anuncios = (() => {
       `Sistema ${sistema}: requiere atención inmediata.`,
 
     decisionGO: () =>
-      `Decisión: GO. Procediendo con envío.`,
+      `Decisión: GO. La nave despega. Que el equipo sepa que pusieron su fe en esta decisión. Ahora solo queda esperar.`,
 
     decisionNOGO: () =>
-      `Decisión: NO GO. Abortando envío.`,
+      `Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir que ir sin estar listos. Habrá otra oportunidad.`,
 
     // INSTRUCCIONES Y AVISOS
     seleccioneTripulantes: (cantidad) =>
@@ -137,7 +137,71 @@ const Anuncios = (() => {
       `La dirección ha tomado una decisión. ${decision}. Todos deben conocerla.`,
 
     direccionCambio: (cambio) =>
-      `Cambio de directriz de la dirección. ${cambio}. Acaten inmediatamente.`
+      `Cambio de directriz de la dirección. ${cambio}. Acaten inmediatamente.`,
+
+    // INSTRUCCIONES POR PANTALLA
+    pantallaInicio: () =>
+      `Bienvenido. Lee la información de la misión y cuando estés listo, continúa.`,
+
+    pantallaSeleccion: (cantidad) =>
+      `Selecciona ${cantidad} tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.`,
+
+    pantallaMision: () =>
+      `La misión ha iniciado. Monitorea los sistemas de la nave. El equipo necesita responder rápido a los eventos. La vida de los astronautas depende de sus decisiones.`,
+
+    pantallaDecision: () =>
+      `Es el momento crítico. La nave está lista para despegar. El equipo ha analizado el riesgo, ha reportado los problemas. Ahora deben decidir: ¿Proceden con el lanzamiento o lo abortan? Recuerden: no se trata solo de despegar. Se trata de despegar seguro.`,
+
+    pantallaDesafio: (area) =>
+      `Completa el desafío del área de ${area}. Debes ganarlo para continuar.`,
+
+    pantallaResultado: () =>
+      `Misión completada. Observa los resultados y reflexiona sobre tus decisiones.`,
+
+    pantallaReflexion: () =>
+      `Reflexiona sobre lo que pasó. Elige una reflexión o escribe la tuya propia.`,
+
+    pantallaFinal: () =>
+      `Fin del juego. Puedes comenzar con un nuevo equipo o revisar lo que aprendiste.`,
+
+    // EVENTOS ESPECIALES
+    direccionHabla: (mensaje) =>
+      `La dirección comunica: ${mensaje}. Presten atención.`,
+
+    casoCerrado: (caso) =>
+      `Caso cerrado. ${caso}. El equipo puede continuar.`,
+
+    casoCerradoExito: () =>
+      `Caso cerrado exitosamente. Muy bien, el equipo demostró competencia.`,
+
+    casoCerradoFallo: () =>
+      `Caso cerrado por fallo. El equipo no cumplió los objetivos. Se requiere análisis.`,
+
+    // REFLEXIÓN FINAL - MÁS PROFUNDA
+    reflexionFinal: () =>
+      `Hemos llegado al final. La nave ha despegado... o no. Pero lo importante es que cada uno de ustedes enfrentó una decisión real. En un equipo verdadero, no todos están de acuerdo. Algunos querían despegar, otros querían esperar. Pero todos trabajaron juntos. Eso es lo que define a un equipo. No la decisión correcta, sino la valentía de tomarla juntos. La próxima vez, sabrán que se pueden confiar. Y eso vale más que cualquier misión.`,
+
+    // ESTRATEGIA PSICOLÓGICA - Para crear presión
+    advertenciaRiesgo: (porcentaje) =>
+      `El riesgo actual es del ${porcentaje}%. Están en zona roja. Cualquier error más y no hay vuelta atrás.`,
+
+    presionTiempo: () =>
+      `Quedan minutos. El combustible no espera. Las decisiones lentas son decisiones malas.`,
+
+    sospechaEquipo: (nombre) =>
+      `${nombre} ha cometido errores. ¿Pueden confiar realmente en este equipo para una misión de vida o muerte?`,
+
+    ultimatum: () =>
+      `Esta es su última oportunidad. Si no despegan ahora, todo termina. No habrá segunda ronda.`,
+
+    perdidaInminente: () =>
+      `El sistema falla. La nave se desestabiliza. Es demasiado tarde. Deberían haber decidido hace minutos.`,
+
+    falsoExito: () =>
+      `Parece que todo está bajo control. Pero el riesgo acecha en cada decisión. ¿Realmente creen que van a lograrlo?`,
+
+    manipulacionMiedo: () =>
+      `Los astronautas están contando con ustedes. Su vida está en sus manos. ¿Están seguros de su decisión?`
   };
 
   // Reproducir una frase predefinida

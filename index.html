@@ -149,11 +149,11 @@ button,.decision-btn,.chip,.sign-row,.tab-btn,.seg-opt,.sysdot{touch-action:mani
 .tab-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;background:none;border:none;border-bottom:2px solid transparent;color:var(--ink-faint);padding:7px 10px;cursor:pointer}
 .tab-btn.active{color:var(--accent-2);border-bottom-color:var(--accent-2);text-shadow:0 0 10px rgba(31,178,222,.6)}
 .clock-row{display:flex;align-items:center;gap:14px}
-.clock{font-family:var(--mono);font-weight:700;font-size:42px;letter-spacing:.01em;font-variant-numeric:tabular-nums;line-height:1;color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)}
+.clock{font-family:var(--mono);font-weight:700;font-size:48px;letter-spacing:.01em;font-variant-numeric:tabular-nums;line-height:1;color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)}
 .clock.crit{color:var(--nogo);text-shadow:0 0 20px rgba(255,92,92,.35)}
 .phase-meta{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
 .phase-code{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.1em}
-.phase-label{font-family:var(--mono);font-size:13px;color:var(--ink-dim);letter-spacing:.02em}
+.phase-label{font-family:var(--mono);font-size:14px;color:var(--ink-dim);letter-spacing:.02em}
 .rec{width:7px;height:7px;border-radius:50%;background:var(--nogo);display:inline-block;margin-right:6px;animation:blink 1.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.rec{animation:none}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
@@ -1256,7 +1256,7 @@ function cockpitSVG(){
     [46,38,1.4],[92,26,1],[150,32,1.2],[338,30,1],[360,60,1.4],[372,120,1],
     [30,90,1],[36,150,1.3],[28,180,1],[350,170,1.2],[110,190,1],[70,20,1],
   ];
-  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:280px;max-width:100%" aria-hidden="true">
+  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:380px;max-width:100%" aria-hidden="true">
     <defs>
       <linearGradient id="rocketFire" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stop-color="#ff6b00" stop-opacity=".8"/>
@@ -1328,9 +1328,11 @@ function cockpitSVG(){
 
 function renderHUD(){
   const hud = document.getElementById('hud');
+  const topbar = document.getElementById('topbar');
   const devNav = document.getElementById('devNav');
   if(S.nav!=='cajanegra' || S.screen==='setup'){
     hud.innerHTML = '';
+    topbar.innerHTML = '';
     devNav.innerHTML = '';
     return;
   }
@@ -1340,15 +1342,29 @@ function renderHUD(){
   const crit = remain <= 90;
   const n = S.participants ? S.participants.length : 0;
   const stepOpts = Array.from({length:n}, (_,i) => `<option value="${i}" ${S.sys.idx===i?'selected':''}>${i+1}</option>`).join('');
-  hud.innerHTML = `
-    <div class="clock-row">
-      <div class="phase-meta">
-        <div class="phase-code">${S.screen==='end'?'SALA ENTREGADA':ph.code+' · FASE '+(idx+1)+'/'+PHASES.length}</div>
-        <div class="phase-label"><span class="rec" style="${S.running?'':'display:none'}"></span>${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
+
+  // Topbar modular (3 zonas)
+  topbar.innerHTML = `
+    <div style="display:flex;align-items:center;gap:var(--space-md);flex:1;min-width:0">
+      <div class="brand-mark" style="width:32px;height:32px;border-radius:50%;background:var(--panel-2);border:1px solid var(--accent-2);display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent-2)" style="opacity:.9">
+          <circle cx="12" cy="12" r="8" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/>
+          <path d="M12 6v12M6 12h12" stroke="var(--accent-2)" stroke-width="1.5" fill="none"/>
+        </svg>
       </div>
-      <div class="clock ${crit?'crit':''}">${fmt(remain)}</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase">METRO POLI LAB</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;text-align:center">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
+      <div style="font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.01em">${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-md);flex:1;justify-content:flex-end">
+      <div class="clock ${crit?'crit':''}" style="font-size:48px;font-weight:700;font-family:var(--mono);color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)">${fmt(remain)}</div>
       <button class="pausebtn" onclick="togglePause()" ${S.screen==='end'?'style=visibility:hidden':''}>${S.running?'PAUSAR':'SEGUIR'}</button>
     </div>
+  `;
+
+  hud.innerHTML = `
     <div class="progress-track"><div class="progress-fill" style="width:${(S.elapsed/TOTAL*100).toFixed(2)}%"></div></div>
   `;
   devNav.innerHTML = `
