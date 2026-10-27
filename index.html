@@ -219,6 +219,7 @@ button.ghost:active{color:var(--ink);background:rgba(31,178,222,.2);border-color
 
 @keyframes glow{0%,100%{text-shadow:0 0 10px rgba(31,178,222,.3)}50%{text-shadow:0 0 20px rgba(31,178,222,.6)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 20px var(--accent-2)}50%{box-shadow:0 0 40px var(--accent-2)}}
 .glow-text{animation:glow 3s ease-in-out infinite}
 .float{animation:float 3s ease-in-out infinite}
 
@@ -1379,6 +1380,52 @@ function renderHUD(){
   `;
 }
 
+function renderQueueVisual(){
+  const n = S.participants.length;
+  const currentIdx = S.sys.idx;
+  let html = '<div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px 0">';
+
+  for(let i = 0; i < n; i++){
+    const p = S.participants[i];
+    const isDone = i < currentIdx;
+    const isCurrent = i === currentIdx;
+    const isNext = i === currentIdx + 1 || i === currentIdx + 2;
+
+    if(isCurrent){
+      html += `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;animation:pulse 2s ease-in-out infinite">
+          <div style="position:relative;width:80px;height:80px;border:2px solid var(--accent-2);border-radius:12px;padding:6px;background:var(--accent-dim);box-shadow:0 0 20px var(--accent-2)">
+            ${avatarSVG(p.cardId, 68)}
+          </div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent-2);text-align:center">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-align:center">ACTUAL</div>
+        </div>
+      `;
+    } else if(isNext){
+      html += `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.6">
+          <div style="position:relative;width:60px;height:60px;border:1px solid var(--border);border-radius:10px;padding:4px">
+            ${avatarSVG(p.cardId, 52)}
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center">${esc(p.name)}</div>
+        </div>
+      `;
+    } else if(isDone){
+      html += `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.3">
+          <div style="width:40px;height:40px;border-radius:8px;padding:2px;text-decoration:line-through">
+            ${avatarSVG(p.cardId, 36)}
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);text-decoration:line-through">${esc(p.name)}</div>
+        </div>
+      `;
+    }
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function trikiInfoIcon(){
   return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/>
@@ -1792,7 +1839,7 @@ function renderSistemas(){
               <button class="decision-btn pill nogo grow" onclick="pickQ1('NO')"><div class="dtitle">NO</div></button>
             </div>
           `)}
-          <div class="queue">${S.participants.map((pp,i)=>`<span class="${pp.fired?'done':i===S.sys.idx?'now':i<S.sys.idx?'done':''}">${esc(pp.name)}${pp.fired?' (despedido)':''}</span>`).join('')}</div>
+          ${renderQueueVisual()}
         </div>
       </div>
       ${backRow()}
