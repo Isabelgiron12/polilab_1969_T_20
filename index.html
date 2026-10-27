@@ -1711,6 +1711,14 @@ function renderCleared(){
 }
 function renderFiredWait(){
   const done = S.sys.firedWait<=0;
+  // Anunciar despido cuando aparece por primera vez
+  if(!S.sys.firedAnnouncedSpeech) {
+    setTimeout(() => {
+      Anuncios?.decir?.('anuncioDespido', S.sys.firedReason);
+      Anuncios?.decir?.('tripulanteFueraDelJuego', S.sys.firedName);
+    }, 500);
+    S.sys.firedAnnouncedSpeech = true;
+  }
   return `
     ${eyebrow(currentPhase().code)}
     <h2 style="text-align:center">Anuncio de la dirección</h2>
