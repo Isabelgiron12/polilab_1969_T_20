@@ -539,6 +539,18 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .dev-nav-select:hover{border-color:var(--accent-2)}
 
 ::selection{background:var(--accent-dim);color:var(--ink)}
+
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:100;display:flex;flex-direction:column;gap:12px;pointer-events:none}
+.toast{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:12px;font-family:var(--sans);font-size:14px;line-height:1.4;box-shadow:0 12px 32px rgba(0,0,0,.4);animation:toastSlideIn .3s cubic-bezier(.34,.1,.64,.92);pointer-events:auto;max-width:320px;min-width:280px}
+.toast-icon{flex:0 0 auto;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.toast-go{background:linear-gradient(135deg,rgba(166,206,56,.2),rgba(166,206,56,.1));border:1px solid var(--go);color:var(--ink)}
+.toast-go .toast-icon{color:var(--go)}
+.toast-caution{background:linear-gradient(135deg,rgba(251,175,23,.2),rgba(251,175,23,.1));border:1px solid var(--amber);color:var(--ink)}
+.toast-caution .toast-icon{color:var(--amber)}
+.toast-critical{background:linear-gradient(135deg,rgba(255,92,92,.2),rgba(255,92,92,.1));border:1px solid var(--nogo);color:var(--ink)}
+.toast-critical .toast-icon{color:var(--nogo);animation:pulse 1.5s ease-in-out infinite}
+@keyframes toastSlideIn{from{transform:translateX(360px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastSlideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(360px);opacity:0}}
 </style>
 <script src="anuncios.js"></script>
 </head>
@@ -559,8 +571,23 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
   </div>
 </div>
 
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function showToast(msg, type='go', duration=4000){
+  const container = document.getElementById('toastContainer');
+  const icons = {go:'✓', caution:'!', critical:'⚠'};
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<div class="toast-icon">${icons[type]}</div><div>${esc(msg)}</div>`;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.style.animation = 'toastSlideOut .3s cubic-bezier(.34,.1,.64,.92) forwards';
+    setTimeout(()=>toast.remove(), 300);
+  }, duration);
+}
 
 const Sound = (function(){
   let ctx = null, master = null, enabled = true, reverb = null, noiseBuf = null;
@@ -839,6 +866,7 @@ function startMission(){
   S.screen = 'mission'; S.view = 'mission';
   render();
   runTimer();
+  showToast('🚀 Cuenta regresiva iniciada', 'go', 3000);
   // Anuncio de inicio
   setTimeout(() => Anuncios?.decir?.('bienvenida'), 500);
 }
@@ -971,8 +999,14 @@ function tttContinue(){
 
 function pickQ1(ans){
   S.sys.q1 = ans;
-  if(ans==='YES'){ S.sys.talkPending = true; render(); }
-  else { render(); }
+  if(ans==='YES'){
+    showToast('Respuesta registrada: Habló en la sala', 'caution', 3000);
+    S.sys.talkPending = true; render();
+  }
+  else {
+    showToast('Respuesta registrada: Guardó silencio', 'critical', 3000);
+    render();
+  }
 }
 function continueAfterTalk(){
   S.sys.talkPending = false;
