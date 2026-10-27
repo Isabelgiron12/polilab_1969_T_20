@@ -104,6 +104,19 @@ body{
 }
 .topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg, var(--accent-2), var(--amber), var(--rose), var(--violet), var(--go));filter:drop-shadow(0 0 8px rgba(31,178,222,.3))}
 .topbar-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.hud-brand{display:flex;align-items:center;flex:0 0 auto}
+.hud-status{display:flex;flex-direction:column;gap:3px;flex:1 1 0;min-width:0;text-align:center}
+.hud-status > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud-clockzone{display:flex;align-items:center;gap:var(--space-md);flex:0 0 auto;justify-content:flex-end}
+@media (max-width:900px){
+  .hud-brand .brand-logos svg,.hud-brand .brand-logos img{height:34px!important}
+  .hud-clockzone .clock{font-size:38px!important}
+}
+@media (max-width:640px){
+  .hud-status{order:3;flex:1 1 100%}
+  .hud-status > div{white-space:normal}
+  .hud-clockzone .clock{font-size:32px!important}
+}
 .brand-mark{width:36px;height:36px;border-radius:50%;background:var(--panel-2);border:1.5px solid var(--accent-2);display:flex;align-items:center;justify-content:center;color:var(--accent-2);flex:0 0 auto;box-shadow:0 0 12px -2px rgba(31,178,222,.6)}
 .brand-text{font-family:var(--mono);font-weight:700;font-size:13.5px;letter-spacing:.09em;color:var(--ink);line-height:1.3;white-space:nowrap}
 .brand-text small{display:block;font-size:9.5px;color:var(--ink-faint);font-weight:600;letter-spacing:.13em}
@@ -1538,14 +1551,14 @@ function renderHUD(){
 
   // Topbar modular (3 zonas)
   topbar.innerHTML = `
-    <div style="display:flex;align-items:center;gap:var(--space-md);flex:1;min-width:0">
+    <div class="hud-brand">
       ${brandLogos(44)}
     </div>
-    <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;text-align:center">
+    <div class="hud-status">
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
       <div style="font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.01em">${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:var(--space-md);flex:1;justify-content:flex-end">
+    <div class="hud-clockzone">
       <div class="clock ${crit?'crit':''}" style="font-size:48px;font-weight:700;font-family:var(--mono);color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)">${fmt(remain)}</div>
       <button class="pausebtn" onclick="togglePause()" ${S.screen==='end'?'style=visibility:hidden':''}>${S.running?'PAUSAR':'SEGUIR'}</button>
     </div>
