@@ -1892,9 +1892,11 @@ function confirmLaunchDecision(){
 }
 
 function decisionNOGO(){
-  S.decision = 'NO-GO';
+  S.decision = 'NOGO';
   Anuncios?.decir?.('decisionNOGO');
-  advanceNow();
+  // NO ENVIAR termina el juego: van directo a "Hicieron las cosas correctas"
+  S.elapsed = TOTAL; S.running = false; S.launch = null;
+  enterEnd(); render();
 }
 
 function renderEntrega(){
