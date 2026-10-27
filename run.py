@@ -4,9 +4,9 @@ import subprocess
 import sys
 
 # Descarga el logo si no existe
-if not os.path.exists('logo.png'):
+if not os.path.exists('logo.webp'):
     print("📥 Descargando logo...")
-    result = os.system('curl -o logo.png https://github.com/Isabelgiron12/polilab_1969_T_20/raw/main/logo.png')
+    result = os.system('curl -o logo.webp https://github.com/Isabelgiron12/polilab_1969_T_20/raw/main/logo.webp')
     if result == 0:
         print("✓ Logo descargado")
     else:
