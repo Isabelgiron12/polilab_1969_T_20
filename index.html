@@ -1567,7 +1567,7 @@ function renderHUD(){
   hud.innerHTML = `
     <div class="progress-track"><div class="progress-fill" style="width:${(S.elapsed/TOTAL*100).toFixed(2)}%"></div></div>
   `;
-  devNav.innerHTML = `
+  devNav.innerHTML = S.screen==='end' ? '' : `
     <div class="dev-navigator">
       <div class="dev-navigator-label">PASO ${S.sys.idx+1} DE ${n}</div>
       <div class="dev-navigator-controls">
@@ -2505,7 +2505,8 @@ function fitScreen(){
   stage.style.width = '100%';
   const availH = main.clientHeight;
   const contentH = stage.scrollHeight;
-  const minScale = 0.4;
+  // Las pantallas finales tienen mucho texto: no se encogen, se recorren con scroll.
+  const minScale = (S.nav==='cajanegra' && S.screen==='end') ? 1 : 0.4;
   const maxScale = 1.35;
   let scale = contentH > 0 ? availH / contentH : 1;
   if(scale > maxScale) scale = maxScale;
