@@ -380,17 +380,17 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 @media(prefers-reduced-motion:reduce){.spinner{animation:none;border-top-color:var(--border)}}
 .ttt-cell .avatar{display:block;margin:0 auto}
 
-.avatar .avatar-halo{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:1;opacity:.3}
-.avatar .avatar-collar{fill:var(--panel-2);stroke:var(--ac,var(--accent-2));stroke-width:2}
-.avatar .avatar-seam{fill:var(--ac,var(--accent-2));opacity:.55}
-.avatar .avatar-stud{fill:var(--ac,var(--accent-2));opacity:.85}
-.avatar .avatar-helmet{fill:var(--bg);stroke:var(--ac,var(--accent-2));stroke-width:2.5;filter:drop-shadow(0 0 5px color-mix(in srgb, var(--ac,var(--accent-2)) 45%, transparent))}
-.avatar .avatar-rim{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.5;stroke-linecap:round}
-.avatar .avatar-badge{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
-.avatar .avatar-badge .fill{fill:var(--ac,var(--accent-2));stroke:none}
-.avatar .avatar-shine{fill:none;stroke:rgba(255,255,255,.4);stroke-width:2;stroke-linecap:round}
-.avatar .avatar-antenna{stroke:var(--ac,var(--accent-2));stroke-width:2;stroke-linecap:round}
-.avatar .avatar-antenna-tip{fill:var(--ac,var(--accent-2))}
+.avatar .avatar-halo{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:2;opacity:.7}
+.avatar .avatar-collar{fill:var(--ac,var(--accent-2));stroke:var(--ac,var(--accent-2));stroke-width:2;opacity:.9}
+.avatar .avatar-seam{fill:var(--ac,var(--accent-2));opacity:.9}
+.avatar .avatar-stud{fill:var(--ac,var(--accent-2));opacity:1}
+.avatar .avatar-helmet{fill:var(--ac,var(--accent-2));stroke:var(--ac,var(--accent-2));stroke-width:2.5;filter:drop-shadow(0 0 8px color-mix(in srgb, var(--ac,var(--accent-2)) 70%, transparent))}
+.avatar .avatar-rim{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.5;stroke-linecap:round}
+.avatar .avatar-badge{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:3;stroke-linejoin:round;stroke-linecap:round;opacity:1}
+.avatar .avatar-badge .fill{fill:var(--ac,var(--accent-2));stroke:none;opacity:1}
+.avatar .avatar-shine{fill:none;stroke:rgba(255,255,255,.6);stroke-width:2.5;stroke-linecap:round}
+.avatar .avatar-antenna{stroke:var(--ac,var(--accent-2));stroke-width:2.5;stroke-linecap:round}
+.avatar .avatar-antenna-tip{fill:var(--ac,var(--accent-2));opacity:1}
 .avatar.dim .avatar-helmet,.avatar.dim .avatar-collar,.avatar.dim .avatar-badge{stroke:var(--ink-faint);opacity:.5}
 .avatar.dim .avatar-halo,.avatar.dim .avatar-rim,.avatar.dim .avatar-shine{opacity:.15}
 .avatar.dim .avatar-seam,.avatar.dim .avatar-stud,.avatar.dim .avatar-antenna-tip{fill:var(--ink-faint);opacity:.4}
@@ -1886,7 +1886,7 @@ function renderLaunchCountdown(){
       </svg>
       <div class="ignition">${S.launch.count}</div>
     </div>
-    ${rocketSVG('countdown')}
+    ${cockpitSVG()}
     <p style="text-align:center;color:var(--ink-faint)">La sala ya no puede cambiar nada.</p>
   `;
 }
@@ -1897,7 +1897,7 @@ function renderLaunchResolved(){
     return `
       ${eyebrow(success?'SEÑAL NOMINAL':'PÉRDIDA DE VEHÍCULO', true)}
       <h1 class="outcome-head">${success?'La nave despegó y llegó':'La nave despegó y no llegó'}</h1>
-      ${rocketSVG(success?'success':'failure')}
+      ${cockpitSVG()}
       ${panel(`
         <p style="text-align:center;color:var(--ink)">Toca para abrir la caja negra y ver qué pasó de verdad.</p>
         <button class="primary" style="margin-top:12px" onclick="openBlackBox()">ABRIR LA CAJA NEGRA</button>
@@ -1945,7 +1945,7 @@ function renderAborted(){
   return `
     ${eyebrow('MISIÓN ABORTADA', true)}
     <h1 class="outcome-head">La nave no despegó</h1>
-    ${rocketSVG('idle')}
+    ${cockpitSVG()}
     ${panel(`
       <p style="color:var(--ink)">No despegaron. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
       <p style="margin-top:10px;color:var(--ink)"><b>No hizo falta abrir la caja negra. Evitaron la apuesta. Nunca van a saber si la nave habría llegado.</b></p>
