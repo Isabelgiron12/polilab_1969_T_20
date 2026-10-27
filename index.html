@@ -563,6 +563,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
   if (!/^https?:$/.test(location.protocol)) return;
+  if (location.search) history.replaceState(null, '', location.pathname + location.hash);
   try {
     if (sessionStorage.getItem('cn-fresh') === location.pathname) { sessionStorage.removeItem('cn-fresh'); return; }
     const url = location.pathname + location.search;
