@@ -204,7 +204,14 @@ const Anuncios = (() => {
       `Cuenta regresiva: ${segundos} segundos para decisión. Prepárense.`,
 
     casoCerradoAnuncio: (caso) =>
-      `Caso reportado: ${caso}. Archivo cerrado.`
+      `Caso reportado: ${caso}. Archivo cerrado.`,
+
+    // MOMENTOS CRÍTICOS DEL JUEGO
+    anuncioDespido: (rol) =>
+      `Anuncio de dirección. Se ha tomado la decisión de despedir a ${rol} por recorte de personal. Continúen con la misión.`,
+
+    tripulanteFueraDelJuego: (rol) =>
+      `${rol} ha sido removido de la misión. No pueden continuar en el juego.`
   };
 
   // Reproducir una frase predefinida
