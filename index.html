@@ -380,15 +380,15 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 @media(prefers-reduced-motion:reduce){.spinner{animation:none;border-top-color:var(--border)}}
 .ttt-cell .avatar{display:block;margin:0 auto}
 
-.avatar .avatar-halo{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:2;opacity:.7}
-.avatar .avatar-collar{fill:var(--ac,var(--accent-2));stroke:var(--ac,var(--accent-2));stroke-width:2;opacity:.9}
-.avatar .avatar-seam{fill:var(--ac,var(--accent-2));opacity:.9}
+.avatar .avatar-halo{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:2;opacity:.8}
+.avatar .avatar-collar{fill:color-mix(in srgb, var(--ac,var(--accent-2)) 60%, var(--panel-2));stroke:var(--ac,var(--accent-2));stroke-width:2.5;opacity:1}
+.avatar .avatar-seam{fill:var(--ac,var(--accent-2));opacity:1}
 .avatar .avatar-stud{fill:var(--ac,var(--accent-2));opacity:1}
-.avatar .avatar-helmet{fill:var(--ac,var(--accent-2));stroke:var(--ac,var(--accent-2));stroke-width:2.5;filter:drop-shadow(0 0 8px color-mix(in srgb, var(--ac,var(--accent-2)) 70%, transparent))}
-.avatar .avatar-rim{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.5;stroke-linecap:round}
-.avatar .avatar-badge{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:3;stroke-linejoin:round;stroke-linecap:round;opacity:1}
-.avatar .avatar-badge .fill{fill:var(--ac,var(--accent-2));stroke:none;opacity:1}
-.avatar .avatar-shine{fill:none;stroke:rgba(255,255,255,.6);stroke-width:2.5;stroke-linecap:round}
+.avatar .avatar-helmet{fill:color-mix(in srgb, var(--ac,var(--accent-2)) 25%, var(--bg));stroke:var(--ac,var(--accent-2));stroke-width:3;filter:drop-shadow(0 0 10px color-mix(in srgb, var(--ac,var(--accent-2)) 80%, transparent))}
+.avatar .avatar-rim{fill:none;stroke:rgba(255,255,255,.8);stroke-width:2;stroke-linecap:round}
+.avatar .avatar-badge{fill:none;stroke:var(--ac,var(--accent-2));stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round;opacity:1}
+.avatar .avatar-badge .fill{fill:var(--ac,var(--accent-2));stroke:none;opacity:0.9}
+.avatar .avatar-shine{fill:none;stroke:rgba(255,255,255,.7);stroke-width:2.5;stroke-linecap:round}
 .avatar .avatar-antenna{stroke:var(--ac,var(--accent-2));stroke-width:2.5;stroke-linecap:round}
 .avatar .avatar-antenna-tip{fill:var(--ac,var(--accent-2));opacity:1}
 .avatar.dim .avatar-helmet,.avatar.dim .avatar-collar,.avatar.dim .avatar-badge{stroke:var(--ink-faint);opacity:.5}
