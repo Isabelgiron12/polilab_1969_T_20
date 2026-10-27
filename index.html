@@ -559,6 +559,25 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 @keyframes toastSlideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(360px);opacity:0}}
 </style>
 <script src="anuncios.js?v=202610271427"></script>
+<script>
+// GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
+(async () => {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    if (sessionStorage.getItem('cn-fresh') === location.pathname) { sessionStorage.removeItem('cn-fresh'); return; }
+    const url = location.pathname + location.search;
+    const [cached, fresh] = await Promise.all([
+      fetch(url, {cache: 'force-cache'}).then(r => r.text()),
+      fetch(url, {cache: 'no-store'}).then(r => r.ok ? r.text() : null)
+    ]);
+    if (fresh && cached !== fresh) {
+      await fetch(url, {cache: 'reload'});
+      sessionStorage.setItem('cn-fresh', location.pathname);
+      location.reload();
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 
