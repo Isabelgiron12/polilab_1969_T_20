@@ -1209,21 +1209,35 @@ function cockpitSVG(){
   ];
   return `<svg class="cockpit" viewBox="0 0 400 220" aria-hidden="true">
     <defs>
-      <radialGradient id="bhGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="var(--amber)" stop-opacity=".55"/>
-        <stop offset="55%" stop-color="var(--amber)" stop-opacity=".15"/>
-        <stop offset="100%" stop-color="var(--amber)" stop-opacity="0"/>
-      </radialGradient>
+      <linearGradient id="rocketFire" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ff6b00" stop-opacity=".8"/>
+        <stop offset="50%" stop-color="#fbaf17" stop-opacity=".6"/>
+        <stop offset="100%" stop-color="#ff6b00" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="rocketGlow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
       <clipPath id="cpClip"><rect x="18" y="18" width="364" height="168" rx="16"></rect></clipPath>
     </defs>
     <rect class="cp-frame" x="4" y="4" width="392" height="196" rx="24"></rect>
     <g clip-path="url(#cpClip)">
       <rect x="18" y="18" width="364" height="168" fill="var(--bg)"></rect>
       ${stars.map(([x,y,r],i)=>`<circle class="cp-star${i%3===0?' dim':''}" cx="${x}" cy="${y}" r="${r}"></circle>`).join('')}
-      <circle class="cp-glow" cx="230" cy="98" r="66" fill="url(#bhGlow)"></circle>
-      <ellipse class="cp-disk-back" cx="230" cy="98" rx="70" ry="15" transform="rotate(-12 230 98)"></ellipse>
-      <circle class="cp-void" cx="230" cy="98" r="32"></circle>
-      <path class="cp-disk-front" d="M164,101 A70,15 -12 0 0 296,95" fill="none"></path>
+      <g transform="translate(200, 70)">
+        <path d="M 0,-50 L 8,-25 L 8,30 Q 8,40 0,45 Q -8,40 -8,30 L -8,-25 Z" fill="var(--accent-2)" filter="url(#rocketGlow)"/>
+        <path d="M -8,30 L -14,50 L -8,40 Z" fill="var(--go)" opacity=".8"/>
+        <path d="M 8,30 L 14,50 L 8,40 Z" fill="var(--go)" opacity=".8"/>
+        <circle cx="0" cy="-40" r="5" fill="var(--accent)" filter="url(#rocketGlow)"/>
+        <rect x="-3" y="10" width="6" height="8" fill="var(--accent-2)" opacity=".6"/>
+        <path d="M -18,35 Q -22,45 -18,52" fill="url(#rocketFire)" opacity=".7" filter="url(#rocketGlow)"/>
+        <path d="M 18,35 Q 22,45 18,52" fill="url(#rocketFire)" opacity=".7" filter="url(#rocketGlow)"/>
+        <circle cx="-16" cy="48" r="3" fill="#ff6b00" opacity=".6" filter="url(#rocketGlow)"/>
+        <circle cx="16" cy="48" r="3" fill="#ff6b00" opacity=".6" filter="url(#rocketGlow)"/>
+      </g>
     </g>
     <circle class="cp-rivet" cx="16" cy="16" r="3"></circle>
     <circle class="cp-rivet" cx="384" cy="16" r="3"></circle>
