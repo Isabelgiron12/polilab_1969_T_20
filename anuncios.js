@@ -98,10 +98,10 @@ const Anuncios = (() => {
       `Sistema ${sistema}: requiere atención inmediata.`,
 
     decisionGO: () =>
-      `Decisión: GO. Procediendo con envío.`,
+      `Decisión: GO. La nave despega. Que el equipo sepa que pusieron su fe en esta decisión. Ahora solo queda esperar.`,
 
     decisionNOGO: () =>
-      `Decisión: NO GO. Abortando envío.`,
+      `Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir que ir sin estar listos. Habrá otra oportunidad.`,
 
     // INSTRUCCIONES Y AVISOS
     seleccioneTripulantes: (cantidad) =>
@@ -147,10 +147,10 @@ const Anuncios = (() => {
       `Selecciona ${cantidad} tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.`,
 
     pantallaMision: () =>
-      `La misión ha iniciado. Atiende los eventos y toma decisiones cuando sea necesario.`,
+      `La misión ha iniciado. Monitorea los sistemas de la nave. El equipo necesita responder rápido a los eventos. La vida de los astronautas depende de sus decisiones.`,
 
     pantallaDecision: () =>
-      `Es momento de decidir. Elige GO para enviar o NO GO para cancelar. Piensa bien tu decisión.`,
+      `Es el momento crítico. La nave está lista para despegar. El equipo ha analizado el riesgo, ha reportado los problemas. Ahora deben decidir: ¿Proceden con el lanzamiento o lo abortan? Recuerden: no se trata solo de despegar. Se trata de despegar seguro.`,
 
     pantallaDesafio: (area) =>
       `Completa el desafío del área de ${area}. Debes ganarlo para continuar.`,
@@ -179,7 +179,7 @@ const Anuncios = (() => {
 
     // REFLEXIÓN FINAL - MÁS PROFUNDA
     reflexionFinal: () =>
-      `Hemos llegado al final. Cada decisión que tomaste moldeó el resultado. Recuerda: en la vida real, como en esta misión, no siempre hay respuestas correctas. Lo que importa es entender las consecuencias, aprender de los errores y crecer como equipo. La próxima vez, serás mejor.`
+      `Hemos llegado al final. La nave ha despegado... o no. Pero lo importante es que cada uno de ustedes enfrentó una decisión real. En un equipo verdadero, no todos están de acuerdo. Algunos querían despegar, otros querían esperar. Pero todos trabajaron juntos. Eso es lo que define a un equipo. No la decisión correcta, sino la valentía de tomarla juntos. La próxima vez, sabrán que se pueden confiar. Y eso vale más que cualquier misión.`
   };
 
   // Reproducir una frase predefinida
