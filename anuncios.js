@@ -137,7 +137,32 @@ const Anuncios = (() => {
       `La dirección ha tomado una decisión. ${decision}. Todos deben conocerla.`,
 
     direccionCambio: (cambio) =>
-      `Cambio de directriz de la dirección. ${cambio}. Acaten inmediatamente.`
+      `Cambio de directriz de la dirección. ${cambio}. Acaten inmediatamente.`,
+
+    // INSTRUCCIONES POR PANTALLA
+    pantallaInicio: () =>
+      `Bienvenido. Lee la información de la misión y cuando estés listo, continúa.`,
+
+    pantallaSeleccion: (cantidad) =>
+      `Selecciona ${cantidad} tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.`,
+
+    pantallaMision: () =>
+      `La misión ha iniciado. Atiende los eventos y toma decisiones cuando sea necesario.`,
+
+    pantallaDecision: () =>
+      `Es momento de decidir. Elige GO para enviar o NO GO para cancelar. Piensa bien tu decisión.`,
+
+    pantallaDesafio: (area) =>
+      `Completa el desafío del área de ${area}. Debes ganarlo para continuar.`,
+
+    pantallaResultado: () =>
+      `Misión completada. Observa los resultados y reflexiona sobre tus decisiones.`,
+
+    pantallaReflexion: () =>
+      `Reflexiona sobre lo que pasó. Elige una reflexión o escribe la tuya propia.`,
+
+    pantallaFinal: () =>
+      `Fin del juego. Puedes comenzar con un nuevo equipo o revisar lo que aprendiste.`
   };
 
   // Reproducir una frase predefinida
