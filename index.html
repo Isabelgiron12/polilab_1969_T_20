@@ -1325,13 +1325,13 @@ function renderHUD(){
   // Topbar modular (3 zonas)
   topbar.innerHTML = `
     <div style="display:flex;align-items:center;gap:var(--space-md);flex:1;min-width:0">
-      <div class="brand-mark" style="width:32px;height:32px;border-radius:50%;background:var(--panel-2);border:1px solid var(--accent-2);display:flex;align-items:center;justify-content:center;flex:0 0 auto">
+      <div class="brand-mark" style="width:32px;height:48px;border-radius:50%;background:var(--panel-2);border:1px solid var(--accent-2);display:flex;align-items:center;justify-content:center;flex:0 0 auto">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent-2)" style="opacity:.9">
           <circle cx="12" cy="12" r="8" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/>
           <path d="M12 6v12M6 12h12" stroke="var(--accent-2)" stroke-width="1.5" fill="none"/>
         </svg>
       </div>
-      <img src="metro-logo.webp" style="height:32px;object-fit:contain" alt="METRO POLI lab"/>
+      <img src="metro-logo.webp" style="height:48px;object-fit:contain" alt="METRO POLI lab"/>
     </div>
     <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;text-align:center">
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
