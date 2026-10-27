@@ -526,6 +526,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 
 ::selection{background:var(--accent-dim);color:var(--ink)}
 </style>
+<script src="anuncios.js"></script>
 </head>
 <body>
 
@@ -824,6 +825,8 @@ function startMission(){
   S.screen = 'mission'; S.view = 'mission';
   render();
   runTimer();
+  // Anuncio de inicio
+  setTimeout(() => Anuncios?.decir?.('bienvenida'), 500);
 }
 
 function runTimer(){
@@ -858,8 +861,20 @@ function advanceNow(){
   S._lastPhase = next.id;
   resetSubstateFor(next.id);
   render();
+  // Anuncio según el tipo de fase
+  setTimeout(() => {
+    if(next.id.includes('decision')) Anuncios?.decir?.('faseDecision');
+    else if(next.id.includes('mini')) Anuncios?.decir?.('faseMiniJuego');
+    else Anuncios?.decir?.('proximo');
+  }, 300);
 }
-function finishNow(){ S.elapsed = TOTAL; S.running = false; enterEnd(); render(); }
+function finishNow(){
+  S.elapsed = TOTAL;
+  S.running = false;
+  Anuncios?.decir?.('misionTerminada');
+  enterEnd();
+  render();
+}
 
 function goBack(){
   if(S.screen==='end'){
@@ -929,7 +944,11 @@ function tttTap(i){
     render();
   }, 700);
 }
-function tttRetry(){ S.sys.ttt = tttInit(); render(); }
+function tttRetry(){
+  S.sys.ttt = tttInit();
+  Anuncios?.decir?.('faseMiniJuego');
+  render();
+}
 function tttContinue(){
   S.sys.miniResult = 'win';
   S.sys.miniDone = true;
@@ -1237,7 +1256,7 @@ function cockpitSVG(){
     [46,38,1.4],[92,26,1],[150,32,1.2],[338,30,1],[360,60,1.4],[372,120,1],
     [30,90,1],[36,150,1.3],[28,180,1],[350,170,1.2],[110,190,1],[70,20,1],
   ];
-  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:280px;max-width:100%" aria-hidden="true">
+  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:420px;max-width:100%" aria-hidden="true">
     <defs>
       <linearGradient id="rocketFire" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stop-color="#ff6b00" stop-opacity=".8"/>
@@ -1651,7 +1670,7 @@ function renderSistemas(){
         ${prepBar()}
         <div class="row" style="gap:12px;flex-direction:column">
           <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR CON NOVEDADES →</button>
-          <button class="ghost" onclick="S.decision='NO-GO'; advanceNow()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
+          <button class="ghost" onclick="decisionNOGO()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
         </div>
         <div class="panel" style="text-align:center">
           <div class="field-label" style="margin-bottom:8px">Estado de sistemas</div>
@@ -1779,7 +1798,17 @@ function renderSistemas(){
   `;
 }
 
-function confirmLaunchDecision(){ S.decision = 'GO'; advanceNow(); }
+function confirmLaunchDecision(){
+  S.decision = 'GO';
+  Anuncios?.decir?.('decisionGO');
+  advanceNow();
+}
+
+function decisionNOGO(){
+  S.decision = 'NO-GO';
+  Anuncios?.decir?.('decisionNOGO');
+  advanceNow();
+}
 
 function renderEntrega(){
   const presets = VERIF_PRESETS[S.decision] || VERIF_PRESETS.GO;
