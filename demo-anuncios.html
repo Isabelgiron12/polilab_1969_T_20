@@ -143,6 +143,21 @@
     <h1>🎙️ Sistema de Anuncios</h1>
 
     <div class="panel">
+      <h2>🚨 Anuncios de Dirección (Críticos)</h2>
+      <div class="btn-group">
+        <button onclick="Anuncios.anuncioCritico('direccionCritica')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Comunicado Dirección
+        </button>
+        <button onclick="Anuncios.anuncioCritico('direccionInstruccion', 'Todos a posiciones')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Instrucción Directa
+        </button>
+        <button onclick="Anuncios.anuncioCritico('direccionCambio', 'La misión ha sido cancelada')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Cambio de Directriz
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
       <h2>Anuncios Predefinidos</h2>
       <div class="btn-group">
         <button onclick="Anuncios.decir('cambioArea', 'Marketing')">
