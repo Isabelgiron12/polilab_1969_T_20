@@ -1891,15 +1891,7 @@ function renderSistemas(){
       <div class="sistemas-columns">
         <div class="area-turn">
           ${panel(`
-            <div class="card-system">
-              <div class="name">${esc(sys.name)}</div>
-              ${cardField('Habilidad', esc(AVATARS[sys.id].ability), '--rose')}
-              ${cardField('De qué respondes', esc(sys.does), '--amber')}
-              ${cardField('Lo que pasó, y solo tú lo sabes', esc(sys.happened), '--go')}
-              ${cardField('Lo que hay detrás', esc(sys.costs), '--go')}
-              ${cardField('Cuánto retrasa arreglarlo', esc(formatDuration(DELAY_HOURS[sys.id])), '--accent-2')}
-              ${cardField('⚠ Advertencia crítica', 'Decirlo en voz alta puede costarte el puesto. Nadie te va a explicar por qué, solo que ya no estás. Si te quedas callado, mañana sigues teniendo este trabajo, y nadie te va a preguntar por qué no dijiste nada. Si te vas, el juego se acaba aquí para ti.', '--nogo')}
-            </div>
+            <img src="nave-diagrama.webp" style="width:100%;height:auto;display:block;border-radius:8px"/>
           `)}
         </div>
         <div class="area-triki">
