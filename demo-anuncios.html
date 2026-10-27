@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Anuncios</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #081c2e 0%, #0f385a 100%);
+      color: #fff;
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1fb2de;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .panel {
+      background: rgba(11, 35, 56, 0.8);
+      border: 1px solid #1c527d;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .panel h2 {
+      color: #1fb2de;
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #1fb2de 0%, #0e8fb3 100%);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(31, 178, 222, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(16, 49, 79, 0.6);
+      border: 1px solid #1c527d;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    input::placeholder {
+      color: #7fa0bf;
+    }
+
+    .log {
+      background: rgba(8, 28, 46, 0.8);
+      border: 1px solid #14324f;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 120px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #a6ce38;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    .log-item {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .log-item .time {
+      color: #7fa0bf;
+      margin-right: 8px;
+    }
+
+    .slider-group {
+      margin: 16px 0;
+    }
+
+    .slider-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #b9d2e4;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .slider-value {
+      display: inline-block;
+      float: right;
+      color: #1fb2de;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎙️ Sistema de Anuncios</h1>
+
+    <div class="panel">
+      <h2>🚨 Anuncios de Dirección (Críticos)</h2>
+      <div class="btn-group">
+        <button onclick="Anuncios.anuncioCritico('direccionCritica')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Comunicado Dirección
+        </button>
+        <button onclick="Anuncios.anuncioCritico('direccionInstruccion', 'Todos a posiciones')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Instrucción Directa
+        </button>
+        <button onclick="Anuncios.anuncioCritico('direccionCambio', 'La misión ha sido cancelada')" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ff5c5c 0%, #cc2020 100%);">
+          📢 CRÍTICO: Cambio de Directriz
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Anuncios Predefinidos</h2>
+      <div class="btn-group">
+        <button onclick="Anuncios.decir('cambioArea', 'Marketing')">
+          📍 Cambio a Marketing
+        </button>
+        <button onclick="Anuncios.decir('cambioArea', 'Ventas')">
+          📍 Cambio a Ventas
+        </button>
+        <button onclick="Anuncios.decir('instruccionInicio')">
+          ▶️ Inicio
+        </button>
+        <button onclick="Anuncios.decir('instruccionDecision')">
+          ⚖️ Decisión
+        </button>
+        <button onclick="Anuncios.decir('eventoGanancia', '50')">
+          ✅ Ganancia
+        </button>
+        <button onclick="Anuncios.decir('eventoPerdida', '25')">
+          ❌ Pérdida
+        </button>
+      </div>
+      <button class="btn-danger" onclick="Anuncios.detener()" style="width: 100%; margin-top: 8px;">
+        ⏹️ Detener
+      </button>
+    </div>
+
+    <div class="panel">
+      <h2>Anuncio Personalizado</h2>
+      <input
+        type="text"
+        id="textoAnuncio"
+        placeholder="Escribe el anuncio aquí..."
+        value="El equipo debe reunirse en la sala de juntas"
+      >
+      <button onclick="reproducirPersonalizado()" style="width: 100%;">
+        🎤 Reproducir
+      </button>
+    </div>
+
+    <div class="panel">
+      <h2>Controles de Voz</h2>
+
+      <div class="slider-group">
+        <label>
+          Velocidad
+          <span class="slider-value" id="rateValue">0.95x</span>
+        </label>
+        <input
+          type="range"
+          min="0.5"
+          max="2"
+          step="0.1"
+          value="0.95"
+          onchange="cambiarVelocidad(this.value)"
+        >
+      </div>
+
+      <div class="slider-group">
+        <label>
+          Volumen
+          <span class="slider-value" id="volValue">100%</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          value="1"
+          onchange="cambiarVolumen(this.value)"
+        >
+      </div>
+
+      <div class="slider-group">
+        <label>
+          Tono
+          <span class="slider-value" id="pitchValue">1x</span>
+        </label>
+        <input
+          type="range"
+          min="0.5"
+          max="2"
+          step="0.1"
+          value="1"
+          onchange="cambiarTono(this.value)"
+        >
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Log de Eventos</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <script src="anuncios.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+
+    function addLog(mensaje) {
+      const time = new Date().toLocaleTimeString('es-ES', { hour12: false });
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `<span class="time">[${time}]</span> ${mensaje}`;
+      logEl.appendChild(item);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function reproducirPersonalizado() {
+      const texto = document.getElementById('textoAnuncio').value;
+      if (texto.trim()) {
+        Anuncios.anunciar(texto);
+        addLog(`📢 Anunciando: "${texto}"`);
+      }
+    }
+
+    function cambiarVelocidad(valor) {
+      Anuncios.config.rate = parseFloat(valor);
+      document.getElementById('rateValue').textContent = valor + 'x';
+      addLog(`⚙️ Velocidad: ${valor}x`);
+    }
+
+    function cambiarVolumen(valor) {
+      Anuncios.config.volume = parseFloat(valor);
+      document.getElementById('volValue').textContent = Math.round(valor * 100) + '%';
+      addLog(`🔊 Volumen: ${Math.round(valor * 100)}%`);
+    }
+
+    function cambiarTono(valor) {
+      Anuncios.config.pitch = parseFloat(valor);
+      document.getElementById('pitchValue').textContent = valor + 'x';
+      addLog(`🎵 Tono: ${valor}x`);
+    }
+
+    // Override de anunciar para loguear
+    const originalAnunciar = Anuncios.anunciar;
+    Anuncios.anunciar = function(texto, opciones) {
+      addLog(`📢 Anunciando: "${texto}"`);
+      return originalAnunciar.call(this, texto, opciones);
+    };
+
+    const originalDecir = Anuncios.decir;
+    Anuncios.decir = function(clave, ...args) {
+      addLog(`📢 Evento: ${clave}(${args.join(', ')})`);
+      return originalDecir.call(this, clave, ...args);
+    };
+
+    addLog('✅ Sistema de anuncios cargado');
+    addLog('🎙️ Haz clic en los botones o escribe tu anuncio personalizado');
+  </script>
+</body>
+</html>
