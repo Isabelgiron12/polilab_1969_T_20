@@ -1300,114 +1300,9 @@ function rocketSVG(state){
 }
 
 function cockpitSVG(){
-  const stars = [
-    [46,38,1.4],[92,26,1],[150,32,1.2],[338,30,1],[360,60,1.4],[372,120,1],
-    [30,90,1],[36,150,1.3],[28,180,1],[350,170,1.2],[110,190,1],[70,20,1],
-  ];
-  return `<svg class="cockpit" viewBox="0 0 400 220" width="100%" height="auto" style="min-height:380px;max-width:100%" aria-hidden="true">
-    <style>
-      @keyframes orbit { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-      @keyframes orbitSlow { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-      @keyframes planetRotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-      .orbit-group { animation: orbit 20s linear infinite; transform-origin: 200px 110px; }
-      .planet-g { animation: planetRotate 30s linear infinite; transform-origin: 200px 110px; }
-    </style>
-    <defs>
-      <linearGradient id="rocketFire" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#ff6b00" stop-opacity=".8"/>
-        <stop offset="50%" stop-color="#fbaf17" stop-opacity=".6"/>
-        <stop offset="100%" stop-color="#ff6b00" stop-opacity="0"/>
-      </linearGradient>
-      <filter id="rocketGlow">
-        <feGaussianBlur stdDeviation="1.2" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <filter id="energyRing">
-        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <clipPath id="cpClip"><rect x="18" y="18" width="364" height="168" rx="16"></rect></clipPath>
-      <style>
-        @keyframes energyPulse { 0%,100%{opacity:.3;stroke-width:2} 50%{opacity:.8;stroke-width:3} }
-        .energy-ring { animation: energyPulse 2.5s ease-in-out infinite; }
-      </style>
-    </defs>
-    <rect class="cp-frame" x="4" y="4" width="392" height="196" rx="24"></rect>
-    <g clip-path="url(#cpClip)">
-      <rect x="18" y="18" width="364" height="168" fill="var(--bg)"></rect>
-      ${stars.map(([x,y,r],i)=>`<circle class="cp-star${i%3===0?' dim':''}" cx="${x}" cy="${y}" r="${r}"></circle>`).join('')}
-
-      <!-- Planeta en el centro -->
-      <g transform="translate(200, 110)">
-        <!-- Órbitas alrededor del planeta -->
-        <circle cx="0" cy="0" r="42" fill="none" stroke="rgba(31,178,222,.15)" stroke-width="1" stroke-dasharray="2,2"/>
-        <circle cx="0" cy="0" r="52" fill="none" stroke="rgba(251,175,23,.1)" stroke-width="1" stroke-dasharray="3,3"/>
-
-        <!-- Planeta Tierra -->
-        <defs>
-          <radialGradient id="planetGlow">
-            <stop offset="0%" stop-color="rgba(31,178,222,.4)"/>
-            <stop offset="100%" stop-color="rgba(31,178,222,.1)"/>
-          </radialGradient>
-        </defs>
-
-        <circle cx="0" cy="0" r="28" fill="#1a4d7a" stroke="rgba(31,178,222,.3)" stroke-width="1.5" filter="url(#energyRing)"/>
-        <!-- Océanos -->
-        <path d="M -20,-10 Q -15,-20 0,-22 Q 15,-20 20,-10 Q 18,0 15,10 Q 10,15 0,16 Q -10,15 -15,10 Q -18,0 -20,-10 Z" fill="rgba(15,178,222,.6)" opacity=".4"/>
-        <!-- Continentes -->
-        <ellipse cx="-8" cy="-8" rx="6" ry="4" fill="rgba(166,206,56,.5)" opacity=".5"/>
-        <ellipse cx="10" cy="6" rx="5" ry="6" fill="rgba(166,206,56,.4)" opacity=".5"/>
-        <!-- Brillo del planeta -->
-        <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2" opacity=".6"/>
-
-        <!-- Cohete en órbita -->
-        <g class="orbit-group">
-          <g transform="translate(0, -50)">
-            <!-- Cohete en órbita con movimiento -->
-            <path d="M 0,-12 L 3,-5 L 3,10 Q 3,14 0,15 Q -3,14 -3,10 L -3,-5 Z" fill="var(--accent-2)" filter="url(#rocketGlow)" stroke="rgba(31,178,222,.9)" stroke-width="1.5"/>
-            <!-- Anillos de energía del cohete -->
-            <circle cx="0" cy="0" r="18" fill="none" stroke="var(--go)" opacity=".3" stroke-width="1" filter="url(#energyRing)"/>
-            <circle cx="0" cy="0" r="22" fill="none" stroke="var(--amber)" opacity=".2" stroke-width="0.8" filter="url(#energyRing)"/>
-            <!-- Aletas -->
-            <path d="M -3,4 L -10,11 L -3,9 Z" fill="var(--go)" opacity=".8"/>
-            <path d="M 3,4 L 10,11 L 3,9 Z" fill="var(--go)" opacity=".8"/>
-            <!-- Fuego -->
-            <path d="M -1,14 Q -2,18 -1,22" fill="url(#rocketFire)" opacity=".7"/>
-            <path d="M 1,14 Q 2,18 1,22" fill="url(#rocketFire)" opacity=".7"/>
-          </g>
-        </g>
-
-        <!-- Satélite pequeño -->
-        <g class="orbit-group" style="animation-duration:30s;animation-direction:reverse">
-          <circle cx="0" cy="-38" r="2.5" fill="var(--amber)" opacity=".8" filter="url(#energyRing)"/>
-        </g>
-      </g>
-
-      <g transform="translate(200, 65)">
-        <!-- Imagen del cohete de referencia -->
-        <foreignObject x="-65" y="-80" width="130" height="140"><img src="rocket-ref.webp" width="130" height="140" style="display:block;"/></foreignObject>
-        <circle class="energy-ring" cx="0" cy="0" r="68" fill="none" stroke="rgba(255,215,0,.4)" opacity=".3" stroke-width="2" filter="url(#energyRing)" style="animation-delay:.3s"/>
-      </g>
-    </g>
-    <circle class="cp-rivet" cx="16" cy="16" r="3"></circle>
-    <circle class="cp-rivet" cx="384" cy="16" r="3"></circle>
-    <circle class="cp-rivet" cx="16" cy="196" r="3"></circle>
-    <circle class="cp-rivet" cx="384" cy="196" r="3"></circle>
-    <rect class="cp-panel" x="16" y="192" width="52" height="20" rx="3"></rect>
-    <circle class="cp-led go blink" cx="27" cy="202" r="2.4"></circle>
-    <circle class="cp-led warn" cx="42" cy="202" r="2.4"></circle>
-    <circle class="cp-led go" cx="57" cy="202" r="2.4"></circle>
-    <rect class="cp-panel" x="332" y="192" width="52" height="20" rx="3"></rect>
-    <circle class="cp-led go" cx="343" cy="202" r="2.4"></circle>
-    <circle class="cp-led go" cx="358" cy="202" r="2.4"></circle>
-    <circle class="cp-led warn blink" cx="373" cy="202" r="2.4"></circle>
-  </svg>`;
+  return `<div style="width:100%;height:auto;display:flex;align-items:center;justify-content:center;border-radius:16px;overflow:hidden;background:var(--panel);padding:16px">
+    <img src="nave-diagrama.webp" style="width:100%;height:auto;display:block;border-radius:8px"/>
+  </div>`;
 }
 
 function renderHUD(){
@@ -1436,7 +1331,7 @@ function renderHUD(){
           <path d="M12 6v12M6 12h12" stroke="var(--accent-2)" stroke-width="1.5" fill="none"/>
         </svg>
       </div>
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase">METRO POLI LAB</div>
+      <img src="metro-logo.webp" style="height:32px;object-fit:contain" alt="METRO POLI lab"/>
     </div>
     <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;text-align:center">
       <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
