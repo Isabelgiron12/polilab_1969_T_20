@@ -4,6 +4,14 @@ const Anuncios = (() => {
   let currentUtterance = null;
 
   const config = {
+    lang: 'es-MX',  // Acento latino (México)
+    rate: 0.95,
+    pitch: 1,
+    volume: 1
+  };
+
+  // Variante con acento español si se necesita
+  const configEspañol = {
     lang: 'es-ES',
     rate: 0.95,
     pitch: 1,
@@ -109,7 +117,27 @@ const Anuncios = (() => {
       `Verificación de decisión. Requiere confirmación.`,
 
     proximo: () =>
-      `Procediéndose a siguiente etapa.`
+      `Procediéndose a siguiente etapa.`,
+
+    // ANUNCIOS IMPORTANTES DE DIRECCIÓN
+    // Estos se reproducen con énfasis especial
+    direccionCritica: () =>
+      `ATENCIÓN. Comunicado importante de la dirección. Todos deben escuchar.`,
+
+    direccionLlamado: () =>
+      `Este es un anuncio de la dirección. Requiere atención inmediata.`,
+
+    direccionInstruccion: (instruccion) =>
+      `Directiva de la dirección: ${instruccion}. Cumplimiento obligatorio.`,
+
+    direccionAviso: (aviso) =>
+      `Aviso urgente de la dirección. ${aviso}`,
+
+    direccionDecision: (decision) =>
+      `La dirección ha tomado una decisión. ${decision}. Todos deben conocerla.`,
+
+    direccionCambio: (cambio) =>
+      `Cambio de directriz de la dirección. ${cambio}. Acaten inmediatamente.`
   };
 
   // Reproducir una frase predefinida
@@ -122,12 +150,37 @@ const Anuncios = (() => {
     }
   };
 
+  // Anuncio crítico de dirección (CON ÉNFASIS)
+  const anuncioCritico = (clave, ...args) => {
+    if (!synth) init();
+    synth.cancel();
+
+    const texto = typeof frases[clave] === 'function'
+      ? frases[clave](...args)
+      : frases[clave];
+
+    currentUtterance = new SpeechSynthesisUtterance(texto);
+    currentUtterance.lang = config.lang;
+    currentUtterance.rate = 0.85;  // Más lento para énfasis
+    currentUtterance.pitch = 1.1;   // Tono ligeramente más alto
+    currentUtterance.volume = 1;    // Volumen máximo
+
+    // Pausa antes de hablar
+    setTimeout(() => {
+      synth.speak(currentUtterance);
+    }, 300);
+
+    return currentUtterance;
+  };
+
   return {
     anunciar,
     decir,
+    anuncioCritico,  // Para anuncios de dirección importantes
     detener,
     frases,
-    config
+    config,
+    configEspañol
   };
 })();
 
