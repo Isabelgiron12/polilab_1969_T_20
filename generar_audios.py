@@ -13,8 +13,10 @@ client = texttospeech.TextToSpeechClient()
 
 # Frases del juego (extraídas de anuncios.js)
 FRASES = {
-    # INICIO Y FIN
-    'bienvenida': 'Bienvenidos a la sala de control. Prepárense para la misión.',
+    # INICIO CON CONTEXTO
+    'bienvenida': 'Bienvenidos a la sala de control. Hoy comandarán una nave de investigación en una misión crítica. Cada decisión que tomen afectará no solo el éxito de la misión, sino la vida de los astronautas a bordo. Prepárense para lo que viene.',
+    'contextoBienvenida': 'Somos un equipo. En esta misión, serán puestos a prueba en formas que no esperan. El sistema fallará. Los plazos apremiarán. La presión será inmensa. Pero recuerden: juntos, pueden lograr cualquier cosa. Prepárense.',
+    'explicacionMision': 'La nave debe viajar al espacio profundo en una misión de investigación científica. Pero antes, deben decidir si es seguro lanzarla. Ustedes son los únicos que pueden tomar esa decisión. Y esa decisión será difícil.',
     'inicioConteo': 'Iniciando cuenta regresiva para el lanzamiento.',
     'lanzamiento': 'Lanzamiento en progreso. Todos a posiciones de seguridad.',
     'misionTerminada': 'Misión completada. Equipo, regresen a la sala de control.',
@@ -51,8 +53,21 @@ FRASES = {
     'llamadoDireccionUrgente': 'Comunicado urgente de dirección. Todos escuchen.',
     'conteoRegresivo': 'Cuenta regresiva para decisión. Prepárense.',
 
+    # CONTEXTO DE SISTEMAS
+    'sistemaPropulsion': 'Sistema de Propulsión: los motores son el corazón de la nave. Sin ellos, no hay movimiento, no hay vida.',
+    'sistemaNavegacion': 'Sistema de Navegación: ustedes determinan el rumbo. Un error aquí puede significar que la nave nunca regrese a casa.',
+    'sistemaComunicaciones': 'Sistema de Comunicaciones: es el único hilo que conecta la nave con la Tierra. Si se corta, están solos.',
+    'sistemaEscudo': 'Sistema de Escudo Térmico: el reingreso sin escudo significa quema atmosférica. Sin escudo, la nave arde.',
+
+    # CONTEXTODE SITUACIONES
+    'sistemaFalla': 'Un sistema acaba de fallar. Ahora deben decidir: ¿continúan con la misión o la abortan? El tiempo corre.',
+    'presionDecision': 'Esta es una decisión de vida o muerte. No hay vuelta atrás. Una vez lancen, la nave está en el espacio. No hay opción de detenerla.',
+    'tiempoAgota': 'El tiempo se agota. Cada segundo que pasan deliberando es un segundo que pierden. Tomen una decisión.',
+
     # REFLEXIÓN FINAL
     'reflexionFinal': 'Hemos llegado al final. La nave ha despegado o no. Pero lo importante es que cada uno enfrentó una decisión real. En un equipo verdadero, no todos están de acuerdo. Algunos querían despegar, otros querían esperar. Pero todos trabajaron juntos. Eso define a un equipo. No la decisión correcta, sino la valentía de tomarla juntos. La próxima vez, sabrán que se pueden confiar. Y eso vale más que cualquier misión.',
+    'leccionEquipo': 'Recuerden esto: no son máquinas ejecutando órdenes. Son humanos tomando decisiones bajo presión. Y eso, en sí mismo, es un logro.',
+    'proximaOportunidad': 'Habrá otra oportunidad. Otra nave. Otra misión. Y cuando llegue, sabrán exactamente qué hacer porque aprendieron aquí. Hoy.',
 
     # DIRECCIÓN Y DESPIDOS
     'anuncioDespido': 'Anuncio de dirección. Se ha tomado una decisión. Continúen con la misión.',
