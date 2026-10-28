@@ -1,6 +1,6 @@
 # Caja Negra
 
-Simulación de sala de control desarrollada para **POLILab**, el laboratorio virtual de competencias del Politécnico Grancolombiano, por la Escuela de Psicología, Talento Humano y Sociedad y el grupo de investigación CVSSL.
+Simulación de sala de control desarrollada para **METRO POLI Lab**, el laboratorio virtual de competencias del Politécnico Grancolombiano, por la Escuela de Psicología, Talento Humano y Sociedad y el grupo de investigación CVSSL.
 
 ## Uso
 
