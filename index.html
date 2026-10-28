@@ -379,6 +379,17 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 @media(min-width:1024px){.two-col{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch;grid-template-areas:"a b"}}
 .contenedor-caja-negra{display:grid;gap:14px;grid-template-columns:1fr;grid-template-areas:"caso" "indicadores"}
 .tarjeta-caso{grid-area:caso;margin:0}
+.end-grid{display:grid;gap:14px;grid-template-columns:1fr}
+.end-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.end-grid > .panel,.end-col > .panel{margin:0;grid-area:auto}
+.end-grid{align-items:start}
+.end-rocket svg{min-height:0!important;max-height:22vh;display:block;margin:0 auto}
+.end-actions .grow{white-space:nowrap}
+/* Pantallas finales: deben caber sin scroll, así que van más juntas. */
+.content-wrap.is-end{gap:12px}
+.content-wrap.is-end .outcome-head{margin:0}
+.body:has(> .content-wrap.is-end){padding-top:var(--space-lg);padding-bottom:var(--space-lg)}
+@media(min-width:860px){.end-grid{grid-template-columns:1fr 1.25fr;align-items:stretch}}
 .tarjeta-indicadores{grid-area:indicadores;margin:0}
 .indicador-row{display:flex;align-items:center;gap:14px}
 .indicador-split{display:flex;gap:14px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border-soft)}
@@ -387,11 +398,11 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
   .tarjeta-caso,.tarjeta-indicadores{display:flex;flex-direction:column;justify-content:center}
 }
 .content-wrap > *{max-width:860px;margin-left:auto;margin-right:auto;width:100%}
-.content-wrap > .inicio-columns,.content-wrap > .sistemas-columns,.content-wrap > .setup-columns,.content-wrap > .two-col,.content-wrap > .contenedor-caja-negra{max-width:none}
+.content-wrap > .inicio-columns,.content-wrap > .sistemas-columns,.content-wrap > .setup-columns,.content-wrap > .two-col,.content-wrap > .contenedor-caja-negra,.content-wrap > .end-grid,.content-wrap > .end-actions{max-width:none}
 /* Cualquier título/eyebrow que quede justo antes de una de estas grillas de dos columnas
    debe compartir su mismo ancho completo; si no, el título queda angosto y centrado
    mientras la grilla ocupa todo el ancho, y todo se ve desalineado entre sí. */
-.content-wrap > *:has(~ .inicio-columns),.content-wrap > *:has(~ .sistemas-columns),.content-wrap > *:has(~ .setup-columns),.content-wrap > *:has(~ .two-col),.content-wrap > *:has(~ .contenedor-caja-negra){max-width:none}
+.content-wrap > *:has(~ .inicio-columns),.content-wrap > *:has(~ .sistemas-columns),.content-wrap > *:has(~ .setup-columns),.content-wrap > *:has(~ .two-col),.content-wrap > *:has(~ .contenedor-caja-negra),.content-wrap > *:has(~ .end-grid){max-width:none}
 @media(min-width:860px){
   .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:start}
   .sistemas-columns.caso{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
@@ -1110,6 +1121,7 @@ function clearCleared(){ S.sys.clearedPending=false; render(); }
 
 function setDecision(d){ S.decision = d; if(d!=='COND'){ S.watchedSystems = []; } render(); }
 function openBlackBox(){ if(S.launch) S.launch.boxOpen = true; render(); }
+function closeBlackBox(){ if(S.launch) S.launch.boxOpen = false; render(); }
 
 function setVerifText(i){
   const presets = VERIF_PRESETS[S.decision] || VERIF_PRESETS.GO;
@@ -2171,7 +2183,7 @@ function renderLaunchCountdown(){
       </svg>
       <div class="ignition">${S.launch.count}</div>
     </div>
-    ${cockpitDrawingSVG()}
+    <div class="end-rocket">${cockpitDrawingSVG()}</div>
     <p style="text-align:center;color:var(--ink-faint)">La sala ya no puede cambiar nada.</p>
   `;
 }
@@ -2182,7 +2194,7 @@ function renderLaunchResolved(){
     return `
       ${eyebrow(success?'SEÑAL NOMINAL':'PÉRDIDA DE VEHÍCULO', true)}
       <h1 class="outcome-head">${success?'La nave despegó y llegó':'La nave despegó y no llegó'}</h1>
-      ${cockpitDrawingSVG()}
+      <div class="end-rocket">${cockpitDrawingSVG()}</div>
       ${panel(`
         <p style="text-align:center;color:var(--ink)">Toca para abrir la caja negra y ver qué pasó de verdad.</p>
         <button class="primary" style="margin-top:12px" onclick="openBlackBox()">ABRIR LA CAJA NEGRA</button>
@@ -2227,24 +2239,29 @@ function renderLaunchResolved(){
   `;
 }
 function renderAborted(){
+  const boxPanel = panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`);
   return `
     ${eyebrow('MISIÓN ABORTADA · GANARON', true)}
     <h1 class="outcome-head" style="color:var(--go)">¡Hicieron las cosas correctas!</h1>
-    ${cockpitDrawingSVG()}
-    ${panel(`
-      <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-      <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
-    `, 'flash-go')}
-    ${panel(`
-      <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
-      <h2 style="margin-top:0">El caso Challenger</h2>
-      ${challengerStoryHTML()}
-    `, 'tarjeta-caso')}
-    ${!S.launch.boxOpen
-      ? `<button class="ghost" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`
-      : panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`)}
-    ${backRow()}
-    ${debriefButtons()}
+    <div class="end-grid">
+      <div class="end-col">
+        <div class="end-rocket">${cockpitDrawingSVG()}</div>
+        ${panel(`
+          <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
+          <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
+        `, 'flash-go')}
+      </div>
+      ${S.launch.boxOpen ? boxPanel : panel(`
+        <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
+        <h2 style="margin-top:0">El caso Challenger</h2>
+        ${challengerStoryHTML()}
+      `, 'tarjeta-caso')}
+    </div>
+    <div class="row end-actions">
+      <button class="ghost grow" onclick="goBack()">ATRÁS</button>
+      ${S.launch.boxOpen ? `<button class="ghost grow" onclick="closeBlackBox()">Volver al caso Challenger</button>` : `<button class="ghost grow" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`}
+      <button class="primary go grow" onclick="newCrew()">Empezar con otra tripulación</button>
+    </div>
   `;
 }
 function renderNoDecision(){
@@ -2493,7 +2510,7 @@ function renderBody(){
   const key = renderKey();
   const changed = key !== _lastRenderKey;
   _lastRenderKey = key;
-  body.innerHTML = '<div class="content-wrap'+(changed?' screen-in':'')+'">'+html+'</div>';
+  body.innerHTML = '<div class="content-wrap'+(changed?' screen-in':'')+(S.nav==='cajanegra'&&S.screen==='end'?' is-end':'')+'">'+html+'</div>';
   return changed;
 }
 
@@ -2505,8 +2522,7 @@ function fitScreen(){
   stage.style.width = '100%';
   const availH = main.clientHeight;
   const contentH = stage.scrollHeight;
-  // Las pantallas finales tienen mucho texto: no se encogen, se recorren con scroll.
-  const minScale = (S.nav==='cajanegra' && S.screen==='end') ? 1 : 0.4;
+  const minScale = 0.4;
   const maxScale = 1.35;
   let scale = contentH > 0 ? availH / contentH : 1;
   if(scale > maxScale) scale = maxScale;
