@@ -2099,8 +2099,10 @@ function renderSistemas(){
 
 function confirmLaunchDecision(){
   S.decision = 'GO';
+  S.verifText = VERIF_PRESETS.GO[0];
   Anuncios?.decir?.('decisionGO');
-  advanceNow();
+  // ENVIAR es la única confirmación: lanza directo, sin la pantalla de firma
+  finishNow();
 }
 
 function decisionNOGO(){
