@@ -390,6 +390,12 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .content-wrap.is-end .outcome-head{margin:0}
 .body:has(> .content-wrap.is-end){padding-top:var(--space-lg);padding-bottom:var(--space-lg)}
 @media(min-width:860px){.end-grid{grid-template-columns:1fr 1.25fr;align-items:stretch}}
+.end-foto{display:block;width:100%;max-height:34vh;object-fit:cover;object-position:center 30%;border-radius:14px;border:1px solid var(--border-soft);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+@media(min-width:860px){
+  .end-grid.con-foto{grid-template-columns:minmax(0,.34fr) minmax(0,1fr)}
+  .end-grid.con-foto .end-foto{align-self:stretch;height:100%;min-height:0;max-height:none;object-fit:cover;object-position:center 40%}
+  .end-grid.con-foto .end-foto.alta{height:56vh;object-position:center 35%}
+}
 .tarjeta-indicadores{grid-area:indicadores;margin:0}
 .indicador-row{display:flex;align-items:center;gap:14px}
 .indicador-split{display:flex;gap:14px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border-soft)}
@@ -2194,11 +2200,15 @@ function renderLaunchResolved(){
     return `
       ${eyebrow(success?'SEÑAL NOMINAL':'PÉRDIDA DE VEHÍCULO', true)}
       <h1 class="outcome-head">${success?'La nave despegó y llegó':'La nave despegó y no llegó'}</h1>
-      <div class="end-rocket">${cockpitDrawingSVG()}</div>
-      ${panel(`
-        <p style="text-align:center;color:var(--ink)">Toca para abrir la caja negra y ver qué pasó de verdad.</p>
-        <button class="primary" style="margin-top:12px" onclick="openBlackBox()">ABRIR LA CAJA NEGRA</button>
-      `, success?'flash-go':'flash-nogo')}
+      <div class="end-grid con-foto">
+        <img class="end-foto alta" src="nave-despegue.webp?v=202610272020" alt="La nave despegando entre las nubes"/>
+        <div class="end-col" style="justify-content:center">
+          ${panel(`
+            <p style="text-align:center;color:var(--ink)">Toca para abrir la caja negra y ver qué pasó de verdad.</p>
+            <button class="primary" style="margin-top:12px" onclick="openBlackBox()">ABRIR LA CAJA NEGRA</button>
+          `, success?'flash-go':'flash-nogo')}
+        </div>
+      </div>
     `;
   }
   return `
@@ -2243,19 +2253,19 @@ function renderAborted(){
   return `
     ${eyebrow('MISIÓN ABORTADA · GANARON', true)}
     <h1 class="outcome-head" style="color:var(--go)">¡Hicieron las cosas correctas!</h1>
-    <div class="end-grid">
+    <div class="end-grid con-foto">
+      <img class="end-foto" src="nave-plataforma.webp?v=202610272005" alt="La nave en la plataforma de lanzamiento, sin despegar"/>
       <div class="end-col">
-        <div class="end-rocket">${cockpitDrawingSVG()}</div>
         ${panel(`
           <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
           <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
         `, 'flash-go')}
+        ${S.launch.boxOpen ? boxPanel : panel(`
+          <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
+          <h2 style="margin-top:0">El caso Challenger</h2>
+          ${challengerStoryHTML()}
+        `, 'tarjeta-caso')}
       </div>
-      ${S.launch.boxOpen ? boxPanel : panel(`
-        <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
-        <h2 style="margin-top:0">El caso Challenger</h2>
-        ${challengerStoryHTML()}
-      `, 'tarjeta-caso')}
     </div>
     <div class="row end-actions">
       <button class="ghost grow" onclick="goBack()">ATRÁS</button>
