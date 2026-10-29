@@ -259,6 +259,7 @@ const Anuncios = (() => {
     anunciar,
     decir,
     anuncioCritico,  // Para anuncios de dirección importantes
+    reproducirAudio,
     detener,
     frases,
     config,
