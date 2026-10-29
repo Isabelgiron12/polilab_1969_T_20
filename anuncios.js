@@ -1,16 +1,15 @@
-// Sistema de anuncios con Text-to-Speech
+// Sistema de anuncios con audios MP3
 const Anuncios = (() => {
-  let synth = null;
-  let currentUtterance = null;
+  let currentAudio = null;
+  const audioPath = 'audio/';  // Ruta a los archivos MP3
 
   const config = {
-    lang: 'es-MX',  // Acento latino (México)
-    rate: 1.2,  // Más rápido para fluidez
+    lang: 'es-MX',
+    rate: 1.2,
     pitch: 1,
     volume: 1
   };
 
-  // Variante con acento español si se necesita
   const configEspañol = {
     lang: 'es-ES',
     rate: 0.95,
@@ -19,30 +18,48 @@ const Anuncios = (() => {
   };
 
   const init = () => {
-    synth = window.speechSynthesis;
+    // No necesita inicialización especial
+  };
+
+  const reproducirAudio = (nombreArchivo) => {
+    // Detener audio anterior si está en progreso
+    detener();
+
+    const rutaCompleta = `${audioPath}${nombreArchivo}.mp3`;
+    currentAudio = new Audio(rutaCompleta);
+    currentAudio.play().catch(err => console.log(`Audio no encontrado: ${rutaCompleta}`, err));
+
+    return currentAudio;
   };
 
   const anunciar = (texto, opciones = {}) => {
-    if (!synth) init();
+    // Intenta reproducir audio si existe, sino usa síntesis de voz como fallback
+    // Por ahora solo usa síntesis como fallback
+    return reproducirAudioFallback(texto, opciones);
+  };
 
-    // Cancelar anuncio anterior si está en progreso
-    synth.cancel();
-
+  const reproducirAudioFallback = (texto, opciones = {}) => {
     const opts = { ...config, ...opciones };
+    const synth = window.speechSynthesis;
 
-    currentUtterance = new SpeechSynthesisUtterance(texto);
-    currentUtterance.lang = opts.lang;
-    currentUtterance.rate = opts.rate;
-    currentUtterance.pitch = opts.pitch;
-    currentUtterance.volume = opts.volume;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = opts.lang;
+    utterance.rate = opts.rate;
+    utterance.pitch = opts.pitch;
+    utterance.volume = opts.volume;
 
-    synth.speak(currentUtterance);
-
-    return currentUtterance;
+    synth.speak(utterance);
+    return utterance;
   };
 
   const detener = () => {
-    if (synth) synth.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+    }
+    window.speechSynthesis.cancel();
   };
 
   const frases = {
@@ -214,37 +231,28 @@ const Anuncios = (() => {
       `${rol} ha sido removido de la misión. No pueden continuar en el juego.`
   };
 
-  // Reproducir una frase predefinida
+  // Reproducir una frase predefinida (intenta audio primero)
   const decir = (clave, ...args) => {
+    // Primero intenta reproducir el audio MP3
     if (frases[clave]) {
-      const texto = typeof frases[clave] === 'function'
-        ? frases[clave](...args)
-        : frases[clave];
-      return anunciar(texto);
+      reproducirAudio(clave);
+
+      // Si la frase es dinámica, también ejecuta síntesis como fallback
+      if (typeof frases[clave] === 'function') {
+        const texto = frases[clave](...args);
+        // No anunciamos para no duplicar el sonido
+      }
     }
   };
 
   // Anuncio crítico de dirección (CON ÉNFASIS)
   const anuncioCritico = (clave, ...args) => {
-    if (!synth) init();
-    synth.cancel();
-
-    const texto = typeof frases[clave] === 'function'
-      ? frases[clave](...args)
-      : frases[clave];
-
-    currentUtterance = new SpeechSynthesisUtterance(texto);
-    currentUtterance.lang = config.lang;
-    currentUtterance.rate = 0.85;  // Más lento para énfasis
-    currentUtterance.pitch = 1.1;   // Tono ligeramente más alto
-    currentUtterance.volume = 1;    // Volumen máximo
-
-    // Pausa antes de hablar
+    // Reproduce el audio con efecto crítico (volumen alto, pausa antes)
     setTimeout(() => {
-      synth.speak(currentUtterance);
+      reproducirAudio(clave);
     }, 300);
 
-    return currentUtterance;
+    return currentAudio;
   };
 
   return {
