@@ -586,7 +586,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-actions button{flex:1}
 .intro-actions button[hidden]{display:none}
 </style>
-<script src="anuncios.js?v=202611031900"></script>
+<script src="anuncios.js?v=202611031930"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -958,7 +958,7 @@ function advanceNow(){
   setTimeout(() => {
     if(next.id.includes('decision')) Anuncios?.decir?.('faseDecision');
     else if(next.id.includes('mini')) Anuncios?.decir?.('faseMiniJuego');
-    else Anuncios?.decir?.('proximo');
+    else if(next.id!=='sistemas') Anuncios?.decir?.('proximo');
   }, 300);
 }
 function finishNow(){
@@ -1782,6 +1782,8 @@ function renderSistemas(){
   const sys = SYSTEMS.find(s=>s.id===p.cardId);
   if(!S.sys.miniDone){
     if(!S.sys.ttt) S.sys.ttt = tttInit();
+    // Anuncia el área una sola vez por turno
+    if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; setTimeout(() => Anuncios?.decir?.('turno'+sys.id), 300); }
     const t = S.sys.ttt;
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}

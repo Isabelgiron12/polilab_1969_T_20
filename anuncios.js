@@ -2,7 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
-  const audioVersion = '202611031900';  // Cambiarla al regenerar audios, para saltar la caché
+  const audioVersion = '202611031930';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
@@ -159,6 +159,14 @@ const Anuncios = (() => {
 
     proximo: () =>
       `Procediéndose a siguiente etapa.`,
+
+    // TURNO DE CADA ÁREA (pantalla "Pásale el dispositivo a")
+    turno1: () => `Jefatura de Propulsión, verifique su proceso.`,
+    turno2: () => `Jefatura de Oxígeno, verifique su proceso.`,
+    turno3: () => `Jefatura de Navegación, verifique su proceso.`,
+    turno4: () => `Jefatura de Comunicaciones, verifique su proceso.`,
+    turno5: () => `Jefatura de Escudo Térmico, verifique su proceso.`,
+    turno6: () => `Jefatura de Soporte Vital, verifique su proceso.`,
 
     // ANUNCIOS IMPORTANTES DE DIRECCIÓN
     // Estos se reproducen con énfasis especial
