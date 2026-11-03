@@ -2360,8 +2360,11 @@ window.addEventListener('resize', scheduleFitThorough);
 window.addEventListener('load', scheduleFitThorough);
 if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFitThorough); }
 
-function render(){ renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen(); }
-if(S.nav==='inicio') S.introStep = 0; // Resetea intro al inicio
+function render(){
+  if(S.nav==='inicio') S.introStep = Math.max(0, S.introStep||0); // FORCE intro step always >= 0
+  renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen();
+}
+S.introStep = 0; // Fuerza reset al cargar
 render();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
