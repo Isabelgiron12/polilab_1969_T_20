@@ -854,12 +854,85 @@ const INFORME = [
   'SOPORTE VITAL: los filtros de repuesto entraron sin certificado de calidad.',
 ];
 
-const PHASES = [
+const PHASES_SALA = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 20:00', label:'Lectura de protocolo'},
   {id:'sistemas', at:60,  dur:840, code:'T MENOS 19:00', label:'Sistemas y discusión'},
   {id:'entrega',  at:900, dur:300, code:'T MENOS 5:00',  label:'Firma y lanzamiento'},
 ];
-const TOTAL = 1200;
+// Modo individual: una persona contra la máquina, sin conversación en sala, cabe en 10 minutos
+const PHASES_SOLO = [
+  {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
+  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
+  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
+];
+let PHASES = PHASES_SALA;
+let TOTAL = 1200;
+function minutosMision(solo){ return solo ? 10 : 20; }
+
+/* ---------- modo individual: tripulantes máquina ---------- */
+// Lo que dice en la sala un bot que confiesa (en voz alta)
+const BOT_CONFIESA = {
+  1:'Propulsión: cambiamos la válvula y no repetimos la prueba en frío. La firma es mía.',
+  2:'Oxígeno: el cálculo da justo nueve días, sin margen. Nadie más lo ha revisado.',
+  3:'Navegación: el respaldo tuvo un error intermitente tres días seguidos. Ayer pasó la prueba.',
+  4:'Comunicaciones: la antena secundaria quedó desalineada dos grados.',
+  5:'Escudo térmico: hay una marca en una placa. El técnico dice que no es nada, pero el manual no es claro.',
+  6:'Soporte vital: los filtros de repuesto llegaron sin certificado. Yo los probé y dieron bien.',
+};
+// Lo que dice en la sala un bot que se lo guarda: tranquilizador o con titubeo
+const BOT_CALLA = {
+  1:['Propulsión: motores listos, todas las pruebas en verde.', 'Propulsión: los motores están bien… pasaron las pruebas que alcanzamos a hacer.'],
+  2:['Oxígeno: el consumo está calculado para los nueve días.', 'Oxígeno: el aire alcanza. Los números cuadran, más o menos justos.'],
+  3:['Navegación: la última prueba del respaldo salió sin errores.', 'Navegación: todo en orden… en principio.'],
+  4:['Comunicaciones: la antena principal funciona perfecto.', 'Comunicaciones: nada que reportar. La secundaria casi nunca se usa.'],
+  5:['Escudo térmico: inspección hecha, el técnico lo aprobó.', 'Escudo térmico: revisado. Hubo una cosita, pero ya la vio alguien con experiencia.'],
+  6:['Soporte vital: filtros y provisiones listos.', 'Soporte vital: los filtros están. Dan los valores que tienen que dar.'],
+};
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+// Clima de la sala: sube si quien habló en voz alta se quedó, baja si lo despidieron
+function botDecide(sysId){
+  const sysDef = SYSTEMS.find(s=>s.id===sysId);
+  const maxWeight = Math.max.apply(null, SYSTEMS.map(s=>s.weight));
+  const severity = sysDef ? sysDef.weight/maxWeight : 0;
+  // A más grave la falla, más le pesa a la máquina decirlo y más le cuesta callarlo
+  const pPublic = clamp(0.40 + 0.15*severity + S.clima, 0.08, 0.88);
+  const r = Math.random();
+  if(r < pPublic) return {q1:'YES', q2:'YES'};
+  const pPrivate = clamp(0.45 + S.clima/2, 0.15, 0.75);
+  return {q1:'NO', q2: Math.random() < pPrivate ? 'YES' : 'NO'};
+}
+function ajustarClima(p){
+  if(!S.solo) return;
+  const rec = S._bitStore[p.cardId];
+  if(!rec || rec.q1!=='YES') return;
+  const peso = p.bot ? 1 : 1.4; // lo que hace la persona contagia más
+  S.clima = clamp(S.clima + (p.fired ? -0.22 : 0.15)*peso, -0.4, 0.4);
+}
+function botTurnStart(){
+  const idx = S.sys.idx;
+  const p = S.participants[idx];
+  if(!p || !p.bot || S.sys.bot) return;
+  S.sys.bot = {stage:'thinking', idx};
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(function(){
+    if(!S.sys.bot || S.sys.bot.idx!==idx || S.sys.idx!==idx) return;
+    const d = botDecide(p.cardId);
+    const frase = d.q1==='YES' ? BOT_CONFIESA[p.cardId] : BOT_CALLA[p.cardId][Math.random()<0.5?0:1];
+    S.sys.bot = {stage:'spoke', idx, d, frase};
+    S.soloLog[p.cardId] = frase;
+    Sound.stamp();
+    const clave = d.q1==='YES' ? 'botDice'+p.cardId : 'botCalla'+p.cardId+'_'+BOT_CALLA[p.cardId].indexOf(frase);
+    setTimeout(() => Anuncios?.decirSecuencia?.([[clave, frase]]), 200);
+    render();
+  }, reduced ? 300 : 2600);
+}
+function botContinue(){
+  const b = S.sys.bot;
+  if(!b || b.stage!=='spoke') return;
+  S.sys.q1 = b.d.q1;
+  S.sys.bot = null;
+  finalizeParticipant(b.d.q2);
+}
 
 function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
@@ -875,6 +948,7 @@ let S = {
   savedRound:false, reflectionSubmitted:0,
   _bitStore:{}, launch:null, fixedDelayHours:0,
   tableroDesde:'', tableroHasta:'',
+  solo:false, clima:0, soloLog:{},
 };
 let timerHandle = null;
 
@@ -897,18 +971,25 @@ function shuffle(arr){
 }
 
 function resetSubstateFor(id){
-  if(id==='sistemas') S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
+  if(id==='sistemas') S.sys = {bot:null, idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
 }
 
 function startMission(){
   if(S.selectedSystems.length !== S.count) return;
   const pool = shuffle(S.selectedSystems);
   S.participants = [];
+  // En individual la persona cae en un turno al azar: a veces decide antes de ver a nadie, a veces después
+  const humano = Math.floor(Math.random()*S.count);
   for(let i=0;i<S.count;i++){
-    S.participants.push({name:'Jugador '+(i+1), cardId:pool[i], fired:false, credited:null});
+    const bot = S.solo && i!==humano;
+    const name = !S.solo ? 'Jugador '+(i+1) : bot ? AVATARS[pool[i]].role : 'Tú';
+    S.participants.push({name, cardId:pool[i], fired:false, credited:null, bot});
   }
+  PHASES = S.solo ? PHASES_SOLO : PHASES_SALA;
+  TOTAL = PHASES[PHASES.length-1].at + PHASES[PHASES.length-1].dur;
+  S.clima = 0; S.soloLog = {};
   S.elapsed = 0; S.running = true; S._lastPhase = null;
-  S.sys = {idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
+  S.sys = {bot:null, idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
   S._bitStore = {};
   S.fixedDelayHours = 0;
   S.decision = null; S.verifText='';
@@ -988,6 +1069,8 @@ function goBack(){
     if(S.sys.idx>=S.participants.length && S.decision!=null){ S.decision=null; render(); return; }
     if(S.sys.q1!=null){ S.sys.q1=null; render(); return; }
     if(S.sys.miniDone){ S.sys.miniDone=false; S.sys.ttt=null; render(); return; }
+    if(S.sys.bot) return;
+    if(S.solo && S.sys.idx>0) return;
     if(S.sys.idx>0){ S.sys.idx--; S.sys.miniDone=true; S.sys.ttt=null; render(); return; }
   }
 
@@ -1065,6 +1148,7 @@ function pickQ2(ans){ finalizeParticipant(ans); }
 function finalizeParticipant(q2){
   const p = S.participants[S.sys.idx];
   S._bitStore[p.cardId] = {q1:S.sys.q1, q2:q2};
+  if(S.solo && !p.bot){ S.soloLog[p.cardId] = S.sys.q1==='YES' ? BOT_CONFIESA[p.cardId] : null; }
   const admitted = (S.sys.q1==='YES' || q2==='YES');
   const saidInRoom = S.sys.q1==='YES';
 
@@ -1101,7 +1185,9 @@ function finalizeParticipant(q2){
       S.sys.firedWait = 10;
       S.sys.firedName = role;
       S.sys.firedReason = FIRE_REASONS[Math.floor(Math.random()*FIRE_REASONS.length)];
+      ajustarClima(p);
     } else {
+      ajustarClima(p);
       Sound.cleared();
       S.sys.clearedPending = true;
       S.sys.clearedName = role;
@@ -1214,7 +1300,7 @@ function registerRound(){
   const board = loadJSON('tmenos20_tablero', []);
   const d = disclosureCounts();
   board.push({
-    sala: board.length+1, decision: S.decision, verifText: S.verifText,
+    sala: board.length+1, decision: S.decision, verifText: S.verifText, modo: S.solo?'individual':'sala',
     pub:d.pub, priv:d.priv, hidden:d.hidden,
     outcome: S.launch ? S.launch.outcome : null, risk: S.launch ? S.launch.risk : null,
     ts: Date.now(),
@@ -1230,6 +1316,7 @@ function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(
 
 function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
 
+function setSolo(v){ S.solo = v; render(); }
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1619,10 +1706,10 @@ function renderSetup(){
     <h1>Caja Negra</h1>
     <div style="text-align:center;margin:8px 0 2px">
       <div class="field-label">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:21px;color:var(--amber);line-height:1.3;margin-top:6px;text-shadow:0 0 18px rgba(255,176,32,.3)">LLEVAR LA NAVE AL ESPACIO EN 20 MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:21px;color:var(--amber);line-height:1.3;margin-top:6px;text-shadow:0 0 18px rgba(255,176,32,.3)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);line-height:1.4;margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
-    <p class="lede" style="text-align:center">Faltan veinte minutos para el lanzamiento.</p>
+    <p class="lede" style="text-align:center">Faltan ${S.solo?'diez':'veinte'} minutos para el lanzamiento.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
@@ -1630,13 +1717,18 @@ function renderSetup(){
       ${panel(`
         <div style="text-align:center">
           <div class="field-label">Tu rol</div>
-          <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">Cada uno controla un sistema de la nave.</div>
-          <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.</div>
+          <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">${S.solo?'Controlas un sistema de la nave. Los demás los controlan máquinas.':'Cada uno controla un sistema de la nave.'}</div>
+          <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">${S.solo?'Solo sabes lo que cada máquina diga en la sala. Si te despiden, pierdes el juego.':'Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.'}</div>
         </div>
       `, 'notice area-role')}
 
       ${panel(`
-        <div class="field-label" style="margin-bottom:9px">¿Cuántos juegan?</div>
+        <div class="field-label" style="margin-bottom:9px">¿Cómo juegan?</div>
+        <div class="seg" style="margin-bottom:14px">
+          <div class="seg-opt ${!S.solo?'active':''}" onclick="setSolo(false)" style="font-size:14px">EN SALA</div>
+          <div class="seg-opt ${S.solo?'active':''}" onclick="setSolo(true)" style="font-size:14px">INDIVIDUAL</div>
+        </div>
+        <div class="field-label" style="margin-bottom:9px">${S.solo?'¿Cuántos tripulantes tiene la nave?':'¿Cuántos juegan?'}</div>
         <div class="seg">
           ${[2,3,4,5,6].map(n=>`<div class="seg-opt ${S.count===n?'active':''}" onclick="setCount(${n})">${n}</div>`).join('')}
         </div>
@@ -1655,7 +1747,7 @@ function renderSetup(){
             </div>
           `;}).join('')}
         </div>
-        <div class="footer-note" style="margin-top:10px">El sistema de cada quien se asigna al azar entre los elegidos.</div>
+        <div class="footer-note" style="margin-top:10px">${S.solo?'Tu sistema se asigna al azar entre los elegidos. El resto lo juegan máquinas.':'El sistema de cada quien se asigna al azar entre los elegidos.'}</div>
       `, 'area-roster')}
     </div>
 
@@ -1668,7 +1760,7 @@ function renderLectura(){
   return `
     ${eyebrow(currentPhase().code, false, '--amber')}
     <h2>Lectura de protocolo</h2>
-    <div class="donow">▸ Uno de ustedes lee esto en voz alta. Los demás escuchan.</div>
+    <div class="donow">▸ ${S.solo?'Lee el protocolo. Las demás jefaturas son máquinas: solo vas a saber lo que digan en la sala.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
     ${panel(`
       <ol class="protocol-list">
         <li><span><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</span></li>
@@ -1677,7 +1769,7 @@ function renderLectura(){
         <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
       </ol>
     `)}
-    ${backRow(`<button class="primary" onclick="advanceNow()">Ya la leímos, seguir →</button>`)}
+    ${backRow(`<button class="primary" onclick="advanceNow()">${S.solo?'Ya lo leí, seguir →':'Ya la leímos, seguir →'}</button>`)}
   `;
 }
 
@@ -1687,8 +1779,12 @@ function renderTalkToTeam(){
     <h2 style="text-align:center">Momento de hablar con el equipo</h2>
     ${panel(`
       <div style="text-align:center;padding:6px 0">
+        ${S.solo ? `
+        <div class="donow">Le cuentas a la sala lo que pasó en tu sistema.</div>
+        <p style="margin-top:10px;color:var(--ink)">«${esc(BOT_CONFIESA[S.participants[S.sys.idx].cardId])}»</p>
+        <p style="margin-top:10px">Las máquinas que faltan por hablar ya lo escucharon.</p>` : `
         <div class="donow">Habla con tu equipo en sala y cuéntales lo sucedido.</div>
-        <p style="margin-top:10px">Tómense el tiempo que necesiten para conversarlo antes de seguir.</p>
+        <p style="margin-top:10px">Tómense el tiempo que necesiten para conversarlo antes de seguir.</p>`}
       </div>
     `, '', '--accent-2')}
     <button class="primary" onclick="continueAfterTalk()">SEGUIR →</button>
@@ -1751,6 +1847,7 @@ function renderFiredWait(){
       <p style="text-align:center;color:var(--ink)">Los directivos llaman al equipo para anunciar:</p>
       <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)} por ${esc(S.sys.firedReason)}. Continúen con la misión."</p>
       <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} pierde el juego.</p>
+      ${S.solo && !S.participants[S.sys.idx-1]?.bot ? `<p style="text-align:center;margin-top:6px;color:var(--ink)">Eras tú. Igual puedes quedarte a ver cómo termina la misión y decidir el envío.</p>` : ''}
     `, 'flash-nogo')}
     ${S.sys.fixName ? panel(`
       <p style="text-align:center;color:var(--ink)">Aun así, como se dijo en voz alta, el equipo ya está arreglando <b>${esc(S.sys.fixName)}</b>.</p>
@@ -1764,6 +1861,67 @@ function renderFiredWait(){
   `;
 }
 
+function renderBotTurn(p, sys){
+  if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; setTimeout(() => Anuncios?.decir?.('turno'+sys.id), 300); }
+  if(!S.sys.bot) setTimeout(botTurnStart, 0);
+  const b = S.sys.bot;
+  const spoke = b && b.stage==='spoke';
+  return `
+    ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
+    <h2 style="text-align:center">Turno de una máquina</h2>
+    <div style="text-align:center">
+      ${avatarSVG(sys.id, 76)}
+      <div class="turn-name" style="margin-top:6px">${esc(AVATARS[sys.id].role)}</div>
+      <div class="field-label" style="margin-top:2px">Tripulante máquina</div>
+    </div>
+    ${prepBar()}
+    ${spoke ? panel(`
+      <div class="field-label" style="text-align:center">Lo que dice en la sala</div>
+      <p style="text-align:center;color:var(--ink);font-size:17px;margin-top:8px">«${esc(b.frase)}»</p>
+      <div class="footer-note" style="margin-top:8px">Solo sabes lo que dice en voz alta. Lo que haga en privado no lo ves.</div>
+    `, '', '--accent-2') : panel(`
+      <div style="text-align:center;padding:12px 0">
+        <div class="spinner"></div>
+        <p style="margin-top:14px;color:var(--ink-dim)">Está revisando su sistema y decidiendo qué contar.</p>
+      </div>
+    `)}
+    ${spoke ? `<button class="primary" onclick="botContinue()">CONTINUAR</button>` : ''}
+    ${renderQueueVisual()}
+  `;
+}
+// Lo que se oyó en la sala, turno por turno: lo único que la persona sabe de las máquinas
+function soloSalaPanel(){
+  return panel(`
+    <div class="field-label" style="margin-bottom:8px">Lo que se dijo en la sala</div>
+    <div class="stack" style="gap:8px">
+      ${S.participants.map(pp=>{
+        const dicho = S.soloLog[pp.cardId];
+        const estado = pp.fired ? '<span style="color:var(--nogo)">despedido</span>' : pp.credited ? '<span style="color:var(--go)">caso revisado, sigue</span>' : '';
+        return `<div style="display:flex;gap:10px;align-items:flex-start;text-align:left">
+          ${avatarSVG(pp.cardId, 36)}
+          <div><div style="font-family:var(--mono);font-size:12px;color:var(--ink-faint)">${esc(pp.bot?AVATARS[pp.cardId].role:'Tú · '+AVATARS[pp.cardId].role)}${estado?' · '+estado:''}</div>
+          <div style="color:var(--ink)">${dicho?'«'+esc(dicho)+'»':'<span style="color:var(--ink-dim)">No dijo nada en la sala.</span>'}</div></div>
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+// Al final: qué hizo de verdad cada máquina
+function soloRevealPanel(){
+  const filas = S.participants.filter(pp=>pp.bot).map(pp=>{
+    const rec = S._bitStore[pp.cardId] || {};
+    const sysDef = SYSTEMS.find(s=>s.id===pp.cardId);
+    const hizo = rec.q1==='YES' ? ['--go','Lo dijo en la sala'] : rec.q2==='YES' ? ['--cond','Se lo dijo solo a la directora'] : ['--nogo','Se lo calló'];
+    return `<div style="display:flex;gap:10px;align-items:flex-start;text-align:left">
+      ${avatarSVG(pp.cardId, 36)}
+      <div><div style="font-family:var(--mono);font-size:12px;color:var(${hizo[0]});font-weight:700">${esc(AVATARS[pp.cardId].role)} · ${hizo[1]}</div>
+      <div style="color:var(--ink-dim);font-size:14px">${esc(sysDef.happened)}</div></div>
+    </div>`;
+  }).join('');
+  return panel(`<div class="field-label" style="margin-bottom:8px">Lo que sabía cada máquina</div><div class="stack" style="gap:10px">${filas}</div>
+    <div class="footer-note" style="margin-top:10px">Con un solo sistema sin decir en voz alta, la nave no tenía cómo llegar.</div>`);
+}
+
 function renderSistemas(){
   const n = S.participants.length;
   if(S.sys.deciding){ return renderDeciding(); }
@@ -1774,8 +1932,9 @@ function renderSistemas(){
     const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
     return `
       ${eyebrow(currentPhase().code)}
-      <h2>La nave está lista. Decidan ahora.</h2>
-      <p>Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?</p>
+      <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
+      <p>${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave?':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>
+      ${S.solo ? soloSalaPanel() : ''}
       <div class="stack" style="gap:16px;margin-top:24px">
         ${prepBar()}
         <div class="row" style="gap:12px;flex-direction:column">
@@ -1793,6 +1952,7 @@ function renderSistemas(){
   }
   const p = S.participants[S.sys.idx];
   const sys = SYSTEMS.find(s=>s.id===p.cardId);
+  if(p.bot) return renderBotTurn(p, sys);
   if(!S.sys.miniDone){
     if(!S.sys.ttt) S.sys.ttt = tttInit();
     // Anuncia el área una sola vez por turno
@@ -1800,7 +1960,7 @@ function renderSistemas(){
     const t = S.sys.ttt;
     return `
       ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
-      <h2>Pásale el dispositivo a</h2>
+      <h2>${S.solo?'Tu turno':'Pásale el dispositivo a'}</h2>
       <div class="sistemas-columns">
         <div class="area-turn">
           <div style="text-align:center">
@@ -1874,7 +2034,7 @@ function renderSistemas(){
             <div class="turn-head">
               ${avatarSVG(sys.id, 64)}
               <div class="turn-head-text">
-                <div class="field-label">Pásale el dispositivo a</div>
+                <div class="field-label">${S.solo?'Tu turno':'Pásale el dispositivo a'}</div>
                 <div class="turn-name">${esc(p.name)}</div>
                 <div class="field-label">${esc(AVATARS[sys.id].role)}</div>
                 ${S.sys.miniResult?`<div class="footer-note">✓ ${esc('Ganaste el triki de '+MINIGAMES[sys.id].names+'.')}</div>`:''}
@@ -1898,7 +2058,7 @@ function renderSistemas(){
   }
   return `
     ${eyebrow(currentPhase().code+' · segunda decisión')}
-    <h2>${esc(p.name)}, no lo vas a decir en la sala</h2>
+    <h2>${S.solo?'No lo vas a decir en la sala':esc(p.name)+', no lo vas a decir en la sala'}</h2>
     <div class="donow">▸ Queda una vía: avisarle solo a la directora de vuelo, en privado. La sala nunca se entera.</div>
     ${alertBanner('⚠ Avisarle a ella tampoco es gratis. Es una persona, no un buzón: puede protegerte o puede no hacerlo, y no vas a saber cuál de las dos hasta que sea tarde.')}
     ${panel(`
@@ -2041,6 +2201,7 @@ function renderLaunchResolved(){
         </p>
         ${challengerStoryHTML()}
       `, 'tarjeta-caso')}
+      ${S.solo ? soloRevealPanel() : ''}
       ${panel(`
         <div class="indicador-row">
           ${missionRing()}
@@ -2067,15 +2228,16 @@ function renderLaunchResolved(){
 function renderAborted(){
   const boxPanel = panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`);
   return `
-    ${eyebrow('MISIÓN ABORTADA · GANARON', true)}
-    <h1 class="outcome-head" style="color:var(--go)">¡Hicieron las cosas correctas!</h1>
+    ${eyebrow(S.solo?'MISIÓN ABORTADA · GANASTE':'MISIÓN ABORTADA · GANARON', true)}
+    <h1 class="outcome-head" style="color:var(--go)">${S.solo?'¡Hiciste lo correcto!':'¡Hicieron las cosas correctas!'}</h1>
     <div class="end-grid con-foto">
       <img class="end-foto" src="nave-plataforma.webp?v=202610272005" alt="La nave en la plataforma de lanzamiento, sin despegar"/>
       <div class="end-col">
         ${panel(`
           <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-          <p style="margin-top:10px;color:var(--go)"><b>Pero escucharon las advertencias y dijeron NO GO. Eso es lo que no pasó en el Challenger.</b></p>
+          <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y dijiste NO GO.':'Pero escucharon las advertencias y dijeron NO GO.'} Eso es lo que no pasó en el Challenger.</b></p>
         `, 'flash-go')}
+        ${S.solo && S.launch.boxOpen ? soloRevealPanel() : ''}
         ${S.launch.boxOpen ? boxPanel : panel(`
           <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
           <h2 style="margin-top:0">El caso Challenger</h2>
@@ -2307,7 +2469,7 @@ function renderKey(){
   const busy = S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending || S.sys.talkPending);
   const phId = busy ? 'sistemas' : currentPhase().id;
   let extra = '';
-  if(phId==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|talk:'+(S.sys.talkPending?1:0)+'|deciding:'+(S.sys.deciding?1:0)+'|cleared:'+(S.sys.clearedPending?1:0)+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0); }
+  if(phId==='sistemas'){ extra = '|'+S.sys.idx+'|'+(S.sys.miniDone?'q':'m')+'|'+(S.sys.q1||'')+'|talk:'+(S.sys.talkPending?1:0)+'|deciding:'+(S.sys.deciding?1:0)+'|cleared:'+(S.sys.clearedPending?1:0)+'|fired:'+(S.sys.firedPending?(S.sys.firedWait>0?1:2):0)+'|bot:'+(S.sys.bot?S.sys.bot.stage:''); }
   return 'mission|'+phId+extra;
 }
 let _lastRenderKey = null;
