@@ -610,7 +610,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 </head>
 <body>
 
-<div class="intro-overlay" id="introOverlay">
+<div class="intro-overlay" id="introOverlay" hidden>
   <div class="intro-box">
     <div class="intro-stage">
       <video id="introVideo" src="multimedia/intro.mp4" controls playsinline preload="metadata"></video>
@@ -865,7 +865,7 @@ function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); retu
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 let S = {
-  nav:'inicio', introStep:0, // Siempre comienza en 0
+  nav:'inicio', introStep:0,
   screen:'setup', view:'mission',
   count:6, selectedSystems:[1,2,3,4,5,6],
   participants:[], running:false, elapsed:0, _lastPhase:null,
@@ -1551,14 +1551,14 @@ function playIntro(){
   }, 1000);
 }
 function openIntro(){ Anuncios?.detener?.(); document.getElementById('introOverlay').hidden = false; playIntro(); }
-function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; if(S.nav==='inicio' && !(S.introStep||0)) Anuncios?.decir?.('inicio1'); }
+// Al cerrar el video (Continuar o al terminar) se pasa a la siguiente pantalla de Inicio
+function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; if(S.nav==='inicio' && !(S.introStep||0)) advanceIntro(); }
 function unmuteIntro(){ const v = document.getElementById('introVideo'); v.muted = false; document.getElementById('introSound').hidden = true; v.play(); }
 document.getElementById('introVideo').addEventListener('ended', closeIntro);
-// playIntro(); // Desactivado: reproducción manual solo después de CONTINUAR
+setTimeout(() => Anuncios?.decir?.('inicio1'), 500);
 
 function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decir?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
 function renderInicio(){
-  if(S.nav==='inicio' && (S.introStep||0) > 0) S.introStep = 0; // Siempre comienza en 0
   const introStep = S.introStep||0;
   if(introStep===0){
     return `
@@ -1581,7 +1581,7 @@ function renderInicio(){
               <div class="creado-bank">${navIcon('bank')}</div>
             </div>
           `)}
-          <button class="primary" onclick="advanceIntro()">CONTINUAR →</button>
+          <button class="primary" onclick="openIntro()">CONTINUAR →</button>
         </div>
         <div class="area-showcase">
           <div class="showcase-card">
@@ -1595,11 +1595,9 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Video de la misión</h2>
-      <div style="max-width:100%;aspect-ratio:16/9;margin:0 auto;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:0 0 32px rgba(31,178,222,.2)">
-        <video src="Space_commander_speaking_in_control_588e389a_1080p.mp4" style="width:100%;height:100%;object-fit:cover" controls playsinline></video>
-      </div>
-      <button class="primary" onclick="advanceIntro()" style="margin-top:24px">CONTINUAR →</button>
+      <h2 style="text-align:center">Faltan veinte minutos</h2>
+      ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
+      <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
   }
   return `
@@ -2360,11 +2358,7 @@ window.addEventListener('resize', scheduleFitThorough);
 window.addEventListener('load', scheduleFitThorough);
 if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFitThorough); }
 
-function render(){
-  if(S.nav==='inicio') S.introStep = Math.max(0, S.introStep||0); // FORCE intro step always >= 0
-  renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen();
-}
-S.introStep = 0; // Fuerza reset al cargar
+function render(){ renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen(); }
 render();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
