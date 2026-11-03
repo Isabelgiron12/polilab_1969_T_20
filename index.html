@@ -1595,9 +1595,11 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Faltan veinte minutos</h2>
-      ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
-      <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
+      <h2 style="text-align:center">Video de la misión</h2>
+      <div style="max-width:100%;aspect-ratio:16/9;margin:0 auto;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:0 0 32px rgba(31,178,222,.2)">
+        <video src="Space_commander_speaking_in_control_588e389a_1080p.mp4" style="width:100%;height:100%;object-fit:cover" controls playsinline></video>
+      </div>
+      <button class="primary" onclick="advanceIntro()" style="margin-top:24px">CONTINUAR →</button>
     `;
   }
   return `
