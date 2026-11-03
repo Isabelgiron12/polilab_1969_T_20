@@ -1558,6 +1558,7 @@ document.getElementById('introVideo').addEventListener('ended', closeIntro);
 
 function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decir?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
 function renderInicio(){
+  if(S.nav==='inicio' && (S.introStep||0) > 0) S.introStep = 0; // Siempre comienza en 0
   const introStep = S.introStep||0;
   if(introStep===0){
     return `
