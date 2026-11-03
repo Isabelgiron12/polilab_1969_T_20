@@ -9,9 +9,9 @@ import requests
 from pathlib import Path
 
 FRASES = {
-    'inicio1': 'METRO POLI Lab. Laboratorio virtual de competencias. METRO POLI Lab es el laboratorio virtual de competencias del Politécnico Grancolombiano. Un espacio innovador que conecta el aprendizaje con las necesidades reales de desarrollo de nuestros colaboradores. Aquí fortalecemos las habilidades de nuestra comunidad para que enfrenten con éxito los retos del presente y del futuro. Creado por la Escuela de Psicología, Talento Humano y Sociedad, y el grupo de investigación CVSSL.',
-    'inicio2': 'Faltan veinte minutos. Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.',
-    'inicio3': 'La decisión es de todos. En los próximos veinte minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.',
+    'inicio1': 'Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla y, cuando estén listos, presionen continuar.',
+    'inicio2': 'Lean en pantalla cuál es su papel en esta nave. Cuando terminen, presionen seguir.',
+    'inicio3': 'Antes de empezar, lean cómo se tomarán las decisiones en esta misión. Cuando todo el equipo esté listo, presionen seguir.',
     'bienvenida': 'Bienvenidos a la sala de control. Prepárense para la misión.',
     'contextoBienvenida': 'Somos un equipo. En esta misión, serán puestos a prueba en formas que no esperan. El sistema fallará. Los plazos apremiarán. La presión será inmensa. Pero recuerden: juntos, pueden lograr cualquier cosa. Prepárense.',
     'explicacionMision': 'La nave debe viajar al espacio profundo en una misión de investigación científica. Pero antes, deben decidir si es seguro lanzarla. Ustedes son los únicos que pueden tomar esa decisión. Y esa decisión será difícil.',

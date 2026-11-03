@@ -2,6 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
+  const audioVersion = '202611031700';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
@@ -25,7 +26,7 @@ const Anuncios = (() => {
     // Detener audio anterior si está en progreso
     detener();
 
-    const rutaCompleta = `${audioPath}${nombreArchivo}.mp3`;
+    const rutaCompleta = `${audioPath}${nombreArchivo}.mp3?v=${audioVersion}`;
     const audio = currentAudio = new Audio(rutaCompleta);
     // Si el MP3 no existe, lee el texto con la voz del navegador
     const respaldo = () => {
@@ -73,15 +74,15 @@ const Anuncios = (() => {
   };
 
   const frases = {
-    // PANTALLAS DE INICIO
+    // PANTALLAS DE INICIO (instrucciones, no leen el texto)
     inicio1: () =>
-      `METRO POLI Lab. Laboratorio virtual de competencias. METRO POLI Lab es el laboratorio virtual de competencias del Politécnico Grancolombiano. Un espacio innovador que conecta el aprendizaje con las necesidades reales de desarrollo de nuestros colaboradores. Aquí fortalecemos las habilidades de nuestra comunidad para que enfrenten con éxito los retos del presente y del futuro. Creado por la Escuela de Psicología, Talento Humano y Sociedad, y el grupo de investigación CVSSL.`,
+      `Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla y, cuando estén listos, presionen continuar.`,
 
     inicio2: () =>
-      `Faltan veinte minutos. Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.`,
+      `Lean en pantalla cuál es su papel en esta nave. Cuando terminen, presionen seguir.`,
 
     inicio3: () =>
-      `La decisión es de todos. En los próximos veinte minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.`,
+      `Antes de empezar, lean cómo se tomarán las decisiones en esta misión. Cuando todo el equipo esté listo, presionen seguir.`,
 
     // INICIO Y FIN
     bienvenida: () =>
