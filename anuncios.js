@@ -2,7 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
-  const audioVersion = '202611031930';  // Cambiarla al regenerar audios, para saltar la caché
+  const audioVersion = '202611032000';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
@@ -278,6 +278,16 @@ const Anuncios = (() => {
     }
   };
 
+  // Reproduce varios audios seguidos: [[clave, textoRespaldo], ...]
+  const decirSecuencia = (partes) => {
+    const [clave, texto] = partes[0] || [];
+    if (!clave) return;
+    const audio = reproducirAudio(clave, partes.map(p => p[1]).join(' '));
+    audio.addEventListener('ended', () => {
+      if (currentAudio === audio) decirSecuencia(partes.slice(1));
+    });
+  };
+
   // Anuncio crítico de dirección (CON ÉNFASIS)
   const anuncioCritico = (clave, ...args) => {
     // Reproduce el audio con efecto crítico (volumen alto, pausa antes)
@@ -291,6 +301,7 @@ const Anuncios = (() => {
   return {
     anunciar,
     decir,
+    decirSecuencia,
     anuncioCritico,  // Para anuncios de dirección importantes
     reproducirAudio,
     detener,

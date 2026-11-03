@@ -586,7 +586,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-actions button{flex:1}
 .intro-actions button[hidden]{display:none}
 </style>
-<script src="anuncios.js?v=202611031930"></script>
+<script src="anuncios.js?v=202611032000"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -1109,8 +1109,8 @@ function finalizeParticipant(q2){
     render();
   }, reduced ? 0 : 1800);
 }
-function clearFired(){ S.sys.firedPending=false; S.sys.firedWait=0; render(); }
-function clearCleared(){ S.sys.clearedPending=false; render(); }
+function clearFired(){ S.sys.firedPending=false; S.sys.novedadDicha=false; S.sys.firedWait=0; render(); }
+function clearCleared(){ S.sys.clearedPending=false; S.sys.novedadDicha=false; render(); }
 
 function setDecision(d){ S.decision = d; if(d!=='COND'){ S.watchedSystems = []; } render(); }
 function openBlackBox(){ if(S.launch) S.launch.boxOpen = true; render(); }
@@ -1706,7 +1706,25 @@ function renderDeciding(){
     `)}
   `;
 }
+// "Dirección llama a sala…" + lo que dice la pantalla de novedad
+function nombreSistema(name){ return name.charAt(0)+name.slice(1).toLowerCase(); }
+function anunciarNovedad(caso){
+  if(S.sys.novedadDicha) return;
+  S.sys.novedadDicha = true;
+  const id = S.participants[S.sys.idx-1]?.cardId;
+  const partes = [['direccionLlamaSala', 'Dirección llama a sala y les notifica que:'], caso];
+  if(S.sys.fixName){
+    const sys = nombreSistema(S.sys.fixName), dur = formatDuration(S.sys.fixHours);
+    partes.push(S.sys.firedPending
+      ? ['arregloAun'+id, `Aun así, como se dijo en voz alta, el equipo ya está arreglando ${sys}. Retraso de ${dur}.`]
+      : ['arreglo'+id, `Como se dijo en voz alta, ya están arreglando ${sys}. Retraso de ${dur}.`]);
+  }
+  setTimeout(() => Anuncios?.decirSecuencia?.(partes), 500);
+}
+
 function renderCleared(){
+  const id = S.participants[S.sys.idx-1]?.cardId;
+  anunciarNovedad(['sigue'+id, `Los directivos revisaron el caso de ${S.sys.clearedName}. Sigue en el equipo.`]);
   return `
     ${eyebrow(currentPhase().code, true)}
     <h2 style="text-align:center">Caso cerrado</h2>
@@ -1723,14 +1741,9 @@ function renderCleared(){
 }
 function renderFiredWait(){
   const done = S.sys.firedWait<=0;
-  // Anunciar despido cuando aparece por primera vez
-  if(!S.sys.firedAnnouncedSpeech) {
-    setTimeout(() => {
-      Anuncios?.decir?.('anuncioDespido', S.sys.firedReason);
-      Anuncios?.decir?.('tripulanteFueraDelJuego', S.sys.firedName);
-    }, 500);
-    S.sys.firedAnnouncedSpeech = true;
-  }
+  const id = S.participants[S.sys.idx-1]?.cardId;
+  const r = FIRE_REASONS.indexOf(S.sys.firedReason)+1;
+  anunciarNovedad(['despido'+id+'_'+r, `Se ha tomado la decisión de despedir a ${S.sys.firedName} por ${S.sys.firedReason}. Continúen con la misión. ${S.sys.firedName} pierde el juego.`]);
   return `
     ${eyebrow(currentPhase().code)}
     <h2 style="text-align:center">Anuncio de la dirección</h2>
