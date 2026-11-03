@@ -16,7 +16,7 @@ El módulo de **Text-to-Speech** (TTS) está completamente integrado en el juego
 ### Inicio y Fin
 ```javascript
 Anuncios.decir('bienvenida');
-// "Bienvenidos a la sala de control. Prepárense para la misión."
+// "Prepárense para la misión."
 
 Anuncios.decir('inicioConteo');
 // "Iniciando cuenta regresiva para el lanzamiento."

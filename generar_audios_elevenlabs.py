@@ -9,11 +9,11 @@ import requests
 from pathlib import Path
 
 FRASES = {
-    'inicio1': 'Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla.',
+    'inicio1': 'Lean con atención la presentación en pantalla.',
     'inicio2': 'Lean en pantalla cuál es su papel en esta nave.',
     'inicio3': 'Antes de empezar, lean cómo se tomarán las decisiones en esta misión.',
     'cajaNegra': 'Elijan cuántos juegan y toquen a los tripulantes que forman parte del equipo.',
-    'bienvenida': 'Bienvenidos a la sala de control. Prepárense para la misión.',
+    'bienvenida': 'Prepárense para la misión.',
     'contextoBienvenida': 'Somos un equipo. En esta misión, serán puestos a prueba en formas que no esperan. El sistema fallará. Los plazos apremiarán. La presión será inmensa. Pero recuerden: juntos, pueden lograr cualquier cosa. Prepárense.',
     'explicacionMision': 'La nave debe viajar al espacio profundo en una misión de investigación científica. Pero antes, deben decidir si es seguro lanzarla. Ustedes son los únicos que pueden tomar esa decisión. Y esa decisión será difícil.',
     'inicioConteo': 'Iniciando cuenta regresiva para el lanzamiento.',
@@ -33,7 +33,7 @@ FRASES = {
     'sistemaProblema': 'Sistema requiere atención inmediata.',
     'decisionGO': 'Decisión: GO. La nave despega. Que el equipo sepa que pusieron su fe en esta decisión. Ahora solo queda esperar.',
     'decisionNOGO': 'Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir que ir sin estar listos. Habrá otra oportunidad.',
-    'pantallaInicio': 'Bienvenido. Lee la información de la misión y cuando estés listo, continúa.',
+    'pantallaInicio': 'Lee la información de la misión y cuando estés listo, continúa.',
     'pantallaSeleccion': 'Selecciona tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.',
     'pantallaMision': 'La misión ha iniciado. Monitorea los sistemas de la nave. El equipo necesita responder rápido a los eventos. La vida de los astronautas depende de sus decisiones.',
     'pantallaDecision': 'Es el momento crítico. La nave está lista para despegar. El equipo ha analizado el riesgo, ha reportado los problemas. Ahora deben decidir: ¿Proceden con el lanzamiento o lo abortan? Recuerden: no se trata solo de despegar. Se trata de despegar seguro.',

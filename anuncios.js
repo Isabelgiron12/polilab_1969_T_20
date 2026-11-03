@@ -2,7 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
-  const audioVersion = '202611031830';  // Cambiarla al regenerar audios, para saltar la caché
+  const audioVersion = '202611031900';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
@@ -76,7 +76,7 @@ const Anuncios = (() => {
   const frases = {
     // PANTALLAS DE INICIO (instrucciones, no leen el texto)
     inicio1: () =>
-      `Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla.`,
+      `Lean con atención la presentación en pantalla.`,
 
     inicio2: () =>
       `Lean en pantalla cuál es su papel en esta nave.`,
@@ -89,7 +89,7 @@ const Anuncios = (() => {
 
     // INICIO Y FIN
     bienvenida: () =>
-      `Bienvenidos a la sala de control. Prepárense para la misión.`,
+      `Prepárense para la misión.`,
 
     inicioConteo: () =>
       `Iniciando cuenta regresiva para el lanzamiento.`,
@@ -182,7 +182,7 @@ const Anuncios = (() => {
 
     // INSTRUCCIONES POR PANTALLA
     pantallaInicio: () =>
-      `Bienvenido. Lee la información de la misión y cuando estés listo, continúa.`,
+      `Lee la información de la misión y cuando estés listo, continúa.`,
 
     pantallaSeleccion: (cantidad) =>
       `Selecciona ${cantidad} tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.`,

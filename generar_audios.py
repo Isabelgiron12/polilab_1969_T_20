@@ -14,7 +14,7 @@ client = texttospeech.TextToSpeechClient()
 # Frases del juego (extraídas de anuncios.js)
 FRASES = {
     # INICIO CON CONTEXTO
-    'bienvenida': 'Bienvenidos a la sala de control. Hoy comandarán una nave de investigación en una misión crítica. Cada decisión que tomen afectará no solo el éxito de la misión, sino la vida de los astronautas a bordo. Prepárense para lo que viene.',
+    'bienvenida': 'Hoy comandarán una nave de investigación en una misión crítica. Cada decisión que tomen afectará no solo el éxito de la misión, sino la vida de los astronautas a bordo. Prepárense para lo que viene.',
     'contextoBienvenida': 'Somos un equipo. En esta misión, serán puestos a prueba en formas que no esperan. El sistema fallará. Los plazos apremiarán. La presión será inmensa. Pero recuerden: juntos, pueden lograr cualquier cosa. Prepárense.',
     'explicacionMision': 'La nave debe viajar al espacio profundo en una misión de investigación científica. Pero antes, deben decidir si es seguro lanzarla. Ustedes son los únicos que pueden tomar esa decisión. Y esa decisión será difícil.',
     'inicioConteo': 'Iniciando cuenta regresiva para el lanzamiento.',
@@ -40,7 +40,7 @@ FRASES = {
     'decisionNOGO': 'Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir que ir sin estar listos. Habrá otra oportunidad.',
 
     # INSTRUCCIONES
-    'pantallaInicio': 'Bienvenido. Lee la información de la misión y cuando estés listo, continúa.',
+    'pantallaInicio': 'Lee la información de la misión y cuando estés listo, continúa.',
     'pantallaSeleccion': 'Selecciona tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.',
     'pantallaMision': 'La misión ha iniciado. Monitorea los sistemas de la nave. El equipo necesita responder rápido a los eventos. La vida de los astronautas depende de sus decisiones.',
     'pantallaResultado': 'Misión completada. Observa los resultados y reflexiona sobre tus decisiones.',

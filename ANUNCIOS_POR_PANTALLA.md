@@ -9,7 +9,7 @@ Cada pantalla del juego tiene su **anuncio instructivo** que explica qué debe h
 ### 1. Pantalla de Inicio
 ```javascript
 Anuncios.decir('pantallaInicio');
-// "Bienvenido. Lee la información de la misión y cuando estés listo, continúa."
+// "Lee la información de la misión y cuando estés listo, continúa."
 ```
 **Cuándo**: Cuando se carga la pantalla inicial
 
