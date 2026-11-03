@@ -21,13 +21,23 @@ const Anuncios = (() => {
     // No necesita inicialización especial
   };
 
-  const reproducirAudio = (nombreArchivo) => {
+  const reproducirAudio = (nombreArchivo, textoRespaldo) => {
     // Detener audio anterior si está en progreso
     detener();
 
     const rutaCompleta = `${audioPath}${nombreArchivo}.mp3`;
-    currentAudio = new Audio(rutaCompleta);
-    currentAudio.play().catch(err => console.log(`Audio no encontrado: ${rutaCompleta}`, err));
+    const audio = currentAudio = new Audio(rutaCompleta);
+    // Si el MP3 no existe, lee el texto con la voz del navegador
+    const respaldo = () => {
+      if (currentAudio !== audio) return;
+      currentAudio = null;
+      if (textoRespaldo) reproducirAudioFallback(textoRespaldo, configEspañol);
+    };
+    audio.addEventListener('error', respaldo);
+    audio.play().catch(err => {
+      if (err.name === 'NotAllowedError') console.log(`Audio bloqueado por el navegador: ${rutaCompleta}`);
+      else respaldo();
+    });
 
     return currentAudio;
   };
@@ -63,6 +73,16 @@ const Anuncios = (() => {
   };
 
   const frases = {
+    // PANTALLAS DE INICIO
+    inicio1: () =>
+      `METRO POLI Lab. Laboratorio virtual de competencias. METRO POLI Lab es el laboratorio virtual de competencias del Politécnico Grancolombiano. Un espacio innovador que conecta el aprendizaje con las necesidades reales de desarrollo de nuestros colaboradores. Aquí fortalecemos las habilidades de nuestra comunidad para que enfrenten con éxito los retos del presente y del futuro. Creado por la Escuela de Psicología, Talento Humano y Sociedad, y el grupo de investigación CVSSL.`,
+
+    inicio2: () =>
+      `Faltan veinte minutos. Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.`,
+
+    inicio3: () =>
+      `La decisión es de todos. En los próximos veinte minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.`,
+
     // INICIO Y FIN
     bienvenida: () =>
       `Bienvenidos a la sala de control. Prepárense para la misión.`,
@@ -235,7 +255,8 @@ const Anuncios = (() => {
   const decir = (clave, ...args) => {
     // Primero intenta reproducir el audio MP3
     if (frases[clave]) {
-      reproducirAudio(clave);
+      const f = frases[clave];
+      reproducirAudio(clave, typeof f === 'function' ? f(...args) : f);
 
       // Si la frase es dinámica, también ejecuta síntesis como fallback
       if (typeof frases[clave] === 'function') {

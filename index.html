@@ -586,7 +586,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-actions button{flex:1}
 .intro-actions button[hidden]{display:none}
 </style>
-<script src="anuncios.js?v=202610271427"></script>
+<script src="anuncios.js?v=202611031600"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -1502,7 +1502,7 @@ const NAV_ITEMS = [
   {key:'recursos', label:'Recursos', icon:'folder', c:'--go', cd:'--go-dim'},
   {key:'configuracion', label:'Configuración', icon:'gear', c:'--ink-dim', cd:'--panel-2'},
 ];
-function setNav(n){ S.nav = n; render(); }
+function setNav(n){ if(n!==S.nav) Anuncios?.detener?.(); S.nav = n; render(); }
 let _lastTopbarKey = null;
 function renderTopbar(){
   const key = Sound.isEnabled()?'on':'off';
@@ -1550,13 +1550,13 @@ function playIntro(){
     v.play().catch(()=>{ v.muted = true; document.getElementById('introSound').hidden = false; v.play(); });
   }, 1000);
 }
-function openIntro(){ document.getElementById('introOverlay').hidden = false; playIntro(); }
-function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; }
+function openIntro(){ Anuncios?.detener?.(); document.getElementById('introOverlay').hidden = false; playIntro(); }
+function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; if(S.nav==='inicio' && !(S.introStep||0)) Anuncios?.decir?.('inicio1'); }
 function unmuteIntro(){ const v = document.getElementById('introVideo'); v.muted = false; document.getElementById('introSound').hidden = true; v.play(); }
 document.getElementById('introVideo').addEventListener('ended', closeIntro);
 playIntro();
 
-function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); }
+function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decir?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
 function renderInicio(){
   const introStep = S.introStep||0;
   if(introStep===0){
