@@ -841,7 +841,7 @@ function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); retu
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 let S = {
-  nav:'inicio', introStep:0,
+  nav:'inicio', introStep:-1,
   screen:'setup', view:'mission',
   count:6, selectedSystems:[1,2,3,4,5,6],
   participants:[], running:false, elapsed:0, _lastPhase:null,
@@ -1514,6 +1514,41 @@ function renderSidebar(){
 function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); }
 function renderInicio(){
   const introStep = S.introStep||0;
+  if(introStep===-1){
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;padding:20px">
+        <div id="countdown" style="font-size:80px;font-weight:bold;color:var(--accent-2);text-shadow:0 0 20px rgba(31,178,222,.5)">3</div>
+        <div id="videoContainer" style="display:none;width:100%;max-width:900px">
+          <video id="introVideo" style="width:100%;border-radius:8px;background:#000" controls autoplay>
+            <source src="Space_commander_speaking_in_control_588e389a_1080p.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <script>
+        let countdownValue = 3;
+        const countdownEl = document.getElementById('countdown');
+        const videoContainer = document.getElementById('videoContainer');
+        const introVideo = document.getElementById('introVideo');
+
+        const countdownInterval = setInterval(() => {
+          countdownValue--;
+          if(countdownValue > 0) {
+            countdownEl.textContent = countdownValue;
+          } else if(countdownValue === 0) {
+            countdownEl.style.display = 'none';
+            videoContainer.style.display = 'block';
+            introVideo.play();
+            clearInterval(countdownInterval);
+
+            introVideo.onended = () => {
+              S.introStep = 0;
+              render();
+            };
+          }
+        }, 1000);
+      </script>
+    `;
+  }
   if(introStep===0){
     return `
       <div class="inicio-columns">
