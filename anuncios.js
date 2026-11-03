@@ -123,7 +123,7 @@ const Anuncios = (() => {
       `Fase de reflexión. Registren sus observaciones.`,
 
     faseEvaluacion: () =>
-      `Evaluación de desempeño. Preparense para resultados.`,
+      `Evaluación de desempeño. Prepárense para resultados.`,
 
     // EVENTOS Y ALERTAS
     tripulanteElimina: (nombre) =>

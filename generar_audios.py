@@ -29,7 +29,7 @@ FRASES = {
     'faseMiniJuego': 'Preparando desafío. Todos al área de entrenamiento.',
     'faseTiempoMuerto': 'Tiempo muerto de operaciones. Aprovechen para revisar sistemas.',
     'faseReflexion': 'Fase de reflexión. Registren sus observaciones.',
-    'faseEvaluacion': 'Evaluación de desempeño. Preparense para resultados.',
+    'faseEvaluacion': 'Evaluación de desempeño. Prepárense para resultados.',
 
     # EVENTOS
     'tripulanteElimina': 'Alerta: ha sido removido del equipo.',
