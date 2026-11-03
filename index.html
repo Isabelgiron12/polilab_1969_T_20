@@ -586,7 +586,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-actions button{flex:1}
 .intro-actions button[hidden]{display:none}
 </style>
-<script src="anuncios.js?v=202611032015"></script>
+<script src="anuncios.js?v=202611041200"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -1808,12 +1808,12 @@ function anunciarNovedad(caso){
   if(S.sys.novedadDicha) return;
   S.sys.novedadDicha = true;
   const id = S.participants[S.sys.idx-1]?.cardId;
-  const partes = [['direccionLlamaSala', 'Dirección llama a sala y les notifica que:'], caso];
+  const partes = [['direccionLlamaSala', 'La Dirección llama a la sala y les notifica que:'], caso];
   if(S.sys.fixName){
     const sys = nombreSistema(S.sys.fixName), dur = formatDuration(S.sys.fixHours);
     partes.push(S.sys.firedPending
-      ? ['arregloAun'+id, `Aun así, como se dijo en voz alta, el equipo ya está arreglando ${sys}. Retraso de ${dur}.`]
-      : ['arreglo'+id, `Como se dijo en voz alta, ya están arreglando ${sys}. Retraso de ${dur}.`]);
+      ? ['arregloAun'+id, `Aun así, como se dijo en voz alta, el equipo ya está arreglando ${sys}, con un retraso de ${dur}.`]
+      : ['arreglo'+id, `Como se dijo en voz alta, ya están arreglando ${sys}, con un retraso de ${dur}.`]);
   }
   setTimeout(() => Anuncios?.decirSecuencia?.(partes), 500);
 }
