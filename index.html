@@ -584,6 +584,7 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-count[hidden]{display:none}
 .intro-actions{display:flex;gap:12px}
 .intro-actions button{flex:1}
+.intro-actions button[hidden]{display:none}
 </style>
 <script src="anuncios.js?v=202610271427"></script>
 <script>
@@ -616,8 +617,8 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
       <div class="intro-count" id="introCount" hidden></div>
     </div>
     <div class="intro-actions">
-      <button class="primary" onclick="playIntro()">▶ Ver intro</button>
-      <button class="ghost" onclick="closeIntro()">Saltar intro</button>
+      <button class="ghost" id="introSound" hidden onclick="unmuteIntro()">🔊 Activar sonido</button>
+      <button class="primary" onclick="closeIntro()">Continuar →</button>
     </div>
   </div>
 </div>
@@ -1543,12 +1544,17 @@ function playIntro(){
   introTimer = setInterval(()=>{
     n--;
     if(n>0){ c.textContent = n; return; }
-    clearInterval(introTimer); c.hidden = true; v.play();
+    clearInterval(introTimer); c.hidden = true;
+    // Sin un clic previo el navegador puede bloquear el sonido: si pasa, arranca en silencio
+    v.muted = false;
+    v.play().catch(()=>{ v.muted = true; document.getElementById('introSound').hidden = false; v.play(); });
   }, 1000);
 }
 function openIntro(){ document.getElementById('introOverlay').hidden = false; playIntro(); }
 function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; }
+function unmuteIntro(){ const v = document.getElementById('introVideo'); v.muted = false; document.getElementById('introSound').hidden = true; v.play(); }
 document.getElementById('introVideo').addEventListener('ended', closeIntro);
+playIntro();
 
 function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); }
 function renderInicio(){
