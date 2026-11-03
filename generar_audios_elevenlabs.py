@@ -9,9 +9,10 @@ import requests
 from pathlib import Path
 
 FRASES = {
-    'inicio1': 'Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla y, cuando estén listos, presionen continuar.',
-    'inicio2': 'Lean en pantalla cuál es su papel en esta nave. Cuando terminen, presionen seguir.',
-    'inicio3': 'Antes de empezar, lean cómo se tomarán las decisiones en esta misión. Cuando todo el equipo esté listo, presionen seguir.',
+    'inicio1': 'Bienvenidos a METRO POLI Lab. Lean con atención la presentación en pantalla.',
+    'inicio2': 'Lean en pantalla cuál es su papel en esta nave.',
+    'inicio3': 'Antes de empezar, lean cómo se tomarán las decisiones en esta misión.',
+    'cajaNegra': 'Elijan cuántos juegan y toquen a los tripulantes que forman parte del equipo.',
     'bienvenida': 'Bienvenidos a la sala de control. Prepárense para la misión.',
     'contextoBienvenida': 'Somos un equipo. En esta misión, serán puestos a prueba en formas que no esperan. El sistema fallará. Los plazos apremiarán. La presión será inmensa. Pero recuerden: juntos, pueden lograr cualquier cosa. Prepárense.',
     'explicacionMision': 'La nave debe viajar al espacio profundo en una misión de investigación científica. Pero antes, deben decidir si es seguro lanzarla. Ustedes son los únicos que pueden tomar esa decisión. Y esa decisión será difícil.',
