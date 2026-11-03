@@ -1554,7 +1554,7 @@ function openIntro(){ Anuncios?.detener?.(); document.getElementById('introOverl
 function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; if(S.nav==='inicio' && !(S.introStep||0)) Anuncios?.decir?.('inicio1'); }
 function unmuteIntro(){ const v = document.getElementById('introVideo'); v.muted = false; document.getElementById('introSound').hidden = true; v.play(); }
 document.getElementById('introVideo').addEventListener('ended', closeIntro);
-playIntro();
+// playIntro(); // Desactivado: reproducción manual solo después de CONTINUAR
 
 function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decir?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
 function renderInicio(){
