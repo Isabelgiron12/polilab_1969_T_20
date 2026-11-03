@@ -2,7 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
-  const audioVersion = '202611032000';  // Cambiarla al regenerar audios, para saltar la caché
+  const audioVersion = '202611032015';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
@@ -85,7 +85,7 @@ const Anuncios = (() => {
       `Antes de empezar, lean cómo se tomarán las decisiones en esta misión.`,
 
     cajaNegra: () =>
-      `Elijan cuántos juegan y toquen a los tripulantes que forman parte del equipo.`,
+      `Elijan cuántos juegan y seleccionen a los jugadores que forman parte del equipo.`,
 
     // INICIO Y FIN
     bienvenida: () =>
