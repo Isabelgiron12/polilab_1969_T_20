@@ -1098,6 +1098,116 @@ function botContinue(){
 function loadJSON(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
 function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
+/* ---------- resultados compartidos (Supabase) ----------
+   Con url y key vacías el juego guarda solo en este navegador.
+   key es la clave publishable: es pública, y supabase/schema.sql solo le permite leer y agregar. */
+const NUBE = { url:'', key:'' };
+const NUBE_PENDIENTES = 'tmenos20_pendientes', NUBE_TABLERO = 'tmenos20_nube_tablero', NUBE_MURO = 'tmenos20_nube_muro', NUBE_MIGRADO = 'tmenos20_migrado';
+const nubeActiva = () => !!(NUBE.url && NUBE.key);
+let nubeEstado = 'cargando';
+let nubeCola = Promise.resolve();
+
+function nubeId(){
+  if(crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = b[6]&0x0f|0x40; b[8] = b[8]&0x3f|0x80;
+  const h = [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+function nubePedir(ruta, opciones={}){
+  return fetch(`${NUBE.url}/rest/v1/${ruta}`, {
+    ...opciones,
+    headers:{apikey:NUBE.key, ...opciones.headers},
+    signal:AbortSignal.timeout?.(10000),
+  });
+}
+function filaPartida(r){
+  return {
+    id:r.id||nubeId(), decision:r.decision??null, verif_text:r.verifText||null, modo:r.modo||null,
+    pub:r.pub??null, priv:r.priv??null, hidden:r.hidden??null,
+    outcome:r.outcome??null, risk:r.risk??null, jugada_en:new Date(r.ts).toISOString(),
+  };
+}
+function partidaDeFila(f){
+  return {id:f.id, decision:f.decision, verifText:f.verif_text, modo:f.modo, pub:f.pub, priv:f.priv, hidden:f.hidden, outcome:f.outcome, risk:f.risk, ts:Date.parse(f.jugada_en)};
+}
+function nubeEncolar(filas){
+  if(!nubeActiva()) return;
+  saveJSON(NUBE_PENDIENTES, loadJSON(NUBE_PENDIENTES, []).concat(filas));
+  nubeEnviar();
+}
+// Cada fila viaja con su id: si un reintento llega dos veces, la base ignora la copia.
+async function nubeEnviarPendientes(){
+  try{
+    for(const p of loadJSON(NUBE_PENDIENTES, [])){
+      const r = await nubePedir(`${p.tabla}?on_conflict=id`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', Prefer:'resolution=ignore-duplicates,return=minimal'},
+        body:JSON.stringify(p.fila),
+      });
+      if(r.ok) saveJSON(NUBE_PENDIENTES, loadJSON(NUBE_PENDIENTES, []).filter(q=>q.fila.id!==p.fila.id));
+    }
+  }catch(e){}
+}
+function nubeEnviar(){ return nubeCola = nubeCola.then(nubeEnviarPendientes); }
+async function nubeLeer(ruta){
+  const filas = [];
+  for(;;){
+    const r = await nubePedir(`${ruta}&limit=1000&offset=${filas.length}`);
+    if(!r.ok) throw new Error(r.status);
+    const lote = await r.json();
+    filas.push(...lote);
+    if(lote.length<1000) return filas;
+  }
+}
+async function nubeActualizar(){
+  if(!nubeActiva()) return;
+  await nubeEnviar();
+  try{
+    const [partidas, muro] = await Promise.all([
+      nubeLeer('partidas?select=id,decision,verif_text,modo,pub,priv,hidden,outcome,risk,jugada_en&order=jugada_en.asc,id.asc'),
+      nubeLeer('muro?select=id,texto&order=creada_en.desc,id.asc'),
+    ]);
+    saveJSON(NUBE_TABLERO, partidas.map(partidaDeFila));
+    saveJSON(NUBE_MURO, muro);
+    nubeEstado = 'ok';
+  }catch(e){ nubeEstado = 'error'; }
+  if(S.nav==='recursos') render();
+}
+// Lo que este navegador guardó antes de conectar la nube se sube una sola vez.
+function nubeIniciar(){
+  if(!nubeActiva()) return;
+  if(!loadJSON(NUBE_MIGRADO, false)){
+    const filas = [
+      ...loadJSON('tmenos20_tablero', []).map(r=>({tabla:'partidas', fila:filaPartida(r)})),
+      ...loadJSON('tmenos20_muro', []).slice().reverse().map(texto=>({tabla:'muro', fila:{id:nubeId(), texto}})),
+    ];
+    saveJSON(NUBE_PENDIENTES, loadJSON(NUBE_PENDIENTES, []).concat(filas));
+    saveJSON(NUBE_MIGRADO, true);
+  }
+  window.addEventListener('online', nubeEnviar);
+  nubeEnviar();
+}
+function tableroDatos(){
+  if(!nubeActiva()) return loadJSON('tmenos20_tablero', []);
+  const nube = loadJSON(NUBE_TABLERO, []);
+  const vistas = new Set(nube.map(r=>r.id));
+  const pendientes = loadJSON(NUBE_PENDIENTES, []).filter(p=>p.tabla==='partidas' && !vistas.has(p.fila.id)).map(p=>partidaDeFila(p.fila));
+  return [...nube, ...pendientes].sort((a,b)=>a.ts-b.ts).map((r,i)=>({...r, sala:i+1}));
+}
+function muroDatos(){
+  if(!nubeActiva()) return loadJSON('tmenos20_muro', []);
+  const nube = loadJSON(NUBE_MURO, []);
+  const vistas = new Set(nube.map(l=>l.id));
+  const pendientes = loadJSON(NUBE_PENDIENTES, []).filter(p=>p.tabla==='muro' && !vistas.has(p.fila.id)).map(p=>p.fila).reverse();
+  return [...pendientes, ...nube].map(l=>l.texto);
+}
+function nubeAviso(){
+  if(!nubeActiva() || nubeEstado==='ok') return '';
+  const texto = nubeEstado==='cargando' ? 'Cargando los resultados de todos los equipos…' : 'No se pudo conectar. Se muestra lo último que se cargó en este equipo; lo pendiente se enviará solo cuando vuelva la conexión.';
+  return `<div class="footer-note" style="margin-bottom:10px">${texto}</div>`;
+}
+
 let S = {
   nav:'inicio', introStep:0,
   screen:'setup', view:'mission', modoElegido:false,
@@ -1375,6 +1485,7 @@ function submitPresetReflection(i){
   const wall = loadJSON('tmenos20_muro', []);
   wall.unshift(REFLECTION_PRESETS[i]);
   saveJSON('tmenos20_muro', wall);
+  nubeEncolar([{tabla:'muro', fila:{id:nubeId(), texto:REFLECTION_PRESETS[i]}}]);
   S.reflectionSubmitted++;
   render();
 }
@@ -1462,13 +1573,15 @@ function registerRound(){
   if(S.savedRound) return;
   const board = loadJSON('tmenos20_tablero', []);
   const d = disclosureCounts();
-  board.push({
-    sala: board.length+1, decision: S.decision, verifText: S.verifText, modo: S.solo?'individual':'sala',
+  const ronda = {
+    id: nubeId(), sala: board.length+1, decision: S.decision, verifText: S.verifText, modo: S.solo?'individual':'sala',
     pub:d.pub, priv:d.priv, hidden:d.hidden,
     outcome: S.launch ? S.launch.outcome : null, risk: S.launch ? S.launch.risk : null,
     ts: Date.now(),
-  });
+  };
+  board.push(ronda);
   saveJSON('tmenos20_tablero', board);
+  nubeEncolar([{tabla:'partidas', fila:filaPartida(ronda)}]);
   S.savedRound = true;
   render();
 }
@@ -1761,6 +1874,7 @@ function setNav(n){
   const cambia = n!==S.nav;
   if(cambia) Anuncios?.detener?.();
   S.nav = n; render();
+  if(n==='recursos') nubeActualizar();
   if(cambia && n==='cajanegra' && S.screen==='setup' && S.modoElegido) Anuncios?.decir?.('cajaNegra');
 }
 let _lastTopbarKey = null;
@@ -2517,7 +2631,7 @@ function formatFecha(ts){
   return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'})+' · '+d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
 }
 function renderTablero(embedded){
-  const board = loadJSON('tmenos20_tablero', []);
+  const board = tableroDatos();
   const filterUI = board.length ? `
     <div class="filter-row">
       <label class="field">
@@ -2587,7 +2701,7 @@ function renderTablero(embedded){
 }
 
 function renderMuro(embedded){
-  const wall = loadJSON('tmenos20_muro', []);
+  const wall = muroDatos();
   return `
     ${embedded?'':eyebrow('Sin nombre')}
     <h2>El muro</h2>
@@ -2672,6 +2786,7 @@ function renderRecursosPage(){
     ${eyebrow('Recursos', false, '--go')}
     <h1>Recursos</h1>
     <p class="lede">Historial de salas y el muro de reflexiones, disponibles para consultar en cualquier momento.</p>
+    ${nubeAviso()}
     <div class="recursos-grid">
       ${panel(renderTablero(true), '', '--go')}
       ${panel(renderMuro(true), '', '--accent-2')}
@@ -2806,6 +2921,7 @@ if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFi
 
 function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); fitScreen(); }
 render();
+nubeIniciar();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
   if(!btn) return;
