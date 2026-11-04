@@ -255,12 +255,18 @@ button.ghost:active{color:var(--ink);background:rgba(31,178,222,.2);border-color
 .seg{display:flex;gap:6px}
 .seg-opt{flex:1;font-family:var(--mono);font-size:17px;font-weight:600;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink-dim);padding:14px;cursor:pointer;text-align:center}
 .seg-opt.active{background:var(--accent-dim);border-color:var(--accent-2);color:var(--accent-2);box-shadow:0 0 14px -6px var(--accent-2)}
-.mode-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 10px 13px;transition:border-color .15s,background .15s}
-.mode-opt:hover{border-color:var(--accent-2);color:var(--ink)}
-.mode-opt .mode-title{font-size:18px;font-weight:700;letter-spacing:.08em}
-.mode-opt .mode-sub{font-family:var(--sans,inherit);font-size:13.5px;font-weight:500;letter-spacing:0;color:var(--ink-dim)}
-.mode-opt.active{background:linear-gradient(180deg,rgba(31,178,222,.22),rgba(31,178,222,.08));border-width:2px}
-.mode-opt.active .mode-sub{color:var(--ink)}
+.modo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:18px auto 22px}
+@media (max-width:700px){.modo-grid{grid-template-columns:1fr}}
+.modo-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:34px 26px 26px;background:linear-gradient(180deg,rgba(31,178,222,.12),rgba(16,49,79,.35));border:1.5px solid var(--border);border-radius:18px;color:var(--ink);cursor:pointer;font-family:var(--sans);transition:transform .2s,border-color .2s,box-shadow .2s;touch-action:manipulation}
+.modo-card:hover,.modo-card:focus-visible{transform:translateY(-3px);border-color:var(--accent-2);box-shadow:0 10px 34px -12px var(--accent-2);outline:none}
+.modo-card .modo-ic{color:var(--accent-2);margin-bottom:4px}
+.modo-card .modo-title{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:.1em}
+.modo-card .modo-sub{font-family:var(--mono);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.modo-card .modo-desc{font-size:16px;line-height:1.5;color:var(--ink-dim);margin-top:6px;max-width:34ch}
+.modo-card .modo-go{margin-top:14px;font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.1em;color:var(--accent-2)}
+.modo-actual{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:15px;color:var(--ink-dim)}
+.modo-actual b{color:var(--ink)}
+.link-btn{background:none;border:none;color:var(--accent-2);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:4px 6px}
 
 label.field{display:flex;flex-direction:column;gap:var(--space-xs)}
 .field-label{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
@@ -861,19 +867,19 @@ const INFORME = [
 ];
 
 const PHASES_SALA = [
-  {id:'lectura',  at:0,   dur:60,  code:'T MENOS 20:00', label:'Lectura de protocolo'},
-  {id:'sistemas', at:60,  dur:840, code:'T MENOS 19:00', label:'Sistemas y discusión'},
-  {id:'entrega',  at:900, dur:300, code:'T MENOS 5:00',  label:'Firma y lanzamiento'},
+  {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
+  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
+  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
 ];
-// Modo individual: una persona contra la máquina, sin conversación en sala, cabe en 10 minutos
+// Modo individual: una persona contra la máquina, sin conversación en sala, también en 10 minutos
 const PHASES_SOLO = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
   {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
   {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
 ];
 let PHASES = PHASES_SALA;
-let TOTAL = 1200;
-function minutosMision(solo){ return solo ? 10 : 20; }
+let TOTAL = 600;
+function minutosMision(){ return 10; }
 
 /* ---------- modo individual: tripulantes máquina ---------- */
 // Lo que dice en la sala un bot que confiesa (en voz alta)
@@ -945,7 +951,7 @@ function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val))
 
 let S = {
   nav:'inicio', introStep:0,
-  screen:'setup', view:'mission',
+  screen:'setup', view:'mission', modoElegido:false,
   count:6, selectedSystems:[1,2,3,4,5,6],
   participants:[], running:false, elapsed:0, _lastPhase:null,
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
@@ -1323,6 +1329,8 @@ function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(
 function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
 
 function setSolo(v){ S.solo = v; render(); }
+function elegirModo(solo){ S.solo = solo; S.modoElegido = true; render(); window.scrollTo(0,0); Anuncios?.decir?.('cajaNegra'); }
+function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; render(); window.scrollTo(0,0); }
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1599,7 +1607,7 @@ function setNav(n){
   const cambia = n!==S.nav;
   if(cambia) Anuncios?.detener?.();
   S.nav = n; render();
-  if(cambia && n==='cajanegra' && S.screen==='setup') Anuncios?.decir?.('cajaNegra');
+  if(cambia && n==='cajanegra' && S.screen==='setup' && S.modoElegido) Anuncios?.decir?.('cajaNegra');
 }
 let _lastTopbarKey = null;
 function renderTopbar(){
@@ -1693,7 +1701,7 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Faltan veinte minutos</h2>
+      <h2 style="text-align:center">Faltan diez minutos</h2>
       ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
@@ -1701,8 +1709,40 @@ function renderInicio(){
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">En los próximos veinte minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">En los próximos diez minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
+  `;
+}
+
+function renderModo(){
+  const opt = (solo, icon, title, sub, desc) => `
+    <button class="modo-card" onclick="elegirModo(${solo})">
+      <span class="modo-ic">${icon}</span>
+      <span class="modo-title">${title}</span>
+      <span class="modo-sub">${sub}</span>
+      <span class="modo-desc">${desc}</span>
+      <span class="modo-go">ELEGIR →</span>
+    </button>`;
+  return `
+    ${eyebrow('Juego de sala de control', false, '--amber')}
+    <h1>Caja Negra</h1>
+    <div style="text-align:center;margin:10px auto 4px;align-self:stretch">
+      <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN 10 MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
+    </div>
+    <h2 style="text-align:center;margin-top:34px">¿Cómo van a jugar?</h2>
+    <div class="modo-grid">
+      ${opt(false,
+        `<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.3c2.7-.4 5 1.2 5.5 4.7"/></svg>`,
+        'GRUPAL', 'Presencial',
+        'De 2 a 6 personas en la misma sala, con un solo dispositivo. Cada quien controla un sistema y la sala discute en voz alta.')}
+      ${opt(true,
+        `<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><circle cx="12" cy="9" r="2"/><path d="M8.8 14c.5-1.5 1.7-2.3 3.2-2.3s2.7.8 3.2 2.3"/></svg>`,
+        'INDIVIDUAL', 'Virtual',
+        'Una sola persona frente a la pantalla. Controlas un sistema y las demás jefaturas las juegan máquinas.')}
+    </div>
+    <div class="footer-note">Las dos modalidades duran 10 minutos.</div>
   `;
 }
 
@@ -1710,12 +1750,12 @@ function renderSetup(){
   return `
     ${eyebrow('Juego de sala de control', false, '--amber')}
     <h1>Caja Negra</h1>
-    <div style="text-align:center;margin:10px 0 4px">
+    <div style="text-align:center;margin:10px auto 4px;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
-    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:14px">Faltan ${S.solo?'diez':'veinte'} minutos para el lanzamiento.</p>
+    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:14px">Faltan diez minutos para el lanzamiento.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
@@ -1729,18 +1769,9 @@ function renderSetup(){
       `, 'notice area-role')}
 
       ${panel(`
-        <div class="field-label" style="margin-bottom:9px">¿Cómo juegan?</div>
-        <div class="seg mode-seg" style="margin-bottom:14px">
-          <div class="seg-opt mode-opt ${!S.solo?'active':''}" onclick="setSolo(false)">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.3c2.7-.4 5 1.2 5.5 4.7"/></svg>
-            <span class="mode-title">GRUPAL</span>
-            <span class="mode-sub">Presencial · toda la sala</span>
-          </div>
-          <div class="seg-opt mode-opt ${S.solo?'active':''}" onclick="setSolo(true)">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><circle cx="12" cy="9" r="2"/><path d="M8.8 14c.5-1.5 1.7-2.3 3.2-2.3s2.7.8 3.2 2.3"/></svg>
-            <span class="mode-title">INDIVIDUAL</span>
-            <span class="mode-sub">Virtual · contra la máquina</span>
-          </div>
+        <div class="modo-actual">
+          <span>Modo: <b>${S.solo?'Individual · virtual':'Grupal · presencial'}</b></span>
+          <button class="link-btn" onclick="cambiarModo()">Cambiar</button>
         </div>
         <div class="field-label" style="margin-bottom:9px">${S.solo?'¿Cuántos tripulantes tiene la nave?':'¿Cuántos juegan?'}</div>
         <div class="seg">
@@ -2497,7 +2528,7 @@ function renderBody(){
   else if(S.nav==='configuracion'){ html = renderConfiguracionPage(); }
   else {
     const busy = S.screen==='mission' && S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending || S.sys.talkPending);
-    if(S.screen==='setup'){ html = renderSetup(); }
+    if(S.screen==='setup'){ html = S.modoElegido ? renderSetup() : renderModo(); }
     else if(busy){ html = renderSistemas(); }
     else if(S.screen==='end'){ html = renderEnd(); }
     else {
