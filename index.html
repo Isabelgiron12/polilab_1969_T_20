@@ -158,7 +158,7 @@ body{
   border-left:1px solid rgba(31,178,222,.1);border-right:1px solid rgba(31,178,222,.1);
   display:flex;flex-direction:column;position:relative;width:100%;flex-shrink:0;
   padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
-  transform-origin:top center;
+  transform-origin:top center;align-self:flex-start;
 }
 button,.decision-btn,.chip,.sign-row,.tab-btn,.seg-opt,.sysdot{touch-action:manipulation}
 .stage::before{
@@ -597,6 +597,100 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
 .intro-actions{display:flex;gap:12px}
 .intro-actions button{flex:1}
 .intro-actions button[hidden]{display:none}
+
+/* ===== Legibilidad: ninguna letra por debajo de ~13px, y todo cabe sin scroll ===== */
+.brand-text{font-size:15px}.brand-text small{font-size:12px}
+.switch{font-size:13px}
+.nav-item{font-size:16px}
+.wordmark,.tab-btn,.pausebtn{font-size:13px}
+.phase-code{font-size:13px}.phase-label{font-size:16px}
+.eyebrow{font-size:14px;letter-spacing:.12em}
+.beacon{width:7px;height:7px}
+.field-label{font-size:14px;letter-spacing:.06em}
+.footer-note{font-size:15px}
+.card-field-label{font-size:13px}
+.card-field-body{font-size:17px;line-height:1.5}
+.card-field{margin-top:10px}
+.alert-banner{font-size:16px}
+.chip{font-size:15px}
+.sign-row{font-size:16px}.sign-row .sign-state{font-size:13px}
+.decision-btn .dsub{font-size:15px}
+.badge{font-size:13px}
+.telex{font-size:15.5px;line-height:1.45;padding:12px 14px}
+.telex > div:last-child{margin-bottom:0!important}
+.stat-label{font-size:13px}
+.gap-line{font-size:16px}
+.fold{font-size:13px}
+table{font-size:15px}th{font-size:13px}
+.empty{font-size:16px;padding:16px 10px}
+.wall-line{font-size:16px}
+.protocol-list li{font-size:18px}
+.queue span{font-size:14px}
+.roster-card .role{font-size:14px}
+.checkline{font-size:16px}
+.sysdot{font-size:12px;width:48px}
+.triki-head-title{font-size:16px}
+.breadcrumb{font-size:13px}
+.inicio-subtitle{font-size:14px}
+.showcase-tags{font-size:13px}
+.creado-panel .creado-year{font-size:15px}
+.wcount{font-size:14px}
+.link-btn{font-size:15px}
+.modo-actual{font-size:17px}
+button.primary{font-size:18px}
+button.ghost{font-size:16px}
+p{line-height:1.6}
+
+/* Menos aire vertical desperdiciado: el espacio se usa para letra más grande */
+.body{padding-top:var(--space-xl);padding-bottom:var(--space-xl)}
+@media(min-width:1024px){.body{padding:var(--space-xl) 32px}}
+@media(max-width:1024px){.body{padding:var(--space-lg) var(--space-md) calc(var(--space-lg) + env(safe-area-inset-bottom))}}
+.content-wrap{gap:18px}
+button.primary{padding:15px 28px;min-height:54px}
+button.ghost{padding:13px 22px;min-height:50px}
+
+/* Setup: imagen, rol/cantidad y tripulación en tres columnas para que quepa todo */
+.setup-head{display:grid;grid-template-columns:1fr;gap:6px;text-align:center}
+.setup-columns .roster-grid{gap:10px}
+.setup-columns .roster-card{min-height:0;padding:10px 8px}
+@media(min-width:900px){
+  .setup-columns{grid-template-columns:minmax(0,.9fr) minmax(0,.85fr) minmax(0,1.25fr);grid-template-areas:"cockpit role roster" "cockpit count roster";align-items:stretch}
+  .setup-columns .area-roster{display:flex;flex-direction:column;justify-content:center}
+}
+.modo-grid{margin:8px auto 4px}
+.modo-card{padding:26px 24px 22px}
+.modo-card .modo-desc{font-size:18px}
+.modo-card .modo-go{font-size:16px}
+.modo-card .modo-sub{font-size:16px}
+
+/* Decisión final (y pantallas con mucho contenido): dos columnas en pantallas anchas */
+.split{display:grid;gap:18px;grid-template-columns:1fr}
+.split > div{display:flex;flex-direction:column;gap:14px;min-width:0;justify-content:center}
+@media(min-width:960px){.split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}}
+.content-wrap > .split,.content-wrap > *:has(~ .split){max-width:none}
+.sala-line{display:flex;gap:10px;align-items:flex-start;text-align:left}
+.sala-line .who{font-family:var(--mono);font-size:14px;color:var(--ink-faint)}
+.sala-line .said{color:var(--ink);font-size:16px;line-height:1.45}
+
+/* Caja negra abierta en modo individual: tres columnas */
+@media(min-width:900px){
+  .contenedor-caja-negra.tres{grid-template-columns:1.2fr 1.4fr .62fr;grid-template-areas:"caso reveal indicadores"}
+  .contenedor-caja-negra.tres .tarjeta-reveal{grid-area:reveal}
+  .contenedor-caja-negra.tres .indicador-row{flex-direction:column;text-align:center}
+  .contenedor-caja-negra.tres .indicador-split{flex-direction:column}
+  .contenedor-caja-negra.tres .panel{padding:14px}
+}
+.contenedor-caja-negra .tarjeta-caso p{font-size:16.5px;line-height:1.55}
+.end-grid .tarjeta-caso p,.end-col .panel p{font-size:16.5px;line-height:1.55}
+
+/* Recursos: tablero y muro lado a lado */
+.recursos-grid{display:grid;gap:18px;grid-template-columns:1fr}
+@media(min-width:900px){.recursos-grid{grid-template-columns:1.4fr 1fr;align-items:start}}
+.content-wrap > .recursos-grid,.content-wrap > *:has(~ .recursos-grid){max-width:none}
+.recursos-grid .stat-row{grid-template-columns:repeat(4,1fr)}
+.recursos-grid .stat-tile{padding:12px 6px}
+.recursos-grid .stat-num{font-size:30px}
+td{padding:7px 7px}
 </style>
 <script src="anuncios.js?v=202611041200"></script>
 <script>
@@ -1032,7 +1126,7 @@ function runTimer(){
     const hitEnd = !busy && S.elapsed >= TOTAL;
     if(hitEnd){ S.elapsed = TOTAL; S.running = false; enterEnd(); }
     renderHUD();
-    if(phaseChanged || hitEnd || firedTick){ if(renderBody()) fitScreen(); }
+    if(phaseChanged || hitEnd || firedTick){ renderBody(); fitScreen(); }
   }, 1000);
 }
 
@@ -1388,7 +1482,7 @@ function blackBoxHTML(){
     const tag = said ? '<span style="color:var(--go)">[DICHO A TIEMPO]</span> ' : '';
     return `<span class="n">${s.id}.</span> ${tag}${esc(INFORME[s.id-1])}`;
   });
-  return `<div class="telex">${lines.join('\n\n')}</div>`;
+  return `<div class="telex">${lines.map(l=>'<div style="margin-bottom:6px">'+l+'</div>').join('')}</div>`;
 }
 function prepBar(){
   const n = S.participants.length;
@@ -1457,8 +1551,8 @@ function renderHUD(){
       ${brandLogos(44)}
     </div>
     <div class="hud-status">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
-      <div style="font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.01em">${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--ink-faint);letter-spacing:.05em">${S.screen==='end'?'SALA ENTREGADA':ph.code}</div>
+      <div style="font-family:var(--mono);font-size:16px;color:var(--ink);letter-spacing:.01em">${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
     </div>
     <div class="hud-clockzone">
       <div class="clock ${crit?'crit':''}" style="font-size:48px;font-weight:700;font-family:var(--mono);color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)">${fmt(remain)}</div>
@@ -1474,7 +1568,7 @@ function renderHUD(){
 function renderQueueVisual(){
   const n = S.participants.length;
   const currentIdx = S.sys.idx;
-  let html = '<div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;flex-wrap:wrap;margin:16px 0">';
+  let html = '<div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;flex-wrap:wrap;margin:8px 0">';
 
   for(let i = 0; i < n; i++){
     const p = S.participants[i];
@@ -1488,8 +1582,8 @@ function renderQueueVisual(){
           <div style="position:relative;width:80px;height:80px;border:2px solid var(--accent-2);border-radius:12px;padding:6px;background:var(--accent-dim);box-shadow:0 0 20px var(--accent-2)">
             ${avatarSVG(p.cardId, 68)}
           </div>
-          <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent-2);text-align:center">${esc(p.name)}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);text-align:center">ACTUAL</div>
+          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent-2);text-align:center">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:14px;color:var(--ink-faint);text-align:center">ACTUAL</div>
         </div>
       `;
     } else if(isNext){
@@ -1498,7 +1592,7 @@ function renderQueueVisual(){
           <div style="position:relative;width:60px;height:60px;border:1px solid var(--border);border-radius:10px;padding:4px">
             ${avatarSVG(p.cardId, 52)}
           </div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:15px;color:var(--ink-faint);text-align:center">${esc(p.name)}</div>
         </div>
       `;
     } else if(isDone){
@@ -1507,7 +1601,7 @@ function renderQueueVisual(){
           <div style="width:40px;height:40px;border-radius:8px;padding:2px;text-decoration:line-through">
             ${avatarSVG(p.cardId, 36)}
           </div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--ink-faint);text-decoration:line-through">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:14px;color:var(--ink-faint);text-decoration:line-through">${esc(p.name)}</div>
         </div>
       `;
     }
@@ -1702,14 +1796,14 @@ function renderInicio(){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
       <h2 style="text-align:center">Faltan diez minutos</h2>
-      ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
+      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
   }
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:16.5px">En los próximos diez minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">En los próximos diez minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -1748,14 +1842,13 @@ function renderModo(){
 
 function renderSetup(){
   return `
-    ${eyebrow('Juego de sala de control', false, '--amber')}
-    <h1>Caja Negra</h1>
-    <div style="text-align:center;margin:10px auto 4px;align-self:stretch">
+    ${eyebrow('Caja Negra · juego de sala de control', false, '--amber')}
+    <div style="text-align:center;margin:0 auto;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
-    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:14px">Faltan diez minutos para el lanzamiento.</p>
+    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Faltan diez minutos para el lanzamiento.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
@@ -1763,8 +1856,8 @@ function renderSetup(){
       ${panel(`
         <div style="text-align:center">
           <div class="field-label">Tu rol</div>
-          <div style="font-size:17px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">${S.solo?'Controlas un sistema de la nave. Los demás los controlan máquinas.':'Cada uno controla un sistema de la nave.'}</div>
-          <div style="font-size:14.5px;color:var(--ink-dim);margin-top:5px">${S.solo?'Solo sabes lo que cada máquina diga en la sala. Si te despiden, pierdes el juego.':'Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.'}</div>
+          <div style="font-size:18px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">${S.solo?'Controlas un sistema de la nave. Los demás los controlan máquinas.':'Cada uno controla un sistema de la nave.'}</div>
+          <div style="font-size:16.5px;color:var(--ink-dim);margin-top:5px">${S.solo?'Solo sabes lo que cada máquina diga en la sala. Si te despiden, pierdes el juego.':'Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.'}</div>
         </div>
       `, 'notice area-role')}
 
@@ -1781,13 +1874,13 @@ function renderSetup(){
 
       ${panel(`
         <div class="field-label" style="text-align:center;margin-bottom:4px">La tripulación de hoy (${S.selectedSystems.length}/${S.count})</div>
-        <div class="donow" style="text-align:center;font-size:14px;margin-bottom:10px">▸ Toca para elegir quién forma parte del equipo.</div>
+        <div class="donow" style="text-align:center;font-size:16px;margin-bottom:10px">▸ Toca para elegir quién forma parte del equipo.</div>
         <div class="roster-grid">
           ${SYSTEMS.map(sys=>{
             const picked = S.selectedSystems.includes(sys.id);
             return `
             <div class="roster-card ${picked?'picked':''}" onclick="toggleSystemPick(${sys.id})">
-              ${avatarSVG(sys.id, 76, picked?'':'dim')}
+              ${avatarSVG(sys.id, 60, picked?'':'dim')}
               <div class="role">${esc(AVATARS[sys.id].role)}</div>
             </div>
           `;}).join('')}
@@ -1797,7 +1890,7 @@ function renderSetup(){
     </div>
 
     <button class="primary" onclick="startMission()" ${S.selectedSystems.length!==S.count?'disabled':''}>${S.selectedSystems.length!==S.count?'ELIGE '+S.count+' TRIPULANTES':'INICIAR CUENTA REGRESIVA'}</button>
-    <div class="footer-note">La cuenta regresiva corre sola, sin pausas.<br>Cuando llegue a cero, se decide si la nave despega.</div>
+    <div class="footer-note">La cuenta regresiva corre sola, sin pausas. Cuando llegue a cero, se decide si la nave despega.</div>
   `;
 }
 
@@ -1922,7 +2015,7 @@ function renderBotTurn(p, sys){
     ${prepBar()}
     ${spoke ? panel(`
       <div class="field-label" style="text-align:center">Lo que dice en la sala</div>
-      <p style="text-align:center;color:var(--ink);font-size:17px;margin-top:8px">«${esc(b.frase)}»</p>
+      <p style="text-align:center;color:var(--ink);font-size:18px;margin-top:8px">«${esc(b.frase)}»</p>
       <div class="footer-note" style="margin-top:8px">Solo sabes lo que dice en voz alta. Lo que haga en privado no lo ves.</div>
     `, '', '--accent-2') : panel(`
       <div style="text-align:center;padding:12px 0">
@@ -1942,10 +2035,10 @@ function soloSalaPanel(){
       ${S.participants.map(pp=>{
         const dicho = S.soloLog[pp.cardId];
         const estado = pp.fired ? '<span style="color:var(--nogo)">despedido</span>' : pp.credited ? '<span style="color:var(--go)">caso revisado, sigue</span>' : '';
-        return `<div style="display:flex;gap:10px;align-items:flex-start;text-align:left">
+        return `<div class="sala-line">
           ${avatarSVG(pp.cardId, 36)}
-          <div><div style="font-family:var(--mono);font-size:12px;color:var(--ink-faint)">${esc(pp.bot?AVATARS[pp.cardId].role:'Tú · '+AVATARS[pp.cardId].role)}${estado?' · '+estado:''}</div>
-          <div style="color:var(--ink)">${dicho?'«'+esc(dicho)+'»':'<span style="color:var(--ink-dim)">No dijo nada en la sala.</span>'}</div></div>
+          <div><div class="who">${esc(pp.bot?AVATARS[pp.cardId].role:'Tú · '+AVATARS[pp.cardId].role)}${estado?' · '+estado:''}</div>
+          <div class="said">${dicho?'«'+esc(dicho)+'»':'<span style="color:var(--ink-dim)">No dijo nada en la sala.</span>'}</div></div>
         </div>`;
       }).join('')}
     </div>
@@ -1957,14 +2050,14 @@ function soloRevealPanel(){
     const rec = S._bitStore[pp.cardId] || {};
     const sysDef = SYSTEMS.find(s=>s.id===pp.cardId);
     const hizo = rec.q1==='YES' ? ['--go','Lo dijo en la sala'] : rec.q2==='YES' ? ['--cond','Se lo dijo solo a la directora'] : ['--nogo','Se lo calló'];
-    return `<div style="display:flex;gap:10px;align-items:flex-start;text-align:left">
-      ${avatarSVG(pp.cardId, 36)}
-      <div><div style="font-family:var(--mono);font-size:12px;color:var(${hizo[0]});font-weight:700">${esc(AVATARS[pp.cardId].role)} · ${hizo[1]}</div>
-      <div style="color:var(--ink-dim);font-size:14px">${esc(sysDef.happened)}</div></div>
+    return `<div class="sala-line">
+      ${avatarSVG(pp.cardId, 32)}
+      <div><div class="who" style="color:var(${hizo[0]});font-weight:700">${esc(AVATARS[pp.cardId].role)} · ${hizo[1]}</div>
+      <div class="said" style="color:var(--ink-dim);font-size:15px">${esc(sysDef.happened)}</div></div>
     </div>`;
   }).join('');
-  return panel(`<div class="field-label" style="margin-bottom:8px">Lo que sabía cada máquina</div><div class="stack" style="gap:10px">${filas}</div>
-    <div class="footer-note" style="margin-top:10px">Con un solo sistema sin decir en voz alta, la nave no tenía cómo llegar.</div>`);
+  return panel(`<div class="field-label" style="margin-bottom:8px">Lo que sabía cada máquina</div><div class="stack" style="gap:8px">${filas}</div>
+    <div class="footer-note" style="margin-top:10px">Con un solo sistema sin decir en voz alta, la nave no tenía cómo llegar.</div>`, 'tarjeta-reveal');
 }
 
 function renderSistemas(){
@@ -1975,12 +2068,8 @@ function renderSistemas(){
   if(S.sys.talkPending){ return renderTalkToTeam(); }
   if(S.sys.idx >= n){
     const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
-    return `
-      ${eyebrow(currentPhase().code)}
-      <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
-      <p>${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave?':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>
-      ${S.solo ? soloSalaPanel() : ''}
-      <div class="stack" style="gap:16px;margin-top:24px">
+    const decidir = `
+      <div class="stack" style="gap:16px">
         ${prepBar()}
         <div class="row" style="gap:12px;flex-direction:column">
           <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR CON NOVEDADES →</button>
@@ -1991,7 +2080,14 @@ function renderSistemas(){
           <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'CERRADO'}</span></div>`).join('')}</div>
           <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} confirmados. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
         </div>
-      </div>
+      </div>`;
+    const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave?':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
+    return `
+      ${eyebrow(currentPhase().code)}
+      <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
+      ${S.solo
+        ? `<div class="split"><div>${soloSalaPanel()}</div><div>${intro}${decidir}</div></div>`
+        : `${intro}${decidir}`}
       ${backRow()}
     `;
   }
@@ -2143,7 +2239,7 @@ function renderEntrega(){
     <div class="stack">
       ${presets.map((msg,i)=>`
         <button class="decision-btn go ${S.verifText===msg?'sel':''}" onclick="setVerifText(${i})" style="text-align:left">
-          <div class="dtitle" style="justify-content:flex-start;font-size:15.5px">${esc(msg)}</div>
+          <div class="dtitle" style="justify-content:flex-start;font-size:17px">${esc(msg)}</div>
         </button>`).join('')}
     </div>
     ${panel(`<p style="text-align:center;color:var(--ink)">${navIcon('lock',15)} La sala firma el mensaje en conjunto, en nombre de todos.</p>`, '', '--go')}
@@ -2234,7 +2330,7 @@ function renderLaunchResolved(){
   }
   return `
     ${eyebrow('Esto no les pasó a ustedes · ocurrió de verdad, en 1986', true)}
-    <div class="contenedor-caja-negra">
+    <div class="contenedor-caja-negra${S.solo?' tres':''}">
       ${panel(`
         <h1 style="margin-top:0">El caso Challenger</h1>
         <p style="color:var(--ink);margin-top:10px">
@@ -2272,9 +2368,34 @@ function renderLaunchResolved(){
 }
 function renderAborted(){
   const boxPanel = panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`);
-  return `
+  const acciones = `
+    <div class="row end-actions">
+      <button class="ghost grow" onclick="goBack()">ATRÁS</button>
+      ${S.launch.boxOpen ? `<button class="ghost grow" onclick="closeBlackBox()">Volver al caso Challenger</button>` : `<button class="ghost grow" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`}
+      <button class="primary go grow" onclick="newCrew()">Empezar con otra tripulación</button>
+    </div>`;
+  const titulo = `
     ${eyebrow(S.solo?'MISIÓN ABORTADA · GANASTE':'MISIÓN ABORTADA · GANARON', true)}
-    <h1 class="outcome-head" style="color:var(--go)">${S.solo?'¡Hiciste lo correcto!':'¡Hicieron las cosas correctas!'}</h1>
+    <h1 class="outcome-head" style="color:var(--go)">${S.solo?'¡Hiciste lo correcto!':'¡Hicieron las cosas correctas!'}</h1>`;
+  if(S.launch.boxOpen){
+    // Con la caja abierta hay mucho texto: sin foto, en dos columnas
+    return `
+      ${titulo}
+      <div class="split">
+        <div>
+          ${panel(`
+            <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
+            <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y dijiste NO GO.':'Pero escucharon las advertencias y dijeron NO GO.'} Eso es lo que no pasó en el Challenger.</b></p>
+          `)}
+          ${S.solo ? boxPanel : ''}
+        </div>
+        <div>${S.solo ? soloRevealPanel() : boxPanel}</div>
+      </div>
+      ${acciones}
+    `;
+  }
+  return `
+    ${titulo}
     <div class="end-grid con-foto">
       <img class="end-foto" src="nave-plataforma.webp?v=202610272005" alt="La nave en la plataforma de lanzamiento, sin despegar"/>
       <div class="end-col">
@@ -2282,19 +2403,14 @@ function renderAborted(){
           <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
           <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y dijiste NO GO.':'Pero escucharon las advertencias y dijeron NO GO.'} Eso es lo que no pasó en el Challenger.</b></p>
         `, 'flash-go')}
-        ${S.solo && S.launch.boxOpen ? soloRevealPanel() : ''}
-        ${S.launch.boxOpen ? boxPanel : panel(`
+        ${panel(`
           <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
           <h2 style="margin-top:0">El caso Challenger</h2>
           ${challengerStoryHTML()}
         `, 'tarjeta-caso')}
       </div>
     </div>
-    <div class="row end-actions">
-      <button class="ghost grow" onclick="goBack()">ATRÁS</button>
-      ${S.launch.boxOpen ? `<button class="ghost grow" onclick="closeBlackBox()">Volver al caso Challenger</button>` : `<button class="ghost grow" onclick="openBlackBox()">Abrir la caja negra de todos modos</button>`}
-      <button class="primary go grow" onclick="newCrew()">Empezar con otra tripulación</button>
-    </div>
+    ${acciones}
   `;
 }
 function renderNoDecision(){
@@ -2372,7 +2488,7 @@ function renderTablero(embedded){
       <table>
         <thead><tr><th>Sala</th><th>Fecha</th><th>Verif.</th><th>Nave</th><th>Público/6</th><th>Costo</th></tr></thead>
         <tbody>
-          ${filtered.slice().reverse().map(r=>`
+          ${filtered.slice().reverse().slice(0,5).map(r=>`
             <tr>
               <td class="num">${r.sala}</td>
               <td>${formatFecha(r.ts)}</td>
@@ -2384,6 +2500,7 @@ function renderTablero(embedded){
         </tbody>
       </table>
     </div>
+    ${filtered.length>5?`<div class="footer-note" style="margin-top:8px">Se muestran las 5 salas más recientes de ${filtered.length}.</div>`:''}
   `;
 }
 
@@ -2393,7 +2510,7 @@ function renderMuro(embedded){
     ${embedded?'':eyebrow('Sin nombre')}
     <h2>El muro</h2>
     <p class="lede">Lo que cada tripulación dejó escrito después de su lanzamiento, sin firmar.</p>
-    ${wall.length ? panel(`<div class="stack">${wall.map(l=>`<div class="wall-line">${esc(l)}</div>`).join('')}</div>`) : `<div class="empty">El muro sigue en blanco.</div>`}
+    ${wall.length ? `<div class="stack" style="margin-top:10px">${wall.slice(0,6).map(l=>`<div class="wall-line">${esc(l)}</div>`).join('')}</div>${wall.length>6?`<div class="footer-note" style="margin-top:8px">Se muestran las 6 más recientes de ${wall.length}.</div>`:''}` : `<div class="empty">El muro sigue en blanco.</div>`}
   `;
 }
 
@@ -2430,7 +2547,7 @@ function renderEquipoPage(){
             ${avatarSVG(p.cardId, 40, p.fired?'dim':'')}
             <span class="grow" style="text-align:left">
               <div style="color:var(--ink);font-weight:600">${esc(p.name)}</div>
-              <div style="font-size:12px;color:var(--ink-faint)">${esc(sys?sys.role:'')}</div>
+              <div style="font-size:14px;color:var(--ink-faint)">${esc(sys?sys.role:'')}</div>
             </span>
             <span class="sign-state" style="color:${p.fired?'var(--nogo)':'var(--go)'}">${p.fired?'DESPEDIDO':'ACTIVO'}</span>
           </div>`;
@@ -2447,13 +2564,13 @@ function renderMisionPage(){
     <h1>Objetivo de la misión</h1>
     ${panel(`
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-weight:700;font-size:19px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO EN 20 MINUTOS</div>
-        <div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--ink);margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:22px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO EN 20 MINUTOS</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink);margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
       </div>
     `, 'notice')}
     ${started ? panel(`
       <div class="field-label" style="text-align:center">Fase actual</div>
-      <div style="text-align:center;margin-top:6px;font-size:17px;color:var(--ink);font-weight:700">${esc(currentPhase().label)}</div>
+      <div style="text-align:center;margin-top:6px;font-size:18px;color:var(--ink);font-weight:700">${esc(currentPhase().label)}</div>
       <div class="footer-note" style="margin-top:4px">${esc(currentPhase().code)}</div>
     `, '', '--violet') : ''}
     <h2>Protocolo</h2>
@@ -2473,8 +2590,10 @@ function renderRecursosPage(){
     ${eyebrow('Recursos', false, '--go')}
     <h1>Recursos</h1>
     <p class="lede">Historial de salas y el muro de reflexiones, disponibles para consultar en cualquier momento.</p>
-    ${panel(renderTablero(true), '', '--go')}
-    ${panel(renderMuro(true), '', '--accent-2')}
+    <div class="recursos-grid">
+      ${panel(renderTablero(true), '', '--go')}
+      ${panel(renderMuro(true), '', '--accent-2')}
+    </div>
   `;
 }
 
@@ -2486,7 +2605,7 @@ function renderConfiguracionPage(){
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div>
           <div style="color:var(--ink);font-weight:600">Sonido</div>
-          <div style="font-size:13px;color:var(--ink-faint);margin-top:2px">Efectos de sonido de la sala de control.</div>
+          <div style="font-size:15px;color:var(--ink-faint);margin-top:2px">Efectos de sonido de la sala de control.</div>
         </div>
         <label class="switch">
           <input type="checkbox" ${Sound.isEnabled()?'checked':''} onchange="toggleSound()">
@@ -2497,7 +2616,7 @@ function renderConfiguracionPage(){
     `, '', '--accent-2')}
     ${panel(`
       <div style="color:var(--ink);font-weight:600">Reiniciar partida</div>
-      <div style="font-size:13px;color:var(--ink-faint);margin-top:2px;margin-bottom:12px">Registra la sala actual (si aplica) y empieza con una tripulación nueva.</div>
+      <div style="font-size:15px;color:var(--ink-faint);margin-top:2px;margin-bottom:12px">Registra la sala actual (si aplica) y empieza con una tripulación nueva.</div>
       <button class="ghost" onclick="newCrew()">Empezar con otra tripulación</button>
     `, '', '--nogo')}
     <div class="footer-note">Caja Negra · METRO POLI Lab, Politécnico Grancolombiano.</div>
@@ -2544,6 +2663,8 @@ function renderBody(){
   const changed = key !== _lastRenderKey;
   _lastRenderKey = key;
   body.innerHTML = '<div class="content-wrap'+(changed?' screen-in':'')+(S.nav==='cajanegra'&&S.screen==='end'?' is-end':'')+'">'+html+'</div>';
+  // Las imágenes cambian la altura al cargar: reajustar para que nada quede cortado
+  body.querySelectorAll('img').forEach(img => { if(!img.complete) img.addEventListener('load', scheduleFit, {once:true}); });
   return changed;
 }
 
@@ -2551,24 +2672,36 @@ function fitScreen(){
   const stage = document.querySelector('.stage');
   const main = document.querySelector('.main');
   if(!stage || !main) return;
-  stage.style.transform = 'none';
-  stage.style.width = '100%';
   const availH = main.clientHeight;
-  const contentH = stage.scrollHeight;
-  const minScale = 0.4;
-  const maxScale = 1.35;
-  let scale = contentH > 0 ? availH / contentH : 1;
-  if(scale > maxScale) scale = maxScale;
-  if(scale < minScale){
-    scale = minScale;
-    main.style.overflowY = 'auto';
-  } else {
-    main.style.overflowY = 'hidden';
+  // Mide la altura natural del contenido (sin estirar al alto de la pantalla) al ancho que tendrá con esa escala
+  const naturalH = s => {
+    stage.style.transform = 'none';
+    stage.style.width = (100/s) + '%';
+    stage.style.height = 'auto';
+    stage.style.minHeight = '0';
+    return stage.scrollHeight;
+  };
+  // En pantallas grandes agranda; en celulares, mejor scroll que letra diminuta
+  const maxScale = 1.3;
+  const minScale = window.innerWidth < 700 ? 0.85 : 0.5;
+  let scale = 1;
+  for(let i=0;i<4;i++){
+    const h = naturalH(scale);
+    const next = Math.min(maxScale, availH / Math.max(h,1));
+    if(Math.abs(next - scale) < 0.005){ scale = Math.min(scale, next); break; }
+    scale = next;
   }
-  if(scale !== 1){
-    stage.style.width = (100/scale) + '%';
-    stage.style.transform = `scale(${scale})`;
-  }
+  // Comprobación final: lo que se dibuja nunca debe pasarse del alto disponible
+  const h = naturalH(scale);
+  if(h*scale > availH) scale = availH / h;
+  scale = Math.floor(scale*1000)/1000;
+  if(scale < minScale){ scale = minScale; main.style.overflowY = 'auto'; }
+  else { main.style.overflowY = 'hidden'; }
+  naturalH(scale);
+  stage.style.height = (availH/scale) + 'px';
+  stage.style.minHeight = '0';
+  if(main.style.overflowY==='auto'){ stage.style.height = 'auto'; stage.style.minHeight = ''; }
+  stage.style.transform = scale===1 ? 'none' : `scale(${scale})`;
 }
 let _fitRaf = null;
 function scheduleFit(){
@@ -2585,7 +2718,7 @@ window.addEventListener('resize', scheduleFitThorough);
 window.addEventListener('load', scheduleFitThorough);
 if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFitThorough); }
 
-function render(){ renderTopbar(); renderSidebar(); renderHUD(); const changed = renderBody(); if(changed) fitScreen(); }
+function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); fitScreen(); }
 render();
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
