@@ -1101,7 +1101,7 @@ function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val))
 /* ---------- resultados compartidos (Supabase) ----------
    Con url y key vacías el juego guarda solo en este navegador.
    key es la clave publishable: es pública, y supabase/schema.sql solo le permite leer y agregar. */
-const NUBE = { url:'', key:'' };
+const NUBE = { url:'https://yngrcjlxvhccogksddau.supabase.co', key:'sb_publishable_4VG7lTdOUZXlcHLpnS40Ew_MXLxy0G8' };
 const NUBE_PENDIENTES = 'tmenos20_pendientes', NUBE_TABLERO = 'tmenos20_nube_tablero', NUBE_MURO = 'tmenos20_nube_muro', NUBE_MIGRADO = 'tmenos20_migrado';
 const nubeActiva = () => !!(NUBE.url && NUBE.key);
 let nubeEstado = 'cargando';
