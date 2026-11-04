@@ -255,6 +255,12 @@ button.ghost:active{color:var(--ink);background:rgba(31,178,222,.2);border-color
 .seg{display:flex;gap:6px}
 .seg-opt{flex:1;font-family:var(--mono);font-size:17px;font-weight:600;background:var(--panel-2);border:1.5px solid var(--border);color:var(--ink-dim);padding:14px;cursor:pointer;text-align:center}
 .seg-opt.active{background:var(--accent-dim);border-color:var(--accent-2);color:var(--accent-2);box-shadow:0 0 14px -6px var(--accent-2)}
+.mode-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 10px 13px;transition:border-color .15s,background .15s}
+.mode-opt:hover{border-color:var(--accent-2);color:var(--ink)}
+.mode-opt .mode-title{font-size:18px;font-weight:700;letter-spacing:.08em}
+.mode-opt .mode-sub{font-family:var(--sans,inherit);font-size:13.5px;font-weight:500;letter-spacing:0;color:var(--ink-dim)}
+.mode-opt.active{background:linear-gradient(180deg,rgba(31,178,222,.22),rgba(31,178,222,.08));border-width:2px}
+.mode-opt.active .mode-sub{color:var(--ink)}
 
 label.field{display:flex;flex-direction:column;gap:var(--space-xs)}
 .field-label{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
@@ -1704,12 +1710,12 @@ function renderSetup(){
   return `
     ${eyebrow('Juego de sala de control', false, '--amber')}
     <h1>Caja Negra</h1>
-    <div style="text-align:center;margin:8px 0 2px">
-      <div class="field-label">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:21px;color:var(--amber);line-height:1.3;margin-top:6px;text-shadow:0 0 18px rgba(255,176,32,.3)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);line-height:1.4;margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
+    <div style="text-align:center;margin:10px 0 4px">
+      <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
-    <p class="lede" style="text-align:center">Faltan ${S.solo?'diez':'veinte'} minutos para el lanzamiento.</p>
+    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:14px">Faltan ${S.solo?'diez':'veinte'} minutos para el lanzamiento.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
@@ -1724,9 +1730,17 @@ function renderSetup(){
 
       ${panel(`
         <div class="field-label" style="margin-bottom:9px">¿Cómo juegan?</div>
-        <div class="seg" style="margin-bottom:14px">
-          <div class="seg-opt ${!S.solo?'active':''}" onclick="setSolo(false)" style="font-size:14px">EN SALA</div>
-          <div class="seg-opt ${S.solo?'active':''}" onclick="setSolo(true)" style="font-size:14px">INDIVIDUAL</div>
+        <div class="seg mode-seg" style="margin-bottom:14px">
+          <div class="seg-opt mode-opt ${!S.solo?'active':''}" onclick="setSolo(false)">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.3c2.7-.4 5 1.2 5.5 4.7"/></svg>
+            <span class="mode-title">GRUPAL</span>
+            <span class="mode-sub">Presencial · toda la sala</span>
+          </div>
+          <div class="seg-opt mode-opt ${S.solo?'active':''}" onclick="setSolo(true)">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><circle cx="12" cy="9" r="2"/><path d="M8.8 14c.5-1.5 1.7-2.3 3.2-2.3s2.7.8 3.2 2.3"/></svg>
+            <span class="mode-title">INDIVIDUAL</span>
+            <span class="mode-sub">Virtual · contra la máquina</span>
+          </div>
         </div>
         <div class="field-label" style="margin-bottom:9px">${S.solo?'¿Cuántos tripulantes tiene la nave?':'¿Cuántos juegan?'}</div>
         <div class="seg">
