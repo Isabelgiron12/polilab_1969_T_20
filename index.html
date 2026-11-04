@@ -700,7 +700,7 @@ button.ghost{padding:13px 22px;min-height:50px}
 .recursos-grid .stat-num{font-size:30px}
 td{padding:7px 7px}
 </style>
-<script src="anuncios.js?v=202611041200"></script>
+<script src="anuncios.js?v=202611041800"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -872,11 +872,18 @@ const SYSTEMS = [
    costs:'Arreglarlo son ocho horas que ya no quedan.'},
   {id:5, name:'ESCUDO TÉRMICO', weight:18, does:'Responder por el reingreso de la nave.',
    happened:'En la inspección viste una marca del tamaño de una uña en una placa. El manual no es específico sobre marcas de ese tamaño, pide usar criterio. El técnico que la revisó contigo lleva quince años en el puesto, dice que la ha visto muchas veces y nunca fue un problema.',
+   happened3:'En la inspección vio una marca del tamaño de una uña en una placa. El manual no es específico sobre marcas de ese tamaño, pide usar criterio. El técnico que la revisó a su lado lleva quince años en el puesto, dice que la ha visto muchas veces y nunca fue un problema.',
    costs:'El técnico con más experiencia ya lo revisó y dijo que no era nada.'},
   {id:6, name:'SOPORTE VITAL', weight:10, does:'Responder por los filtros y las provisiones.',
    happened:'Los filtros de repuesto llegaron de un lote distinto al habitual, sin el certificado de calidad que exige el protocolo. Los probaste tú mismo con el equipo del laboratorio y dieron los mismos valores que los certificados.',
+   happened3:'Los filtros de repuesto llegaron de un lote distinto al habitual, sin el certificado de calidad que exige el protocolo. Los probó con el equipo del laboratorio y dieron los mismos valores que los certificados.',
    costs:'Si lo dices, el reemplazo certificado tarda semanas, y todo el cronograma se mueve con él.'},
 ];
+// En individual, lo que pasó en el sistema de una máquina se cuenta en tercera persona
+function happenedOf(sys){
+  const esMaquina = S.solo && S.participants.some(pp=>pp.bot && pp.cardId===sys.id);
+  return esMaquina && sys.happened3 ? sys.happened3 : sys.happened;
+}
 const POOL_BY_COUNT = {6:[1,2,3,4,5,6], 5:[1,2,3,5,6], 4:[1,2,3,5], 3:[1,2,5], 2:[1,5]};
 const HIDDEN_P = {1:0.45, 2:0.30, 3:0.25, 4:0.20, 5:0.40, 6:0.25};
 const MINIGAMES = {
@@ -947,17 +954,9 @@ const REFLECTION_PRESETS = [
   'Porque no hablar era lo más simple, y a mí no me iba a pasar nada.',
 ];
 const DELAY_HOURS = {1:48, 2:24, 3:72, 4:8, 5:168, 6:336};
-const TOTAL_DELAY_HOURS = Object.values(DELAY_HOURS).reduce((a,b)=>a+b,0);
-function formatDuration(hours){
-  const unit = (n,s,p)=> n+' '+(n===1?s:p);
-  if(hours<20) return unit(hours,'hora','horas');
-  const days = Math.round(hours/24);
-  if(days<12) return unit(days,'día','días');
-  const weeks = Math.round(days/7);
-  if(weeks<7) return unit(weeks,'semana','semanas');
-  const months = Math.round(days/30);
-  return unit(months,'mes','meses');
-}
+// Todo el juego habla del retraso en horas, igual que los audios
+function formatDuration(hours){ return hours+' '+(hours===1?'hora':'horas'); }
+function delayEvitable(){ return (S.selectedSystems||[]).reduce((a,id)=>a+(DELAY_HOURS[id]||0),0); }
 
 const INFORME = [
   'PROPULSIÓN: la válvula nueva nunca se probó en frío, y esta madrugada hizo más frío de lo previsto.',
@@ -976,7 +975,7 @@ const PHASES_SALA = [
 // Modo individual: una persona contra la máquina, sin conversación en sala, también en 10 minutos
 const PHASES_SOLO = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
-  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
+  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Revisión de sistemas'},
   {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
 ];
 let PHASES = PHASES_SALA;
@@ -1088,7 +1087,8 @@ function resetSubstateFor(id){
 }
 
 function startMission(){
-  if(S.solo && S.count !== SOLO_COUNT) setCount(SOLO_COUNT);
+  // En individual la tripulación sale al azar: no hay nada que elegir
+  if(S.solo){ S.count = SOLO_COUNT; S.selectedSystems = shuffle(SYSTEMS.map(x=>x.id)).slice(0, SOLO_COUNT); }
   if(S.selectedSystems.length !== S.count) return;
   const pool = shuffle(S.selectedSystems);
   S.participants = [];
@@ -1433,7 +1433,7 @@ function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; cl
 // Individual: siempre 3 tripulantes y la persona habla de última
 const SOLO_COUNT = 3;
 function setSolo(v){ S.solo = v; render(); }
-function elegirModo(solo){ S.solo = solo; S.modoElegido = true; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); Anuncios?.decir?.('cajaNegra'); }
+function elegirModo(solo){ S.solo = solo; S.modoElegido = true; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); if(!solo) Anuncios?.decir?.('cajaNegra'); }
 function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; render(); window.scrollTo(0,0); }
 function setCount(n){
   S.count = n;
@@ -1494,6 +1494,7 @@ function blackBoxHTML(){
   });
   return `<div class="telex">${lines.map(l=>'<div style="margin-bottom:6px">'+l+'</div>').join('')}</div>`;
 }
+function turnoLabel(){ return 'turno '+(Math.min(S.sys.idx, S.participants.length-1)+1)+' de '+S.participants.length; }
 function prepBar(){
   const n = S.participants.length;
   const done = Math.min(S.sys.idx, n);
@@ -1602,7 +1603,7 @@ function renderQueueVisual(){
           <div style="position:relative;width:60px;height:60px;border:1px solid var(--border);border-radius:10px;padding:4px">
             ${avatarSVG(p.cardId, 52)}
           </div>
-          <div style="font-family:var(--mono);font-size:15px;color:var(--ink-faint);text-align:center">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:15px;color:var(--ink-faint);text-align:center;max-width:130px;line-height:1.25">${esc(p.name)}</div>
         </div>
       `;
     } else if(isDone){
@@ -1611,7 +1612,7 @@ function renderQueueVisual(){
           <div style="width:40px;height:40px;border-radius:8px;padding:2px;text-decoration:line-through">
             ${avatarSVG(p.cardId, 36)}
           </div>
-          <div style="font-family:var(--mono);font-size:14px;color:var(--ink-faint);text-decoration:line-through">${esc(p.name)}</div>
+          <div style="font-family:var(--mono);font-size:14px;color:var(--ink-faint);text-decoration:line-through;text-align:center;max-width:130px;line-height:1.25">${esc(p.name)}</div>
         </div>
       `;
     }
@@ -1806,14 +1807,14 @@ function renderInicio(){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
       <h2 style="text-align:center">Faltan diez minutos</h2>
-      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Ustedes son la tripulación de esta nave. Cada uno controla un sistema distinto, y sin él, la nave no despega. Nadie más en la sala sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
+      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto, y sin él, la nave no despega. Nadie más sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
   }
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">En los próximos diez minutos van a tomar decisiones: algunas cada uno por su cuenta, en silencio; otras, la sala completa, en voz alta. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">En los próximos diez minutos hay que tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -1856,7 +1857,7 @@ function renderSetup(){
     <div style="text-align:center;margin:0 auto;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">${S.solo?'Y LLEGAR TÚ HASTA EL FINAL':'Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL'}</div>
     </div>
     <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Faltan diez minutos para el lanzamiento.</p>
 
@@ -1878,7 +1879,7 @@ function renderSetup(){
         </div>
         ${S.solo ? `
         <div class="field-label" style="margin-bottom:6px">Tripulación</div>
-        <div style="font-size:17px;color:var(--ink);line-height:1.45"><b>3 jefaturas:</b> dos máquinas y tú. Las máquinas hablan primero; tú vas de última.</div>
+        <div style="font-size:17px;color:var(--ink);line-height:1.45"><b>3 jefaturas al azar:</b> dos máquinas y tú. Las máquinas hablan primero; tú vas de última.</div>
         ` : `
         <div class="field-label" style="margin-bottom:9px">¿Cuántos juegan?</div>
         <div class="seg">
@@ -1886,7 +1887,7 @@ function renderSetup(){
         </div>`}
       `, 'area-count')}
 
-      ${panel(`
+      ${S.solo ? '' : panel(`
         <div class="field-label" style="text-align:center;margin-bottom:4px">La tripulación de hoy (${S.selectedSystems.length}/${S.count})</div>
         <div class="donow" style="text-align:center;font-size:16px;margin-bottom:10px">▸ Toca para elegir quién forma parte del equipo.</div>
         <div class="roster-grid">
@@ -1899,7 +1900,7 @@ function renderSetup(){
             </div>
           `;}).join('')}
         </div>
-        <div class="footer-note" style="margin-top:10px">${S.solo?'Tu sistema se asigna al azar entre los tres elegidos. Los otros dos los juegan máquinas.':'El sistema de cada quien se asigna al azar entre los elegidos.'}</div>
+        <div class="footer-note" style="margin-top:10px">El sistema de cada quien se asigna al azar entre los elegidos.</div>
       `, 'area-roster')}
     </div>
 
@@ -1912,8 +1913,15 @@ function renderLectura(){
   return `
     ${eyebrow(currentPhase().code, false, '--amber')}
     <h2>Lectura de protocolo</h2>
-    <div class="donow">▸ ${S.solo?'Lee el protocolo. Las demás jefaturas son máquinas: solo vas a saber lo que digan en la sala.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
-    ${panel(`
+    <div class="donow">▸ ${S.solo?'Lee el protocolo antes de empezar.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
+    ${panel(S.solo ? `
+      <ol class="protocol-list">
+        <li><span><b>Respondes por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta nadie la ve: solo se sabe lo que tú decidas contar.</span></li>
+        <li><span><b>Las otras dos jefaturas son máquinas.</b> Hablan antes que tú, y solo sabes lo que digan en voz alta.</span></li>
+        <li><span>Al final, <b>decides tú</b> si la nave se envía o no.</span></li>
+        <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
+      </ol>
+    ` : `
       <ol class="protocol-list">
         <li><span><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</span></li>
         <li><span>En la discusión, todos hablan libre. Nadie está obligado a hablar.</span></li>
@@ -1928,13 +1936,13 @@ function renderLectura(){
 function renderTalkToTeam(){
   return `
     ${eyebrow(currentPhase().code, true, '--accent-2')}
-    <h2 style="text-align:center">Momento de hablar con el equipo</h2>
+    <h2 style="text-align:center">${S.solo?'Lo dices en voz alta':'Momento de hablar con el equipo'}</h2>
     ${panel(`
       <div style="text-align:center;padding:6px 0">
         ${S.solo ? `
         <div class="donow">Le cuentas a la sala lo que pasó en tu sistema.</div>
         <p style="margin-top:10px;color:var(--ink)">«${esc(BOT_CONFIESA[S.participants[S.sys.idx].cardId])}»</p>
-        <p style="margin-top:10px">Las máquinas que faltan por hablar ya lo escucharon.</p>` : `
+        ` : `
         <div class="donow">Habla con tu equipo en sala y cuéntales lo sucedido.</div>
         <p style="margin-top:10px">Tómense el tiempo que necesiten para conversarlo antes de seguir.</p>`}
       </div>
@@ -1991,14 +1999,17 @@ function renderFiredWait(){
   const done = S.sys.firedWait<=0;
   const id = S.participants[S.sys.idx-1]?.cardId;
   const r = FIRE_REASONS.indexOf(S.sys.firedReason)+1;
-  anunciarNovedad(['despido'+id+'_'+r, `Se ha tomado la decisión de despedir a ${S.sys.firedName} por ${S.sys.firedReason}. Continúen con la misión. ${S.sys.firedName} pierde el juego.`]);
+  const maquina = S.solo && S.participants[S.sys.idx-1]?.bot;
+  anunciarNovedad(maquina
+    ? ['despidoMaq'+id, `Se ha tomado la decisión de despedir a ${S.sys.firedName}. Continúen con la misión. ${S.sys.firedName} sale de la misión.`]
+    : ['despido'+id+'_'+r, `Se ha tomado la decisión de despedir a ${S.sys.firedName} por ${S.sys.firedReason}. Continúen con la misión. ${S.sys.firedName} pierde el juego.`]);
   return `
     ${eyebrow(currentPhase().code)}
     <h2 style="text-align:center">Anuncio de la dirección</h2>
     ${panel(`
       <p style="text-align:center;color:var(--ink)">Los directivos llaman al equipo para anunciar:</p>
-      <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)} por ${esc(S.sys.firedReason)}. Continúen con la misión."</p>
-      <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} pierde el juego.</p>
+      <p style="color:var(--nogo);font-weight:700;text-align:center;margin-top:8px">"Se ha tomado la decisión de despedir a ${esc(S.sys.firedName)}${maquina?'':' por '+esc(S.sys.firedReason)}. Continúen con la misión."</p>
+      <p style="text-align:center;margin-top:10px;color:var(--ink-dim)">${esc(S.sys.firedName)} ${maquina?'sale de la misión':'pierde el juego'}.</p>
       ${S.solo && !S.participants[S.sys.idx-1]?.bot ? `<p style="text-align:center;margin-top:6px;color:var(--ink)">Eras tú. Igual puedes quedarte a ver cómo termina la misión y decidir el envío.</p>` : ''}
     `, 'flash-nogo')}
     ${S.sys.fixName ? panel(`
@@ -2020,7 +2031,7 @@ function renderBotTurn(p, sys){
   const spoke = b && b.stage==='spoke';
   // En individual el turno ajeno se ve difuminado: solo se sabe quién está verificando su área
   return `
-    ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
+    ${eyebrow(currentPhase().code+' · '+turnoLabel())}
     ${prepBar()}
     <div class="bot-veil">
       <div class="bot-veil-bg" aria-hidden="true">
@@ -2049,11 +2060,15 @@ function soloSalaPanel(){
     <div class="stack" style="gap:8px">
       ${S.participants.map(pp=>{
         const dicho = S.soloLog[pp.cardId];
+        const rec = S._bitStore[pp.cardId] || {};
+        const propio = !pp.bot ? (dicho ? '«'+esc(dicho)+'»' : rec.q2==='YES'
+          ? 'No lo dijiste en la sala. Se lo contaste en privado a la directora.'
+          : 'No lo dijiste en la sala ni a la directora.') : '';
         const estado = pp.fired ? '<span style="color:var(--nogo)">despedido</span>' : pp.credited ? '<span style="color:var(--go)">caso revisado, sigue</span>' : '';
         return `<div class="sala-line">
           ${avatarSVG(pp.cardId, 36)}
           <div><div class="who">${esc(pp.bot?AVATARS[pp.cardId].role:'Tú · '+AVATARS[pp.cardId].role)}${estado?' · '+estado:''}</div>
-          <div class="said">${dicho?'«'+esc(dicho)+'»':'<span style="color:var(--ink-dim)">No dijo nada en la sala.</span>'}</div></div>
+          <div class="said">${!pp.bot ? propio : dicho?'«'+esc(dicho)+'»':'<span style="color:var(--ink-dim)">No dijo nada en la sala.</span>'}</div></div>
         </div>`;
       }).join('')}
     </div>
@@ -2061,17 +2076,21 @@ function soloSalaPanel(){
 }
 // Al final: qué hizo de verdad cada máquina
 function soloRevealPanel(){
-  const filas = S.participants.filter(pp=>pp.bot).map(pp=>{
+  const filas = S.participants.map(pp=>{
     const rec = S._bitStore[pp.cardId] || {};
     const sysDef = SYSTEMS.find(s=>s.id===pp.cardId);
-    const hizo = rec.q1==='YES' ? ['--go','Lo dijo en la sala'] : rec.q2==='YES' ? ['--cond','Se lo dijo solo a la directora'] : ['--nogo','Se lo calló'];
+    const yo = !pp.bot;
+    const hizo = rec.q1==='YES' ? ['--go', yo?'Lo dijiste en la sala':'Lo dijo en la sala']
+      : rec.q2==='YES' ? ['--cond', yo?'Se lo dijiste solo a la directora':'Se lo dijo solo a la directora']
+      : ['--nogo', yo?'Te lo callaste':'Se lo calló'];
+    const quien = (yo?'Tú · ':'')+AVATARS[pp.cardId].role;
     return `<div class="sala-line">
       ${avatarSVG(pp.cardId, 32)}
-      <div><div class="who" style="color:var(${hizo[0]});font-weight:700">${esc(AVATARS[pp.cardId].role)} · ${hizo[1]}</div>
-      <div class="said" style="color:var(--ink-dim);font-size:15px">${esc(sysDef.happened)}</div></div>
+      <div><div class="who" style="color:var(${hizo[0]});font-weight:700">${esc(quien)} · ${hizo[1]}${pp.fired?' · despedido':''}</div>
+      <div class="said" style="color:var(--ink-dim);font-size:15px">${esc(happenedOf(sysDef))}</div></div>
     </div>`;
   }).join('');
-  return panel(`<div class="field-label" style="margin-bottom:8px">Lo que sabía cada máquina</div><div class="stack" style="gap:8px">${filas}</div>
+  return panel(`<div class="field-label" style="margin-bottom:8px">Lo que sabía cada jefatura</div><div class="stack" style="gap:8px">${filas}</div>
     <div class="footer-note" style="margin-top:10px">Con un solo sistema sin decir en voz alta, la nave no tenía cómo llegar.</div>`, 'tarjeta-reveal');
 }
 
@@ -2087,23 +2106,23 @@ function renderSistemas(){
       <div class="stack" style="gap:16px">
         ${prepBar()}
         <div class="row" style="gap:12px;flex-direction:column">
-          <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR CON NOVEDADES →</button>
+          <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR LA NAVE →</button>
           <button class="ghost" onclick="decisionNOGO()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
         </div>
         <div class="panel" style="text-align:center">
           <div class="field-label" style="margin-bottom:8px">Estado de sistemas</div>
-          <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'CERRADO'}</span></div>`).join('')}</div>
-          <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} confirmados. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
+          <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'REVISADO'}</span></div>`).join('')}</div>
+          <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} lo dijeron en voz alta. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
         </div>
       </div>`;
-    const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave?':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
+    const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave? No tienes que esperar al reloj: cuando decidas, la cuenta regresiva termina.':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
     return `
       ${eyebrow(currentPhase().code)}
       <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
       ${S.solo
         ? `<div class="split"><div>${soloSalaPanel()}</div><div>${intro}${decidir}</div></div>`
         : `${intro}${decidir}`}
-      ${backRow()}
+      ${S.solo?'':backRow()}
     `;
   }
   const p = S.participants[S.sys.idx];
@@ -2115,7 +2134,7 @@ function renderSistemas(){
     if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; setTimeout(() => Anuncios?.decir?.('turno'+sys.id), 300); }
     const t = S.sys.ttt;
     return `
-      ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
+      ${eyebrow(currentPhase().code+' · '+turnoLabel())}
       <h2>${S.solo?'Tu turno':'Pásale el dispositivo a'}</h2>
       <div class="sistemas-columns">
         <div class="area-turn">
@@ -2144,7 +2163,6 @@ function renderSistemas(){
             </div>
             <div class="rainbow-bar"></div>
             <div class="donow" style="text-align:center;margin-top:8px">Selecciona una casilla y completa el triki.</div>
-            <div class="footer-note" style="margin-top:2px">Encuentra la combinación correcta.</div>
             <div class="ttt-grid">
               ${t.board.map((v,i)=>{
                 const win = t.winLine && t.winLine.includes(i);
@@ -2165,12 +2183,12 @@ function renderSistemas(){
           `)}
         </div>
       </div>
-      ${backRow()}
+      ${S.solo?'':backRow()}
     `;
   }
   if(S.sys.q1==null){
     return `
-      ${eyebrow(currentPhase().code+' · sistema '+sys.id+' de 6')}
+      ${eyebrow(currentPhase().code+' · '+turnoLabel())}
       <div class="sistemas-columns caso">
         <div class="area-turn">
           ${panel(`
@@ -2193,13 +2211,13 @@ function renderSistemas(){
                 <div class="field-label">${S.solo?'Tu turno':'Pásale el dispositivo a'}</div>
                 <div class="turn-name">${esc(p.name)}</div>
                 <div class="field-label">${esc(AVATARS[sys.id].role)}</div>
-                ${S.sys.miniResult?`<div class="footer-note">✓ ${esc('Ganaste el triki de '+MINIGAMES[sys.id].names+'.')}</div>`:''}
+                ${S.sys.miniResult?`<div class="footer-note">✓ ${esc(('Ganaste el triki de '+MINIGAMES[sys.id].names+'.').replace(' de el ',' del '))}</div>`:''}
               </div>
             </div>
           `, '', '--go')}
           ${prepBar()}
           ${panel(`
-            ${eyebrow('Momento de conversación con el equipo y dirección', true)}
+            ${eyebrow(S.solo?'Tu decisión':'Momento de conversación con el equipo y dirección', true)}
             <div class="field-label" style="text-align:center;margin-bottom:12px;margin-top:6px">¿LO DICES EN LA SALA, EN VOZ ALTA?</div>
             <div class="row">
               <button class="decision-btn pill go grow" onclick="pickQ1('YES')"><div class="dtitle">SÍ</div></button>
@@ -2209,7 +2227,7 @@ function renderSistemas(){
           ${renderQueueVisual()}
         </div>
       </div>
-      ${backRow()}
+      ${S.solo?'':backRow()}
     `;
   }
   return `
@@ -2224,7 +2242,7 @@ function renderSistemas(){
         <button class="decision-btn pill nogo grow" onclick="pickQ2('NO')"><div class="dtitle">NO</div></button>
       </div>
     `)}
-    ${backRow()}
+    ${S.solo?'':backRow()}
   `;
 }
 
@@ -2302,7 +2320,7 @@ function debriefButtons(){
 }
 function renderDebrief(){
   return `
-    ${eyebrow('Esto no les pasó a ustedes · ocurrió de verdad, en 1986')}
+    ${eyebrow(S.solo?'Esto no te pasó a ti · ocurrió de verdad, en 1986':'Esto no les pasó a ustedes · ocurrió de verdad, en 1986')}
     <h2>El caso Challenger</h2>
     ${challengerStoryPanel()}
     ${debriefButtons()}
@@ -2344,7 +2362,7 @@ function renderLaunchResolved(){
     `;
   }
   return `
-    ${eyebrow('Esto no les pasó a ustedes · ocurrió de verdad, en 1986', true)}
+    ${eyebrow(S.solo?'Esto no te pasó a ti · ocurrió de verdad, en 1986':'Esto no les pasó a ustedes · ocurrió de verdad, en 1986', true)}
     <div class="contenedor-caja-negra${S.solo?' tres':''}">
       ${panel(`
         <h1 style="margin-top:0">El caso Challenger</h1>
@@ -2352,7 +2370,7 @@ function renderLaunchResolved(){
           ${success
             ? 'Esta vez no pasó nada.'
             : causeSys
-              ? `Causa probable: <b>${esc(causeSys.name)}</b>. ${esc(causeSys.happened)}`
+              ? `Causa probable: <b>${esc(causeSys.name)}</b>. ${esc(happenedOf(causeSys))}`
               : 'No fue por algo que se ocultó. A veces pasa, incluso cuando la sala dijo todo.'}
         </p>
         ${challengerStoryHTML()}
@@ -2369,7 +2387,7 @@ function renderLaunchResolved(){
         <div class="indicador-split">
           <div style="flex:1;text-align:center">
             <div class="field-label">Retraso evitable</div>
-            <div class="stat-num sm amber" style="margin-top:6px">${formatDuration(TOTAL_DELAY_HOURS)}</div>
+            <div class="stat-num sm amber" style="margin-top:6px">${formatDuration(delayEvitable())}</div>
           </div>
           <div style="flex:1;text-align:center">
             <div class="field-label">Costo de la misión</div>
@@ -2382,7 +2400,7 @@ function renderLaunchResolved(){
   `;
 }
 function renderAborted(){
-  const boxPanel = panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">Si hubieran lanzado, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`);
+  const boxPanel = panel(`<div class="field-label" style="margin-bottom:8px">Caja negra</div>${blackBoxHTML()}<div class="footer-note" style="margin-top:10px">${S.solo?'Si hubieras lanzado':'Si hubieran lanzado'}, el costo real habría sido del <b style="color:var(--amber)">${S.launch.risk}%</b>.</div>`);
   const acciones = `
     <div class="row end-actions">
       <button class="ghost grow" onclick="goBack()">ATRÁS</button>

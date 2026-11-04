@@ -2,7 +2,7 @@
 const Anuncios = (() => {
   let currentAudio = null;
   const audioPath = 'audio/';  // Ruta a los archivos MP3
-  const audioVersion = '202611041200';  // Cambiarla al regenerar audios, para saltar la caché
+  const audioVersion = '202611041800';  // Cambiarla al regenerar audios, para saltar la caché
 
   const config = {
     lang: 'es-MX',
