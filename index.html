@@ -1027,7 +1027,6 @@ function botTurnStart(){
   const p = S.participants[idx];
   if(!p || !p.bot || S.sys.bot) return;
   S.sys.bot = {stage:'thinking', idx};
-  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(function(){
     if(!S.sys.bot || S.sys.bot.idx!==idx || S.sys.idx!==idx) return;
     const d = botDecide(p.cardId);
@@ -1038,7 +1037,7 @@ function botTurnStart(){
     const clave = d.q1==='YES' ? 'botDice'+p.cardId : 'botCalla'+p.cardId+'_'+BOT_CALLA[p.cardId].indexOf(frase);
     setTimeout(() => Anuncios?.decirSecuencia?.([[clave, frase]]), 200);
     render();
-  }, reduced ? 300 : 2600);
+  }, 4000);
 }
 function botContinue(){
   const b = S.sys.bot;
@@ -1089,11 +1088,12 @@ function resetSubstateFor(id){
 }
 
 function startMission(){
+  if(S.solo && S.count !== SOLO_COUNT) setCount(SOLO_COUNT);
   if(S.selectedSystems.length !== S.count) return;
   const pool = shuffle(S.selectedSystems);
   S.participants = [];
-  // En individual la persona cae en un turno al azar: a veces decide antes de ver a nadie, a veces después
-  const humano = Math.floor(Math.random()*S.count);
+  // En individual la persona siempre va de última: primero oye a las dos máquinas
+  const humano = S.count-1;
   for(let i=0;i<S.count;i++){
     const bot = S.solo && i!==humano;
     const name = !S.solo ? 'Jugador '+(i+1) : bot ? AVATARS[pool[i]].role : 'Tú';
@@ -1430,8 +1430,10 @@ function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(
 
 function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
 
+// Individual: siempre 3 tripulantes y la persona habla de última
+const SOLO_COUNT = 3;
 function setSolo(v){ S.solo = v; render(); }
-function elegirModo(solo){ S.solo = solo; S.modoElegido = true; render(); window.scrollTo(0,0); Anuncios?.decir?.('cajaNegra'); }
+function elegirModo(solo){ S.solo = solo; S.modoElegido = true; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); Anuncios?.decir?.('cajaNegra'); }
 function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; render(); window.scrollTo(0,0); }
 function setCount(n){
   S.count = n;
@@ -1874,10 +1876,14 @@ function renderSetup(){
           <span>Modo: <b>${S.solo?'Individual · virtual':'Grupal · presencial'}</b></span>
           <button class="link-btn" onclick="cambiarModo()">Cambiar</button>
         </div>
-        <div class="field-label" style="margin-bottom:9px">${S.solo?'¿Cuántos tripulantes tiene la nave?':'¿Cuántos juegan?'}</div>
+        ${S.solo ? `
+        <div class="field-label" style="margin-bottom:6px">Tripulación</div>
+        <div style="font-size:17px;color:var(--ink);line-height:1.45"><b>3 jefaturas:</b> dos máquinas y tú. Las máquinas hablan primero; tú vas de última.</div>
+        ` : `
+        <div class="field-label" style="margin-bottom:9px">¿Cuántos juegan?</div>
         <div class="seg">
           ${[2,3,4,5,6].map(n=>`<div class="seg-opt ${S.count===n?'active':''}" onclick="setCount(${n})">${n}</div>`).join('')}
-        </div>
+        </div>`}
       `, 'area-count')}
 
       ${panel(`
@@ -1893,7 +1899,7 @@ function renderSetup(){
             </div>
           `;}).join('')}
         </div>
-        <div class="footer-note" style="margin-top:10px">${S.solo?'Tu sistema se asigna al azar entre los elegidos. El resto lo juegan máquinas.':'El sistema de cada quien se asigna al azar entre los elegidos.'}</div>
+        <div class="footer-note" style="margin-top:10px">${S.solo?'Tu sistema se asigna al azar entre los tres elegidos. Los otros dos los juegan máquinas.':'El sistema de cada quien se asigna al azar entre los elegidos.'}</div>
       `, 'area-roster')}
     </div>
 
