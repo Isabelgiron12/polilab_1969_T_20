@@ -1019,13 +1019,13 @@ const INFORME = [
 const PHASES_SALA = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
   {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
-  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
+  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
 ];
 // Modo individual: una persona contra la máquina, sin conversación en sala, también en 10 minutos
 const PHASES_SOLO = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
   {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Revisión de sistemas'},
-  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Firma y lanzamiento'},
+  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
 ];
 let PHASES = PHASES_SALA;
 let TOTAL = 600;
@@ -1332,6 +1332,8 @@ function goBack(){
     S.elapsed = entregaPh.at;
     S._lastPhase = entregaPh.id;
     S.launch = null;
+    // Vuelven a ENVIAR / NO ENVIAR: la decisión anterior ya no cuenta
+    S.decision = null; S.verifText = '';
     S.running = true;
     render();
     return;
@@ -1474,12 +1476,6 @@ function clearCleared(){ S.sys.clearedPending=false; S.sys.novedadDicha=false; r
 function setDecision(d){ S.decision = d; if(d!=='COND'){ S.watchedSystems = []; } render(); }
 function openBlackBox(){ if(S.launch) S.launch.boxOpen = true; render(); }
 function closeBlackBox(){ if(S.launch) S.launch.boxOpen = false; render(); }
-
-function setVerifText(i){
-  const presets = VERIF_PRESETS[S.decision] || VERIF_PRESETS.GO;
-  S.verifText = presets[i];
-  render();
-}
 
 function submitPresetReflection(i){
   const wall = loadJSON('tmenos20_muro', []);
@@ -2257,37 +2253,40 @@ function soloRevealPanel(){
     <div class="footer-note" style="margin-top:10px">Con un solo sistema sin decir en voz alta, la nave no tenía cómo llegar.</div>`, 'tarjeta-reveal');
 }
 
+// La única decisión final: ENVIAR o NO ENVIAR
+function renderDecisionFinal(){
+  const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
+  const decidir = `
+    <div class="stack" style="gap:16px">
+      ${prepBar()}
+      <div class="row" style="gap:12px;flex-direction:column">
+        <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR LA NAVE →</button>
+        <button class="ghost" onclick="decisionNOGO()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
+      </div>
+      <div class="panel" style="text-align:center">
+        <div class="field-label" style="margin-bottom:8px">Estado de sistemas</div>
+        <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'REVISADO'}</span></div>`).join('')}</div>
+        <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} lo dijeron en voz alta. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
+      </div>
+    </div>`;
+  const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave? No tienes que esperar al reloj: cuando decidas, la cuenta regresiva termina.':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
+  return `
+    ${eyebrow(currentPhase().code)}
+    <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
+    ${S.solo
+      ? `<div class="split"><div>${soloSalaPanel()}</div><div>${intro}${decidir}</div></div>`
+      : `${intro}${decidir}`}
+    ${S.solo?'':backRow()}
+  `;
+}
+
 function renderSistemas(){
   const n = S.participants.length;
   if(S.sys.deciding){ return renderDeciding(); }
   if(S.sys.firedPending){ return renderFiredWait(); }
   if(S.sys.clearedPending){ return renderCleared(); }
   if(S.sys.talkPending){ return renderTalkToTeam(); }
-  if(S.sys.idx >= n){
-    const confirmados = S.selectedSystems.filter(id=>{ const r=S._bitStore[id]; return r && r.q1==='YES'; }).length;
-    const decidir = `
-      <div class="stack" style="gap:16px">
-        ${prepBar()}
-        <div class="row" style="gap:12px;flex-direction:column">
-          <button class="primary go" onclick="confirmLaunchDecision()" style="font-size:18px;padding:20px 24px">ENVIAR LA NAVE →</button>
-          <button class="ghost" onclick="decisionNOGO()" style="font-size:18px;padding:20px 24px;color:var(--nogo);border-color:var(--nogo)">NO ENVIAR</button>
-        </div>
-        <div class="panel" style="text-align:center">
-          <div class="field-label" style="margin-bottom:8px">Estado de sistemas</div>
-          <div class="folded-row" style="justify-content:center">${S.participants.map(pp=>`<div class="fold${pp.fired?' fired':''}">${navIcon(pp.fired?'userx':'lock',16)}<span>${pp.fired?'DESPEDIDO':'REVISADO'}</span></div>`).join('')}</div>
-          <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} lo dijeron en voz alta. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
-        </div>
-      </div>`;
-    const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave? No tienes que esperar al reloj: cuando decidas, la cuenta regresiva termina.':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
-    return `
-      ${eyebrow(currentPhase().code)}
-      <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
-      ${S.solo
-        ? `<div class="split"><div>${soloSalaPanel()}</div><div>${intro}${decidir}</div></div>`
-        : `${intro}${decidir}`}
-      ${S.solo?'':backRow()}
-    `;
-  }
+  if(S.sys.idx >= n){ return renderDecisionFinal(); }
   const p = S.participants[S.sys.idx];
   const sys = SYSTEMS.find(s=>s.id===p.cardId);
   if(p.bot) return renderBotTurn(p, sys);
@@ -2423,26 +2422,6 @@ function decisionNOGO(){
   // NO ENVIAR termina el juego: van directo a "Hicieron las cosas correctas"
   S.elapsed = TOTAL; S.running = false; S.launch = null;
   enterEnd(); render();
-}
-
-function renderEntrega(){
-  const presets = VERIF_PRESETS[S.decision] || VERIF_PRESETS.GO;
-  return `
-    ${eyebrow(currentPhase().code)}
-    <h2>Firma y lanzamiento</h2>
-    ${S.decision?`<span class="badge ${decisionClass(S.decision)}">${decisionLabel(S.decision)}</span>`:''}
-    <div class="donow">▸ Elijan el mensaje que va a mandar la sala.</div>
-    <div class="stack">
-      ${presets.map((msg,i)=>`
-        <button class="decision-btn go ${S.verifText===msg?'sel':''}" onclick="setVerifText(${i})" style="text-align:left">
-          <div class="dtitle" style="justify-content:flex-start;font-size:17px">${esc(msg)}</div>
-        </button>`).join('')}
-    </div>
-    ${panel(`<p style="text-align:center;color:var(--ink)">${navIcon('lock',15)} La sala firma el mensaje en conjunto, en nombre de todos.</p>`, '', '--go')}
-    <div class="footer-note">La caja negra solo se abre después del lanzamiento.</div>
-    <button class="primary go" onclick="finishNow()">Continuar al lanzamiento →</button>
-    ${backRow(`<button class="ghost" onclick="registerRound()" ${S.savedRound?'disabled':''}>${S.savedRound?'Registrada ✓':'Registrar ya, sin lanzar'}</button>`)}
-  `;
 }
 
 /* ---- launch / end sequence ---- */
@@ -2851,7 +2830,7 @@ function renderBody(){
       const id = currentPhase().id;
       const map = {
         lectura: renderLectura, sistemas: renderSistemas,
-        entrega: renderEntrega,
+        entrega: renderDecisionFinal,
       };
       html = map[id]();
     }
