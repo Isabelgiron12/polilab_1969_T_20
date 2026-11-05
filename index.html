@@ -1102,7 +1102,7 @@ function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val))
    Con url y key vacías el juego guarda solo en este navegador.
    key es la clave publishable: es pública, y supabase/schema.sql solo le permite leer y agregar. */
 const NUBE = { url:'https://yngrcjlxvhccogksddau.supabase.co', key:'sb_publishable_4VG7lTdOUZXlcHLpnS40Ew_MXLxy0G8' };
-const NUBE_PENDIENTES = 'tmenos20_pendientes', NUBE_TABLERO = 'tmenos20_nube_tablero', NUBE_MURO = 'tmenos20_nube_muro', NUBE_MIGRADO = 'tmenos20_migrado';
+const NUBE_PENDIENTES = 'tmenos20_pendientes', NUBE_TABLERO = 'tmenos20_nube_tablero', NUBE_MURO = 'tmenos20_nube_muro', NUBE_MIGRADO = 'tmenos20_migrado', RONDA_ABIERTA = 'tmenos20_ronda_abierta';
 const nubeActiva = () => !!(NUBE.url && NUBE.key);
 let nubeEstado = 'cargando';
 let nubeCola = Promise.resolve();
@@ -1144,6 +1144,7 @@ async function nubeEnviarPendientes(){
         method:'POST',
         headers:{'Content-Type':'application/json', Prefer:'resolution=ignore-duplicates,return=minimal'},
         body:JSON.stringify(p.fila),
+        keepalive:true,
       });
       if(r.ok) saveJSON(NUBE_PENDIENTES, loadJSON(NUBE_PENDIENTES, []).filter(q=>q.fila.id!==p.fila.id));
     }
@@ -1189,11 +1190,13 @@ function nubeIniciar(){
   nubeEnviar();
 }
 function tableroDatos(){
-  if(!nubeActiva()) return loadJSON('tmenos20_tablero', []);
+  const abierta = loadJSON(RONDA_ABIERTA, null);
+  const extra = abierta ? [abierta] : [];
+  if(!nubeActiva()) return loadJSON('tmenos20_tablero', []).concat(extra);
   const nube = loadJSON(NUBE_TABLERO, []);
   const vistas = new Set(nube.map(r=>r.id));
   const pendientes = loadJSON(NUBE_PENDIENTES, []).filter(p=>p.tabla==='partidas' && !vistas.has(p.fila.id)).map(p=>partidaDeFila(p.fila));
-  return [...nube, ...pendientes].sort((a,b)=>a.ts-b.ts).map((r,i)=>({...r, sala:i+1}));
+  return [...nube, ...pendientes, ...extra].sort((a,b)=>a.ts-b.ts).map((r,i)=>({...r, sala:i+1}));
 }
 function muroDatos(){
   if(!nubeActiva()) return loadJSON('tmenos20_muro', []);
@@ -1246,6 +1249,7 @@ function resetSubstateFor(id){
 }
 
 function startMission(){
+  cerrarRondaAbierta();
   // En individual la tripulación sale al azar: no hay nada que elegir
   if(S.solo){ S.count = SOLO_COUNT; S.selectedSystems = shuffle(SYSTEMS.map(x=>x.id)).slice(0, SOLO_COUNT); }
   if(S.selectedSystems.length !== S.count) return;
@@ -1334,6 +1338,7 @@ function goBack(){
     S.launch = null;
     // Vuelven a ENVIAR / NO ENVIAR: la decisión anterior ya no cuenta
     S.decision = null; S.verifText = '';
+    saveJSON(RONDA_ABIERTA, null);
     S.running = true;
     render();
     return;
@@ -1526,9 +1531,9 @@ function disclosureCounts(){
 
 function enterEnd(){
   S.screen = 'end';
-  if(S.decision==null){ S.launch = {stage:'resolved', outcome:'none', ...computeRisk()}; registerRound(); return; }
+  if(S.decision==null){ S.launch = {stage:'resolved', outcome:'none', ...computeRisk()}; dejarRondaAbierta(); return; }
   const {risk, contributions} = computeRisk();
-  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; Sound.win(); registerRound(); return; }
+  if(S.decision==='NOGO'){ S.launch = {stage:'resolved', outcome:'aborted', risk, contributions, boxOpen:false}; Sound.win(); dejarRondaAbierta(); return; }
   S.launch = {stage:'ready', count:3, risk, contributions, outcome:null, cause:null, boxOpen:false};
   launchSequence();
 }
@@ -1565,21 +1570,35 @@ function resolveLaunch(){
   render();
 }
 
-function registerRound(){
-  if(S.savedRound) return;
+function armarRonda(){
   const board = loadJSON('tmenos20_tablero', []);
   const d = disclosureCounts();
-  const ronda = {
+  return {
     id: nubeId(), sala: board.length+1, decision: S.decision, verifText: S.verifText, modo: S.solo?'individual':'sala',
     pub:d.pub, priv:d.priv, hidden:d.hidden,
     outcome: S.launch ? S.launch.outcome : null, risk: S.launch ? S.launch.risk : null,
     ts: Date.now(),
   };
+}
+function guardarRonda(ronda){
+  saveJSON(RONDA_ABIERTA, null);
+  const board = loadJSON('tmenos20_tablero', []);
   board.push(ronda);
   saveJSON('tmenos20_tablero', board);
   nubeEncolar([{tabla:'partidas', fila:filaPartida(ronda)}]);
+}
+function registerRound(){
+  if(S.savedRound) return;
+  guardarRonda(armarRonda());
   S.savedRound = true;
   render();
+}
+// La nube solo deja agregar filas. Sin lanzamiento todavía pueden dar ATRÁS y cambiar
+// de decisión, así que el resultado espera aquí hasta que ya no se pueda cambiar.
+function dejarRondaAbierta(){ saveJSON(RONDA_ABIERTA, armarRonda()); }
+function cerrarRondaAbierta(){
+  const ronda = loadJSON(RONDA_ABIERTA, null);
+  if(ronda){ guardarRonda(ronda); S.savedRound = true; }
 }
 
 function setTableroDesde(v){ S.tableroDesde = v; render(); }
@@ -2901,6 +2920,8 @@ if(document.fonts && document.fonts.ready){ document.fonts.ready.then(scheduleFi
 function render(){ renderTopbar(); renderSidebar(); renderHUD(); renderBody(); fitScreen(); }
 render();
 nubeIniciar();
+cerrarRondaAbierta();
+window.addEventListener('pagehide', cerrarRondaAbierta);
 document.addEventListener('click', function(e){
   const btn = e.target.closest && e.target.closest('button, .seg-opt, .roster-card');
   if(!btn) return;
