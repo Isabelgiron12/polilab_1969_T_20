@@ -141,9 +141,6 @@ const Anuncios = (() => {
     decisionGO: () =>
       `Decisión: GO. La nave despega. Que el equipo sepa que pusieron su fe en esta decisión. Ahora solo queda esperar.`,
 
-    decisionNOGO: () =>
-      `Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir que ir sin estar listos. Habrá otra oportunidad.`,
-
     // INSTRUCCIONES Y AVISOS
     seleccioneTripulantes: (cantidad) =>
       `Seleccionen ${cantidad} tripulantes para la misión.`,

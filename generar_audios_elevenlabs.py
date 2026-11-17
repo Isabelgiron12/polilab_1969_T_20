@@ -113,7 +113,6 @@ FRASES = {
     'sistemaBeneficio': 'Sistema optimizado.',
     'sistemaProblema': 'Sistema requiere atención inmediata.',
     'decisionGO': 'Decisión: gou. La nave despega. Que el equipo sepa que pusieron su fe en esta decisión. Ahora solo queda esperar.',
-    'decisionNOGO': 'Decisión: NO GO. Se ha abortado el lanzamiento. A veces es más valiente no ir, que ir sin estar listos. Habrá otra oportunidad.',
     'pantallaInicio': 'Lee la información de la misión y cuando estés listo, continúa.',
     'pantallaSeleccion': 'Selecciona tripulantes para la misión. Elige sabiamente, cada uno tiene fortalezas.',
     'pantallaMision': 'La misión ha iniciado. Monitorea los sistemas de la nave. El equipo necesita responder rápido a los eventos. La vida de los astronautas depende de sus decisiones.',
