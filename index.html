@@ -2010,18 +2010,14 @@ function renderInicio(){
       </div>
     `;
   }
-  if(introStep===1){
-    return `
-      ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Cada jefe, un sistema</h2>
-      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto. Si uno falla, la nave no despega.</p>`, '', '--accent-2')}
-      <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
-    `;
-  }
+  // Una sola pantalla: el objetivo, el papel de cada jefe y cómo se decide
   return `
     ${eyebrow('Sala de control', true, '--amber')}
-    <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Algunas decisiones se toman a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano.</p>`, '', '--amber')}
+    <div style="text-align:center;align-self:stretch">
+      <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo del equipo</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">ENVIAR LA NAVE AL ESPACIO</div>
+    </div>
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura controla un sistema distinto: si uno falla, la nave no despega. Algunas decisiones se toman a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -2055,10 +2051,7 @@ function renderModo(){
 function renderSetup(){
   return `
     ${eyebrow('Caja Negra · juego de sala de control', false, '--amber')}
-    <div style="text-align:center;margin:0 auto;align-self:stretch">
-      <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">${S.solo?'Tu objetivo':'Objetivo del equipo'}</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">ENVIAR LA NAVE AL ESPACIO</div>
-    </div>
+    <h2 style="text-align:center">${S.solo?'Prepara la misión':'Preparen la misión'}</h2>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
