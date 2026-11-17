@@ -1025,7 +1025,7 @@ const PHASES_SALA = [
   {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
   {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
 ];
-// Modo individual: una persona contra la máquina, sin conversación en sala, también en 10 minutos
+// Modo individual: una persona contra la máquina, sin conversación en sala, también con 2 minutos y medio por jefe
 const PHASES_SOLO = [
   {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
   {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Revisión de sistemas'},
@@ -1033,9 +1033,8 @@ const PHASES_SOLO = [
 ];
 let PHASES = PHASES_SALA;
 let TOTAL = 600;
-function minutosMision(){ return 10; }
-// Cada jefe tiene su propio reloj: se reinicia a 3:00 cuando entra el siguiente
-const TURNO_SEG = 180;
+// Cada jefe tiene su propio reloj: se reinicia a 2:30 cuando entra el siguiente
+const TURNO_SEG = 150;
 
 /* ---------- modo individual: tripulantes máquina ---------- */
 // Lo que dice en la sala un bot que confiesa (en voz alta)
@@ -2014,7 +2013,7 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Faltan diez minutos</h2>
+      <h2 style="text-align:center">Tres minutos por jefe</h2>
       ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto, y sin él, la nave no despega. Nadie más sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
@@ -2022,7 +2021,7 @@ function renderInicio(){
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">En los próximos diez minutos hay que tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo, y no se detiene.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefe tiene tres minutos para tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo y no se detiene: vuelve a empezar solo cuando entra el siguiente jefe.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -2055,7 +2054,7 @@ function renderModo(){
         'INDIVIDUAL', 'Virtual',
         'Una sola persona frente a la pantalla. Controlas un sistema y las demás jefaturas las juegan máquinas.')}
     </div>
-    <div class="footer-note">Cada jefe tiene 3 minutos: el reloj se reinicia cuando entra el siguiente.</div>
+    <div class="footer-note">Cada jefe tiene 2 minutos y medio: el reloj se reinicia cuando entra el siguiente.</div>
   `;
 }
 
@@ -2064,10 +2063,10 @@ function renderSetup(){
     ${eyebrow('Caja Negra · juego de sala de control', false, '--amber')}
     <div style="text-align:center;margin:0 auto;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 3 MINUTOS POR JEFE</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">${S.solo?'Y LLEGAR TÚ HASTA EL FINAL':'Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL'}</div>
     </div>
-    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Faltan diez minutos para el lanzamiento.</p>
+    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Cuando entra el siguiente jefe, el reloj vuelve a empezar.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
