@@ -2013,7 +2013,7 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Tres minutos por jefe</h2>
+      <h2 style="text-align:center">Dos minutos y medio por jefe</h2>
       ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto, y sin él, la nave no despega. Nadie más sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
@@ -2021,7 +2021,7 @@ function renderInicio(){
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefe tiene tres minutos para tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo y no se detiene: vuelve a empezar solo cuando entra el siguiente jefe.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefe tiene dos minutos y medio para tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo y no se detiene: vuelve a empezar solo cuando entra el siguiente jefe.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -2040,7 +2040,7 @@ function renderModo(){
     <h1>Caja Negra</h1>
     <div style="text-align:center;margin:10px auto 4px;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN 10 MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
     </div>
     <h2 style="text-align:center;margin-top:34px">¿Cómo van a jugar?</h2>
@@ -2123,17 +2123,15 @@ function renderLectura(){
     <div class="donow">▸ ${S.solo?'Lee el protocolo antes de empezar.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
     ${panel(S.solo ? `
       <ol class="protocol-list">
-        <li><span><b>Respondes por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta nadie la ve: solo se sabe lo que tú decidas contar.</span></li>
-        <li><span><b>Las otras dos jefaturas son máquinas.</b> Hablan antes que tú, y solo sabes lo que digan en voz alta.</span></li>
-        <li><span>Al final, <b>decides tú</b> si la nave se envía o no.</span></li>
-        <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
+        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
+        <li><span><b>Las otras dos jefaturas son máquinas.</b> Hablan antes que tú.</span></li>
+        <li><span>Al final, <b>decides tú</b>: ENVIAR o NO ENVIAR.</span></li>
       </ol>
     ` : `
       <ol class="protocol-list">
-        <li><span><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</span></li>
-        <li><span>En la discusión, todos hablan libre. Nadie está obligado a hablar.</span></li>
-        <li><span>La sala manda <b>una sola verificación</b>, firmada por todos.</span></li>
-        <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
+        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
+        <li><span>Todos hablan libre. <b>Nadie está obligado a hablar.</b></span></li>
+        <li><span>Al final, <b>la sala decide junta</b>: ENVIAR o NO ENVIAR.</span></li>
       </ol>
     `)}
     ${backRow(`<button class="primary" onclick="advanceNow()">${S.solo?'Ya lo leí, seguir →':'Ya la leímos, seguir →'}</button>`)}
@@ -2787,7 +2785,7 @@ function renderMisionPage(){
     <h1>Objetivo de la misión</h1>
     ${panel(`
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-weight:700;font-size:22px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO EN 20 MINUTOS</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:22px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
         <div style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink);margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
       </div>
     `, 'notice')}
@@ -2799,10 +2797,9 @@ function renderMisionPage(){
     <h2>Protocolo</h2>
     ${panel(`
       <ol class="protocol-list">
-        <li><span><b>Cada uno responde por un sistema necesario para la misión.</b> Sin él, la nave no funciona. Tu carta no se muestra ni se lee en voz alta: solo se sabe lo que tú decidas contar.</span></li>
-        <li><span>En la discusión, todos hablan libre. Nadie está obligado a hablar.</span></li>
-        <li><span>La sala manda <b>una sola verificación</b>, firmada por todos.</span></li>
-        <li><span>En el momento, <b>nadie sabe cuál es la jugada correcta</b>. Eso se sabrá después.</span></li>
+        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
+        <li><span>Todos hablan libre. <b>Nadie está obligado a hablar.</b></span></li>
+        <li><span>Al final, <b>la sala decide junta</b>: ENVIAR o NO ENVIAR.</span></li>
       </ol>
     `, '', '--violet')}
   `;
