@@ -180,6 +180,10 @@ button,.decision-btn,.chip,.sign-row,.tab-btn,.seg-opt,.sysdot{touch-action:mani
 .clock-row{display:flex;align-items:center;gap:14px}
 .clock{font-family:var(--mono);font-weight:700;font-size:48px;letter-spacing:.01em;font-variant-numeric:tabular-nums;line-height:1;color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)}
 .clock.crit{color:var(--nogo);text-shadow:0 0 20px rgba(255,92,92,.35)}
+/* Último minuto del turno: el reloj titila rápido para apurar al jefe */
+.clock.titila{animation:titila .5s steps(2,jump-none) infinite}
+@keyframes titila{0%{opacity:1}100%{opacity:.15}}
+@media(prefers-reduced-motion:reduce){.clock.titila{animation:none}}
 .phase-meta{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
 .phase-code{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.1em}
 .phase-label{font-family:var(--mono);font-size:14px;color:var(--ink-dim);letter-spacing:.02em}
@@ -1030,6 +1034,8 @@ const PHASES_SOLO = [
 let PHASES = PHASES_SALA;
 let TOTAL = 600;
 function minutosMision(){ return 10; }
+// Cada jefe tiene su propio reloj: se reinicia a 3:00 cuando entra el siguiente
+const TURNO_SEG = 180;
 
 /* ---------- modo individual: tripulantes máquina ---------- */
 // Lo que dice en la sala un bot que confiesa (en voz alta)
@@ -1215,7 +1221,7 @@ let S = {
   nav:'inicio', introStep:0,
   screen:'setup', view:'mission', modoElegido:false,
   count:6, selectedSystems:[1,2,3,4,5,6],
-  participants:[], running:false, elapsed:0, _lastPhase:null,
+  participants:[], running:false, elapsed:0, _lastPhase:null, turnoRest:TURNO_SEG, _turnoKey:null,
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
   decision:null, verifText:'',
   watchedSystems:[],
@@ -1266,6 +1272,7 @@ function startMission(){
   TOTAL = PHASES[PHASES.length-1].at + PHASES[PHASES.length-1].dur;
   S.clima = 0; S.soloLog = {};
   S.elapsed = 0; S.running = true; S._lastPhase = null;
+  S.turnoRest = TURNO_SEG; S._turnoKey = null;
   S.sys = {bot:null, idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
   S._bitStore = {};
   S.fixedDelayHours = 0;
@@ -1285,7 +1292,9 @@ function runTimer(){
   timerHandle = setInterval(()=>{
     if(!S.running) return;
     const busy = S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending || S.sys.talkPending);
-    S.elapsed++;
+    // En Sistemas el tiempo es por jefe: la fase no se acaba sola, se acaba el turno
+    if(currentPhase().id==='sistemas'){ syncTurno(); if(!busy && S.turnoRest>0) S.turnoRest--; }
+    else S.elapsed++;
     const ph = currentPhase();
     const phaseChanged = !busy && S._lastPhase !== ph.id;
     if(phaseChanged){ S._lastPhase = ph.id; resetSubstateFor(ph.id); }
@@ -1299,6 +1308,26 @@ function runTimer(){
     renderHUD();
     if(phaseChanged || hitEnd || firedTick){ renderBody(); fitScreen(); }
   }, 1000);
+}
+
+function syncTurno(){
+  const busy = S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending || S.sys.talkPending);
+  const key = currentPhase().id==='sistemas' ? 'sis:'+S.sys.idx : null;
+  if(key===null){ S._turnoKey = null; return; }
+  if(busy || key===S._turnoKey) return;
+  // Ya pasaron todos los jefes: la decisión final usa sus 2:00 de siempre
+  if(S.sys.idx >= S.participants.length){
+    const ent = PHASES[PHASES.length-1];
+    S.elapsed = ent.at; S._lastPhase = ent.id; S._turnoKey = null;
+    return;
+  }
+  S._turnoKey = key; S.turnoRest = TURNO_SEG;
+}
+function relojActual(){
+  if(S.screen!=='end') syncTurno();
+  const ph = currentPhase();
+  if(ph.id==='sistemas' && S.screen!=='end') return {remain:S.turnoRest, dur:TURNO_SEG};
+  return {remain:(ph.at+ph.dur) - S.elapsed, dur:ph.dur};
 }
 
 function togglePause(){ S.running = !S.running; render(); }
@@ -1729,8 +1758,9 @@ function renderHUD(){
   }
   const ph = currentPhase();
   const idx = phaseIndex();
-  const remain = TOTAL - S.elapsed;
-  const crit = remain <= 90;
+  const {remain, dur} = relojActual();
+  const crit = S.screen!=='end' && remain <= 60;
+  const titila = crit && dur > 60;
   const n = S.participants ? S.participants.length : 0;
 
   // Topbar modular (3 zonas)
@@ -1743,13 +1773,13 @@ function renderHUD(){
       <div style="font-family:var(--mono);font-size:16px;color:var(--ink);letter-spacing:.01em">${S.screen==='end'?'Cuenta regresiva finalizada':ph.label}</div>
     </div>
     <div class="hud-clockzone">
-      <div class="clock ${crit?'crit':''}" style="font-size:48px;font-weight:700;font-family:var(--mono);color:var(--amber);text-shadow:0 0 20px rgba(255,176,32,.3)">${fmt(remain)}</div>
+      <div class="clock ${crit?'crit':''} ${titila?'titila':''}" style="font-size:48px">${fmt(S.screen==='end'?0:remain)}</div>
       <button class="pausebtn" onclick="togglePause()" ${S.screen==='end'?'style=visibility:hidden':''}>${S.running?'PAUSAR':'SEGUIR'}</button>
     </div>
   `;
 
   hud.innerHTML = `
-    <div class="progress-track"><div class="progress-fill" style="width:${(S.elapsed/TOTAL*100).toFixed(2)}%"></div></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${S.screen==='end'?100:((1-remain/dur)*100).toFixed(2)}%"></div></div>
   `;
 }
 
@@ -2025,7 +2055,7 @@ function renderModo(){
         'INDIVIDUAL', 'Virtual',
         'Una sola persona frente a la pantalla. Controlas un sistema y las demás jefaturas las juegan máquinas.')}
     </div>
-    <div class="footer-note">Las dos modalidades duran 10 minutos.</div>
+    <div class="footer-note">Cada jefe tiene 3 minutos: el reloj se reinicia cuando entra el siguiente.</div>
   `;
 }
 
@@ -2034,7 +2064,7 @@ function renderSetup(){
     ${eyebrow('Caja Negra · juego de sala de control', false, '--amber')}
     <div style="text-align:center;margin:0 auto;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO EN ${minutosMision(S.solo)} MINUTOS</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 3 MINUTOS POR JEFE</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">${S.solo?'Y LLEGAR TÚ HASTA EL FINAL':'Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL'}</div>
     </div>
     <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Faltan diez minutos para el lanzamiento.</p>
