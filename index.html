@@ -1376,10 +1376,11 @@ function goBack(){
     if(S.sys.q1!=null){ S.sys.q1=null; render(); return; }
     if(S.sys.miniDone){ S.sys.miniDone=false; S.sys.ttt=null; render(); return; }
     if(S.sys.bot) return;
-    if(S.solo && S.sys.idx>0) return;
-    if(S.sys.idx>0){ S.sys.idx--; S.sys.miniDone=true; S.sys.ttt=null; render(); return; }
+    // Un turno terminado no se puede rehacer: sumaría otra vez el retraso y repetiría el despido
+    if(S.sys.idx>0) return;
   }
 
+  if(ph.id==='entrega') return;
   const idx = PHASES.findIndex(p=>p.id===ph.id);
   if(idx<=0){ S.screen='setup'; S.running=false; clearInterval(timerHandle); render(); return; }
   const prev = PHASES[idx-1];
@@ -1655,7 +1656,7 @@ function toggleSystemPick(id){
   render();
 }
 
-function decisionLabel(d){ return d==='GO' ? 'GO' : d==='COND' ? 'GO CON CONDICIÓN' : d==='NOGO' ? 'NO GO' : 'SIN DECIDIR'; }
+function decisionLabel(d){ return d==='GO' ? 'ENVIAR' : d==='COND' ? 'ENVIAR CON CONDICIÓN' : d==='NOGO' ? 'NO ENVIAR' : 'SIN DECIDIR'; }
 function decisionClass(d){ return d==='GO' ? 'go' : d==='COND' ? 'cond' : d==='NOGO' ? 'nogo' : 'dim'; }
 function shipTag(r){
   if(r.decision==='NOGO') return '<span class="dot dim"></span>NO DESPEGÓ';
@@ -2136,7 +2137,7 @@ function renderTalkToTeam(){
         <p style="margin-top:10px;color:var(--ink)">«${esc(BOT_CONFIESA[S.participants[S.sys.idx].cardId])}»</p>
         ` : `
         <div class="donow">Habla con tu equipo en sala y cuéntales lo sucedido.</div>
-        <p style="margin-top:10px">Tómense el tiempo que necesiten para conversarlo antes de seguir.</p>`}
+        <p style="margin-top:10px">Conversen antes de que el reloj del turno llegue a cero.</p>`}
       </div>
     `, '', '--accent-2')}
     <button class="primary" onclick="continueAfterTalk()">SEGUIR →</button>
@@ -2309,7 +2310,6 @@ function renderDecisionFinal(){
     ${S.solo
       ? `<div class="split"><div>${soloSalaPanel()}</div><div>${intro}${decidir}</div></div>`
       : `${intro}${decidir}`}
-    ${S.solo?'':backRow()}
   `;
 }
 
@@ -2378,7 +2378,7 @@ function renderSistemas(){
           `)}
         </div>
       </div>
-      ${S.solo?'':backRow()}
+      ${S.solo||S.sys.idx>0?'':backRow()}
     `;
   }
   if(S.sys.q1==null){
@@ -2403,7 +2403,7 @@ function renderSistemas(){
             <div class="turn-head">
               ${avatarSVG(sys.id, 64)}
               <div class="turn-head-text">
-                <div class="field-label">${S.solo?'Tu turno':'Pásale el dispositivo a'}</div>
+                <div class="field-label">${S.solo?'Tu turno':'Turno de'}</div>
                 <div class="turn-name">${esc(p.name)}</div>
                 <div class="field-label">${esc(AVATARS[sys.id].role)}</div>
                 ${S.sys.miniResult?`<div class="footer-note">✓ ${esc(('Ganaste el triki de '+MINIGAMES[sys.id].names+'.').replace(' de el ',' del '))}</div>`:''}
@@ -2593,7 +2593,7 @@ function renderAborted(){
         <div>
           ${panel(`
             <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-            <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y dijiste NO GO.':'Pero escucharon las advertencias y dijeron NO GO.'} Eso es lo que no pasó en el Challenger.</b></p>
+            <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y elegiste NO ENVIAR.':'Pero escucharon las advertencias y eligieron NO ENVIAR.'} Eso es lo que no pasó en el Challenger.</b></p>
           `)}
           ${S.solo ? boxPanel : ''}
         </div>
@@ -2609,7 +2609,7 @@ function renderAborted(){
       <div class="end-col">
         ${panel(`
           <p style="color:var(--ink)">La nave no despegó. La ventana se cierra, el próximo intento es en cuatro meses, y alguien tiene que explicar públicamente por qué.</p>
-          <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y dijiste NO GO.':'Pero escucharon las advertencias y dijeron NO GO.'} Eso es lo que no pasó en el Challenger.</b></p>
+          <p style="margin-top:10px;color:var(--go)"><b>${S.solo?'Pero no te quedaste con lo que dijo la sala y elegiste NO ENVIAR.':'Pero escucharon las advertencias y eligieron NO ENVIAR.'} Eso es lo que no pasó en el Challenger.</b></p>
         `, 'flash-go')}
         ${panel(`
           <div class="field-label" style="margin-bottom:6px">Esto ocurrió de verdad, en 1986</div>
@@ -2625,7 +2625,7 @@ function renderNoDecision(){
   return `
     ${eyebrow('SIN DECISIÓN', true)}
     <h1 class="outcome-head">La sala no decidió</h1>
-    ${panel(`<p>No se registró GO, GO CON CONDICIÓN ni NO GO antes de que se acabara el tiempo.</p>`)}
+    ${panel(`<p>Se acabó el tiempo y nadie eligió ENVIAR ni NO ENVIAR.</p>`)}
     ${backRow()}
     ${renderDebrief()}
   `;
@@ -2658,7 +2658,7 @@ function renderTablero(embedded){
     </div>
   ` : '';
   if(!board.length){
-    return `${embedded?'':eyebrow('Tablero de misiones')}<h2>Tablero de misiones</h2><div class="empty">Todavía ninguna sala ha registrado su verificación.</div>`;
+    return `${embedded?'':eyebrow('Tablero de misiones')}<h2>Tablero de misiones</h2><div class="empty">Todavía ninguna sala ha terminado una partida.</div>`;
   }
   const desdeTs = S.tableroDesde ? new Date(S.tableroDesde+'T00:00:00').getTime() : null;
   const hastaTs = S.tableroHasta ? new Date(S.tableroHasta+'T23:59:59').getTime() : null;
@@ -2694,7 +2694,7 @@ function renderTablero(embedded){
     `)}
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Sala</th><th>Fecha</th><th>Verif.</th><th>Nave</th><th>Público/6</th><th>Costo</th></tr></thead>
+        <thead><tr><th>Sala</th><th>Fecha</th><th>Decisión</th><th>Nave</th><th>En voz alta</th><th>Costo</th></tr></thead>
         <tbody>
           ${filtered.slice().reverse().slice(0,5).map(r=>`
             <tr>
@@ -2702,7 +2702,7 @@ function renderTablero(embedded){
               <td>${formatFecha(r.ts)}</td>
               <td><span class="badge ${decisionClass(r.decision)}">${decisionLabel(r.decision)}</span></td>
               <td class="num">${shipTag(r)}</td>
-              <td class="num">${r.pub}/6</td>
+              <td class="num">${r.pub}</td>
               <td class="num">${r.risk!=null?r.risk+'%':'sin dato'}</td>
             </tr>`).join('')}
         </tbody>
