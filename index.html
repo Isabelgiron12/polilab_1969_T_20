@@ -1021,15 +1021,13 @@ const INFORME = [
 ];
 
 const PHASES_SALA = [
-  {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
-  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
-  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
+  {id:'sistemas', at:0,   dur:420, code:'T MENOS 9:00',  label:'Sistemas y discusión'},
+  {id:'entrega',  at:420, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
 ];
 // Modo individual: una persona contra la máquina, sin conversación en sala, también con 2 minutos y medio por jefe
 const PHASES_SOLO = [
-  {id:'lectura',  at:0,   dur:60,  code:'T MENOS 10:00', label:'Lectura de protocolo'},
-  {id:'sistemas', at:60,  dur:420, code:'T MENOS 9:00',  label:'Revisión de sistemas'},
-  {id:'entrega',  at:480, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
+  {id:'sistemas', at:0,   dur:420, code:'T MENOS 9:00',  label:'Revisión de sistemas'},
+  {id:'entrega',  at:420, dur:120, code:'T MENOS 2:00',  label:'Decisión final'},
 ];
 let PHASES = PHASES_SALA;
 let TOTAL = 600;
@@ -1218,7 +1216,7 @@ function nubeAviso(){
 
 let S = {
   nav:'inicio', introStep:0,
-  screen:'setup', view:'mission', modoElegido:false,
+  screen:'setup', view:'mission', modoElegido:false, protocoloLeido:false,
   count:6, selectedSystems:[1,2,3,4,5,6],
   participants:[], running:false, elapsed:0, _lastPhase:null, turnoRest:TURNO_SEG, _turnoKey:null,
   sys:{idx:0, q1:null, miniDone:false, ttt:null, miniResult:null},
@@ -1270,7 +1268,7 @@ function startMission(){
   PHASES = S.solo ? PHASES_SOLO : PHASES_SALA;
   TOTAL = PHASES[PHASES.length-1].at + PHASES[PHASES.length-1].dur;
   S.clima = 0; S.soloLog = {};
-  S.elapsed = 0; S.running = true; S._lastPhase = null;
+  S.elapsed = 0; S.running = true; S._lastPhase = PHASES[0].id;
   S.turnoRest = TURNO_SEG; S._turnoKey = null;
   S.sys = {bot:null, idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
   S._bitStore = {};
@@ -1638,8 +1636,10 @@ function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; cl
 // Individual: siempre 3 tripulantes y la persona habla de última
 const SOLO_COUNT = 3;
 function setSolo(v){ S.solo = v; render(); }
-function elegirModo(solo){ S.solo = solo; S.modoElegido = true; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); if(!solo) Anuncios?.decir?.('cajaNegra'); }
-function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; render(); window.scrollTo(0,0); }
+function elegirModo(solo){ S.solo = solo; S.modoElegido = true; S.protocoloLeido = false; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); }
+function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; S.protocoloLeido = false; render(); window.scrollTo(0,0); }
+// Después del protocolo se eligen los jugadores
+function protocoloListo(){ S.protocoloLeido = true; render(); window.scrollTo(0,0); if(!S.solo) Anuncios?.decir?.('cajaNegra'); }
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1919,7 +1919,7 @@ function setNav(n){
   if(cambia) Anuncios?.detener?.();
   S.nav = n; render();
   if(n==='recursos') nubeActualizar();
-  if(cambia && n==='cajanegra' && S.screen==='setup' && S.modoElegido) Anuncios?.decir?.('cajaNegra');
+  if(cambia && n==='cajanegra' && S.screen==='setup' && S.modoElegido && S.protocoloLeido) Anuncios?.decir?.('cajaNegra');
 }
 let _lastTopbarKey = null;
 function renderTopbar(){
@@ -2117,11 +2117,11 @@ function protocoloHTML(){
 }
 function renderLectura(){
   return `
-    ${eyebrow(currentPhase().code, false, '--amber')}
+    ${eyebrow(S.solo?'Individual · virtual':'Grupal · presencial', false, '--amber')}
     <h2>Lectura de protocolo</h2>
     <div class="donow">▸ ${S.solo?'Lee el protocolo antes de empezar.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
     ${panel(protocoloHTML())}
-    ${backRow(`<button class="primary" onclick="advanceNow()">${S.solo?'Ya lo leí, seguir →':'Ya la leímos, seguir →'}</button>`)}
+    <div class="row"><button class="ghost grow" onclick="cambiarModo()">ATRÁS</button><div class="grow"><button class="primary" onclick="protocoloListo()">${S.solo?'Ya lo leí, seguir →':'Ya la leímos, seguir →'}</button></div></div>
   `;
 }
 
@@ -2849,13 +2849,13 @@ function renderBody(){
   else if(S.nav==='configuracion'){ html = renderConfiguracionPage(); }
   else {
     const busy = S.screen==='mission' && S.sys && (S.sys.deciding || S.sys.firedPending || S.sys.clearedPending || S.sys.talkPending);
-    if(S.screen==='setup'){ html = S.modoElegido ? renderSetup() : renderModo(); }
+    if(S.screen==='setup'){ html = !S.modoElegido ? renderModo() : !S.protocoloLeido ? renderLectura() : renderSetup(); }
     else if(busy){ html = renderSistemas(); }
     else if(S.screen==='end'){ html = renderEnd(); }
     else {
       const id = currentPhase().id;
       const map = {
-        lectura: renderLectura, sistemas: renderSistemas,
+        sistemas: renderSistemas,
         entrega: renderDecisionFinal,
       };
       html = map[id]();
