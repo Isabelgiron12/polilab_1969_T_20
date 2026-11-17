@@ -2013,15 +2013,15 @@ function renderInicio(){
   if(introStep===1){
     return `
       ${eyebrow('Sala de control', true, '--accent-2')}
-      <h2 style="text-align:center">Dos minutos y medio por jefe</h2>
-      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto, y sin él, la nave no despega. Nadie más sabe lo que tú sabes sobre el tuyo.</p>`, '', '--accent-2')}
+      <h2 style="text-align:center">Cada jefe, un sistema</h2>
+      ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefatura de esta nave controla un sistema distinto. Si uno falla, la nave no despega.</p>`, '', '--accent-2')}
       <button class="primary" onclick="advanceIntro()">SEGUIR →</button>
     `;
   }
   return `
     ${eyebrow('Sala de control', true, '--amber')}
     <h2 style="text-align:center">La decisión es de todos</h2>
-    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Cada jefe tiene dos minutos y medio para tomar decisiones: algunas a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano. El reloj corre solo y no se detiene: vuelve a empezar solo cuando entra el siguiente jefe.</p>`, '', '--amber')}
+    ${panel(`<p style="text-align:center;color:var(--ink);font-size:18px">Algunas decisiones se toman a solas, en silencio; otras, en voz alta, frente a todos. No hay una jugada correcta preparada de antemano.</p>`, '', '--amber')}
     <button class="primary" onclick="setNav('cajanegra')">SEGUIR →</button>
   `;
 }
@@ -2038,23 +2038,17 @@ function renderModo(){
   return `
     ${eyebrow('Juego de sala de control', false, '--amber')}
     <h1>Caja Negra</h1>
-    <div style="text-align:center;margin:10px auto 4px;align-self:stretch">
-      <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
-    </div>
-    <h2 style="text-align:center;margin-top:34px">¿Cómo van a jugar?</h2>
+    <h2 style="text-align:center;margin-top:14px">¿Cómo van a jugar?</h2>
     <div class="modo-grid">
       ${opt(false,
         `<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15 14.3c2.7-.4 5 1.2 5.5 4.7"/></svg>`,
         'GRUPAL', 'Presencial',
-        'De 2 a 6 personas en la misma sala, con un solo dispositivo. Cada quien controla un sistema y la sala discute en voz alta.')}
+        'De 2 a 6 personas en la misma sala, con un solo dispositivo. La sala discute en voz alta.')}
       ${opt(true,
         `<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><circle cx="12" cy="9" r="2"/><path d="M8.8 14c.5-1.5 1.7-2.3 3.2-2.3s2.7.8 3.2 2.3"/></svg>`,
         'INDIVIDUAL', 'Virtual',
-        'Una sola persona frente a la pantalla. Controlas un sistema y las demás jefaturas las juegan máquinas.')}
+        'Una sola persona frente a la pantalla. Las demás jefaturas las juegan máquinas.')}
     </div>
-    <div class="footer-note">Cada jefe tiene 2 minutos y medio: el reloj se reinicia cuando entra el siguiente.</div>
   `;
 }
 
@@ -2063,19 +2057,17 @@ function renderSetup(){
     ${eyebrow('Caja Negra · juego de sala de control', false, '--amber')}
     <div style="text-align:center;margin:0 auto;align-self:stretch">
       <div class="field-label" style="font-size:15px;letter-spacing:.12em;color:var(--ink-dim)">Objetivo de la misión</div>
-      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
+      <div style="font-family:var(--mono);font-weight:700;font-size:clamp(24px,3vw,34px);color:var(--amber);line-height:1.25;margin-top:8px;text-shadow:0 0 22px rgba(255,176,32,.35)">LLEVAR LA NAVE AL ESPACIO</div>
       <div style="font-family:var(--mono);font-weight:700;font-size:clamp(17px,1.8vw,21px);color:var(--ink);line-height:1.4;margin-top:10px">${S.solo?'Y LLEGAR TÚ HASTA EL FINAL':'Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL'}</div>
     </div>
-    <p class="lede" style="text-align:center;font-size:clamp(19px,1.8vw,23px);margin-top:0">Cuando entra el siguiente jefe, el reloj vuelve a empezar.</p>
 
     <div class="setup-columns">
       <div class="area-cockpit">${cockpitSVG()}</div>
 
       ${panel(`
         <div style="text-align:center">
-          <div class="field-label">Tu rol</div>
-          <div style="font-size:18px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">${S.solo?'Controlas un sistema de la nave. Los demás los controlan máquinas.':'Cada uno controla un sistema de la nave.'}</div>
-          <div style="font-size:16.5px;color:var(--ink-dim);margin-top:5px">${S.solo?'Solo sabes lo que cada máquina diga en la sala. Si te despiden, pierdes el juego.':'Nadie sabe cómo le fue a los demás. Si te despiden, pierdes el juego.'}</div>
+          <div class="field-label">Importante</div>
+          <div style="font-size:18px;color:var(--ink);font-weight:700;line-height:1.5;margin-top:6px">Si te despiden, pierdes el juego.</div>
         </div>
       `, 'notice area-role')}
 
@@ -2112,28 +2104,31 @@ function renderSetup(){
     </div>
 
     <button class="primary" onclick="startMission()" ${S.selectedSystems.length!==S.count?'disabled':''}>${S.selectedSystems.length!==S.count?'ELIGE '+S.count+' TRIPULANTES':'INICIAR CUENTA REGRESIVA'}</button>
-    <div class="footer-note">La cuenta regresiva corre sola, sin pausas. Cuando llegue a cero, se decide si la nave despega.</div>
   `;
 }
 
+// Reglas de la sala: se leen en voz alta y se pueden volver a ver en Misión
+function protocoloHTML(){
+  const tiempo = `<li><span><b>Cada jefe tiene 2 minutos y medio.</b> El reloj vuelve a empezar con cada turno.</span></li>`;
+  return S.solo ? `
+      <ol class="protocol-list">
+        ${tiempo}
+        <li><span><b>Lo que ves en tu turno es solo tuyo.</b> Las otras dos jefaturas son máquinas y hablan antes que tú.</span></li>
+        <li><span>Al final, <b>decides tú</b> si la nave se envía.</span></li>
+      </ol>` : `
+      <ol class="protocol-list">
+        ${tiempo}
+        <li><span><b>Lo que ves en tu turno es solo tuyo.</b> Los demás saben únicamente lo que tú cuentes.</span></li>
+        <li><span><b>Todos pueden hablar.</b> Nadie está obligado.</span></li>
+        <li><span>Al final, <b>la sala decide junta</b> si la nave se envía.</span></li>
+      </ol>`;
+}
 function renderLectura(){
   return `
     ${eyebrow(currentPhase().code, false, '--amber')}
     <h2>Lectura de protocolo</h2>
     <div class="donow">▸ ${S.solo?'Lee el protocolo antes de empezar.':'Uno de ustedes lee esto en voz alta. Los demás escuchan.'}</div>
-    ${panel(S.solo ? `
-      <ol class="protocol-list">
-        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
-        <li><span><b>Las otras dos jefaturas son máquinas.</b> Hablan antes que tú.</span></li>
-        <li><span>Al final, <b>decides tú</b>: ENVIAR o NO ENVIAR.</span></li>
-      </ol>
-    ` : `
-      <ol class="protocol-list">
-        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
-        <li><span>Todos hablan libre. <b>Nadie está obligado a hablar.</b></span></li>
-        <li><span>Al final, <b>la sala decide junta</b>: ENVIAR o NO ENVIAR.</span></li>
-      </ol>
-    `)}
+    ${panel(protocoloHTML())}
     ${backRow(`<button class="primary" onclick="advanceNow()">${S.solo?'Ya lo leí, seguir →':'Ya la leímos, seguir →'}</button>`)}
   `;
 }
@@ -2315,7 +2310,7 @@ function renderDecisionFinal(){
         <div class="footer-note" style="margin-top:12px">▸ ${confirmados} de ${S.selectedSystems.length} lo dijeron en voz alta. ${S.fixedDelayHours>0 ? `Retraso: <b style="color:var(--amber)">${esc(formatDuration(S.fixedDelayHours))}</b>` : 'Sin retrasos asumidos.'}</div>
       </div>
     </div>`;
-  const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. No viste la carta de nadie. Con lo que se dijo en la sala: ¿envías la nave? No tienes que esperar al reloj: cuando decidas, la cuenta regresiva termina.':'Cada quien decidió a solas. Nadie vio la carta de nadie más. Con todo lo que se dijo en la sala: ¿envían la nave?'}</p>`;
+  const intro = `<p style="color:var(--ink-dim);font-size:18px">${S.solo?'Cada jefatura decidió por su cuenta. Solo sabes lo que se dijo en la sala. ¿Envías la nave? No tienes que esperar al reloj: cuando decidas, la cuenta regresiva termina.':'Cada quien decidió a solas. Solo saben lo que se dijo en la sala. ¿Envían la nave?'}</p>`;
   return `
     ${eyebrow(currentPhase().code)}
     <h2>${S.solo?'La nave está lista. Decides tú.':'La nave está lista. Decidan ahora.'}</h2>
@@ -2785,7 +2780,7 @@ function renderMisionPage(){
     <h1>Objetivo de la misión</h1>
     ${panel(`
       <div style="text-align:center">
-        <div style="font-family:var(--mono);font-weight:700;font-size:22px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO · 2 MINUTOS Y MEDIO POR JEFE</div>
+        <div style="font-family:var(--mono);font-weight:700;font-size:22px;color:var(--amber);line-height:1.3">LLEVAR LA NAVE AL ESPACIO</div>
         <div style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink);margin-top:8px">Y QUE TODO EL EQUIPO LLEGUE HASTA EL FINAL</div>
       </div>
     `, 'notice')}
@@ -2795,13 +2790,7 @@ function renderMisionPage(){
       <div class="footer-note" style="margin-top:4px">${esc(currentPhase().code)}</div>
     `, '', '--violet') : ''}
     <h2>Protocolo</h2>
-    ${panel(`
-      <ol class="protocol-list">
-        <li><span><b>Tu carta es secreta:</b> solo se sabe lo que tú decidas contar.</span></li>
-        <li><span>Todos hablan libre. <b>Nadie está obligado a hablar.</b></span></li>
-        <li><span>Al final, <b>la sala decide junta</b>: ENVIAR o NO ENVIAR.</span></li>
-      </ol>
-    `, '', '--violet')}
+    ${panel(protocoloHTML(), '', '--violet')}
   `;
 }
 
