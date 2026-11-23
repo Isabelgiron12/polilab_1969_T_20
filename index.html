@@ -1632,7 +1632,7 @@ function setTableroDesde(v){ S.tableroDesde = v; render(); }
 function setTableroHasta(v){ S.tableroHasta = v; render(); }
 function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(); }
 
-function newCrew(){ registerRound(); S.screen = 'setup'; S.nav = 'cajanegra'; clearInterval(timerHandle); render(); }
+function newCrew(){ registerRound(); Anuncios?.detener?.(); S.screen = 'setup'; S.nav = 'cajanegra'; S.modoElegido = false; S.protocoloLeido = false; clearInterval(timerHandle); render(); window.scrollTo(0,0); }
 
 // Individual: siempre 3 tripulantes y la persona habla de última
 const SOLO_COUNT = 3;
