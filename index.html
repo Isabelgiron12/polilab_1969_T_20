@@ -410,6 +410,16 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
   .end-grid.con-foto{grid-template-columns:minmax(0,.34fr) minmax(0,1fr)}
   .end-grid.con-foto .end-foto{align-self:stretch;height:100%;min-height:0;max-height:none;object-fit:cover;object-position:center 40%}
   .end-grid.con-foto .end-foto.alta{height:56vh;object-position:center 35%}
+  /* NO ENVIAR: la foto va pequeña encima del primer texto y el caso Challenger ocupa
+     toda la columna derecha. Así el texto queda más ancho y bajo, la pantalla se encoge
+     menos y la letra puede ir más grande. */
+  .end-grid.con-foto.abortada{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);grid-template-rows:auto 1fr}
+  .end-grid.con-foto.abortada .end-col{display:contents}
+  .end-grid.con-foto.abortada .end-foto{grid-column:1;grid-row:1;height:auto;aspect-ratio:16/9;object-position:center 35%}
+  .end-grid.con-foto.abortada .end-col > .panel:first-child{grid-column:1;grid-row:2}
+  .end-grid.con-foto.abortada .end-col > .panel:last-child{grid-column:2;grid-row:1 / 3}
+  .end-grid.abortada .panel p{font-size:22px;line-height:1.5}
+  .end-grid.abortada h2{font-size:var(--fs-xl)}
 }
 .tarjeta-indicadores{grid-area:indicadores;margin:0}
 .indicador-row{display:flex;align-items:center;gap:14px}
@@ -2603,7 +2613,7 @@ function renderAborted(){
   }
   return `
     ${titulo}
-    <div class="end-grid con-foto">
+    <div class="end-grid con-foto abortada">
       <img class="end-foto" src="nave-plataforma.webp?v=202610272005" alt="La nave en la plataforma de lanzamiento, sin despegar"/>
       <div class="end-col">
         ${panel(`
