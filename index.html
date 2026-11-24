@@ -2406,8 +2406,6 @@ function renderSistemas(){
           ${panel(`
             <div class="card-system">
               <div class="name">${esc(sys.name)}</div>
-              ${cardField('Habilidad', esc(AVATARS[sys.id].ability), '--rose')}
-              ${cardField('De qué respondes', esc(sys.does), '--amber')}
               ${cardField('Lo que pasó, y solo tú lo sabes', esc(sys.happened), '--go')}
               ${cardField('Lo que hay detrás', esc(sys.costs), '--go')}
               ${cardField('Cuánto retrasa arreglarlo', esc(formatDuration(DELAY_HOURS[sys.id])), '--accent-2')}
