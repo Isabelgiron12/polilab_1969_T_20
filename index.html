@@ -772,7 +772,7 @@ td{padding:7px 7px}
   .recursos-grid{grid-template-columns:1.4fr 1fr;align-items:start}
 }
 </style>
-<script src="anuncios.js?v=202611041800"></script>
+<script src="anuncios.js?v=202611241900"></script>
 <script>
 // GitHub Pages lets the browser reuse the page for 10 min; if the server already has a newer one, refresh the cache and reload once.
 (async () => {
@@ -1097,15 +1097,16 @@ function botTurnStart(){
   const p = S.participants[idx];
   if(!p || !p.bot || S.sys.bot) return;
   S.sys.bot = {stage:'thinking', idx};
+  const partida = S.partida;
   setTimeout(function(){
-    if(!S.sys.bot || S.sys.bot.idx!==idx || S.sys.idx!==idx) return;
+    if(S.partida!==partida || S.screen!=='mission' || !S.sys.bot || S.sys.bot.idx!==idx || S.sys.idx!==idx) return;
     const d = botDecide(p.cardId);
     const frase = d.q1==='YES' ? BOT_CONFIESA[p.cardId] : BOT_CALLA[p.cardId][Math.random()<0.5?0:1];
     S.sys.bot = {stage:'spoke', idx, d, frase};
     S.soloLog[p.cardId] = frase;
     Sound.stamp();
     const clave = d.q1==='YES' ? 'botDice'+p.cardId : 'botCalla'+p.cardId+'_'+BOT_CALLA[p.cardId].indexOf(frase);
-    setTimeout(() => Anuncios?.decirSecuencia?.([[clave, frase]]), 200);
+    Anuncios?.despues?.(200, () => Anuncios.decirSecuencia([[clave, frase]]));
     render();
   }, 4000);
 }
@@ -1297,10 +1298,11 @@ function startMission(){
   S.savedRound = false; S.reflectionSubmitted=0;
   S.launch = null;
   S.screen = 'mission'; S.view = 'mission';
+  S.partida = (S.partida||0) + 1;
+  // Anuncio de inicio: corta lo anterior y va antes que el aviso del primer turno
+  Anuncios?.decirAhora?.('bienvenida');
   render();
   runTimer();
-  // Anuncio de inicio
-  setTimeout(() => Anuncios?.decir?.('bienvenida'), 500);
 }
 
 function runTimer(){
@@ -1358,7 +1360,7 @@ function advanceNow(){
   resetSubstateFor(next.id);
   render();
   // Anuncio según el tipo de fase
-  setTimeout(() => {
+  Anuncios?.despues?.(300, () => {
     if(next.id.includes('decision')) Anuncios?.decir?.('faseDecision');
     else if(next.id.includes('mini')) Anuncios?.decir?.('faseMiniJuego');
     else if(next.id!=='sistemas') Anuncios?.decir?.('proximo');
@@ -1495,7 +1497,10 @@ function finalizeParticipant(q2){
   S.sys.deciding = true;
   render();
   const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const partida = S.partida;
   setTimeout(function(){
+    // Si ya empezó otra tripulación, este caso no cuenta
+    if(S.partida!==partida || S.screen!=='mission') return;
     const sysDef = SYSTEMS.find(s=>s.id===p.cardId);
     const maxWeight = Math.max.apply(null, SYSTEMS.map(function(s){ return s.weight; }));
     const severity = sysDef ? sysDef.weight / maxWeight : 0;
@@ -1658,7 +1663,7 @@ function setTableroDesde(v){ S.tableroDesde = v; render(); }
 function setTableroHasta(v){ S.tableroHasta = v; render(); }
 function clearTableroFiltro(){ S.tableroDesde = ''; S.tableroHasta = ''; render(); }
 
-function newCrew(){ registerRound(); Anuncios?.detener?.(); S.screen = 'setup'; S.nav = 'cajanegra'; S.modoElegido = false; S.protocoloLeido = false; clearInterval(timerHandle); render(); window.scrollTo(0,0); }
+function newCrew(){ registerRound(); Anuncios?.detener?.(); S.running = false; S.partida = (S.partida||0) + 1; S.screen = 'setup'; S.nav = 'cajanegra'; S.modoElegido = false; S.protocoloLeido = false; clearInterval(timerHandle); render(); window.scrollTo(0,0); }
 
 // Individual: siempre 3 tripulantes y la persona habla de última
 const SOLO_COUNT = 3;
@@ -1666,7 +1671,7 @@ function setSolo(v){ S.solo = v; render(); }
 function elegirModo(solo){ S.solo = solo; S.modoElegido = true; S.protocoloLeido = false; if(solo) setCount(SOLO_COUNT); render(); window.scrollTo(0,0); }
 function cambiarModo(){ Anuncios?.detener?.(); S.modoElegido = false; S.protocoloLeido = false; render(); window.scrollTo(0,0); }
 // Después del protocolo se eligen los jugadores
-function protocoloListo(){ S.protocoloLeido = true; render(); window.scrollTo(0,0); if(!S.solo) Anuncios?.decir?.('cajaNegra'); }
+function protocoloListo(){ S.protocoloLeido = true; render(); window.scrollTo(0,0); if(!S.solo) Anuncios?.decirAhora?.('cajaNegra'); }
 function setCount(n){
   S.count = n;
   S.selectedSystems = (POOL_BY_COUNT[n] || []).slice();
@@ -1943,7 +1948,8 @@ const NAV_ITEMS = [
 ];
 function setNav(n){
   const cambia = n!==S.nav;
-  if(cambia) Anuncios?.detener?.();
+  // En plena misión las voces del juego siguen aunque miren otra pestaña
+  if(cambia && S.screen!=='mission') Anuncios?.detener?.();
   S.nav = n; render();
   if(n==='recursos') nubeActualizar();
   if(cambia && n==='cajanegra' && S.screen==='setup' && S.modoElegido && S.protocoloLeido) Anuncios?.decir?.('cajaNegra');
@@ -2000,9 +2006,9 @@ function openIntro(){ Anuncios?.detener?.(); document.getElementById('introOverl
 function closeIntro(){ clearInterval(introTimer); document.getElementById('introCount').hidden = true; document.getElementById('introVideo').pause(); document.getElementById('introOverlay').hidden = true; if(S.nav==='inicio' && !(S.introStep||0)) advanceIntro(); }
 function unmuteIntro(){ const v = document.getElementById('introVideo'); v.muted = false; document.getElementById('introSound').hidden = true; v.play(); }
 document.getElementById('introVideo').addEventListener('ended', closeIntro);
-setTimeout(() => Anuncios?.decir?.('inicio1'), 500);
+Anuncios?.despues?.(500, () => Anuncios.decir('inicio1'));
 
-function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decir?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
+function advanceIntro(){ S.introStep = (S.introStep||0) + 1; render(); Anuncios?.decirAhora?.(S.introStep===1 ? 'inicio2' : 'inicio3'); }
 function renderInicio(){
   const introStep = S.introStep||0;
   if(introStep===0){
@@ -2194,7 +2200,7 @@ function anunciarNovedad(caso){
       ? ['arregloAun'+id, `Aun así, como se dijo en voz alta, el equipo ya está arreglando ${sys}, con un retraso de ${dur}.`]
       : ['arreglo'+id, `Como se dijo en voz alta, ya están arreglando ${sys}, con un retraso de ${dur}.`]);
   }
-  setTimeout(() => Anuncios?.decirSecuencia?.(partes), 500);
+  Anuncios?.despues?.(500, () => Anuncios.decirSecuencia(partes));
 }
 
 function renderCleared(){
@@ -2244,7 +2250,7 @@ function renderFiredWait(){
 }
 
 function renderBotTurn(p, sys){
-  if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; setTimeout(() => Anuncios?.decir?.('turno'+sys.id), 300); }
+  if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; Anuncios?.despues?.(300, () => Anuncios.decir('turno'+sys.id)); }
   if(!S.sys.bot) setTimeout(botTurnStart, 0);
   const b = S.sys.bot;
   const spoke = b && b.stage==='spoke';
@@ -2352,7 +2358,7 @@ function renderSistemas(){
   if(!S.sys.miniDone){
     if(!S.sys.ttt) S.sys.ttt = tttInit();
     // Anuncia el área una sola vez por turno
-    if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; setTimeout(() => Anuncios?.decir?.('turno'+sys.id), 300); }
+    if(S.sys.turnoDicho !== S.sys.idx){ S.sys.turnoDicho = S.sys.idx; Anuncios?.despues?.(300, () => Anuncios.decir('turno'+sys.id)); }
     const t = S.sys.ttt;
     return `
       ${eyebrow(currentPhase().code+' · '+turnoLabel())}
