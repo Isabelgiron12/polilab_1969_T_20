@@ -1267,7 +1267,7 @@ function startMission(){
   }
   PHASES = S.solo ? PHASES_SOLO : PHASES_SALA;
   TOTAL = PHASES[PHASES.length-1].at + PHASES[PHASES.length-1].dur;
-  S.clima = 0; S.soloLog = {};
+  S.clima = 0; S.soloLog = {}; S.vozAlta = 0;
   S.elapsed = 0; S.running = true; S._lastPhase = PHASES[0].id;
   S.turnoRest = TURNO_SEG; S._turnoKey = null;
   S.sys = {bot:null, idx:0, q1:null, miniDone:false, ttt:null, miniResult:null, talkPending:false, deciding:false, firedPending:false, firedWait:0, firedName:'', firedReason:'', clearedPending:false, clearedName:'', fixName:'', fixHours:0};
@@ -1480,8 +1480,15 @@ function finalizeParticipant(q2){
     const sysDef = SYSTEMS.find(s=>s.id===p.cardId);
     const maxWeight = Math.max.apply(null, SYSTEMS.map(function(s){ return s.weight; }));
     const severity = sysDef ? sysDef.weight / maxWeight : 0;
-    const fireProb = Math.min(0.85, Math.max(0.20, 0.40 + 0.40*severity));
-    const fired = Math.random() < fireProb;
+    let fired;
+    if(saidInRoom){
+      // Quien lo dice en voz alta: despido intercalado (1º sí, 2º no, 3º sí…)
+      S.vozAlta = (S.vozAlta||0) + 1;
+      fired = S.vozAlta % 2 === 1;
+    } else {
+      const fireProb = Math.min(0.85, Math.max(0.20, 0.40 + 0.40*severity));
+      fired = Math.random() < fireProb;
+    }
     p.credited = !fired;
     S.sys.deciding = false;
     const role = AVATARS[p.cardId] ? AVATARS[p.cardId].role : p.name;
