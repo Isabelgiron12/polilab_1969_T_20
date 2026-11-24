@@ -438,6 +438,15 @@ td.num{font-variant-numeric:tabular-nums;color:var(--ink)}
   .sistemas-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"turn triki";align-items:start}
   .sistemas-columns.caso{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 }
+/* Tarjeta del sistema en PC (pensado para portátil de 14"): la columna de la tarjeta
+   se ensancha y la letra crece hasta ocupar el alto que ya marca la columna derecha. */
+@media(min-width:1024px) and (pointer:fine){
+  .sistemas-columns.caso{grid-template-columns:minmax(0,1.8fr) minmax(0,1fr)}
+  .caso .card-system .name{font-size:28px}
+  .caso .card-system .card-field{margin-top:14px}
+  .caso .card-system .card-field-label{font-size:15px}
+  .caso .card-system .card-field-body{font-size:23px;line-height:1.45}
+}
 .triki-intro{display:flex;align-items:center;gap:12px;text-align:left}
 .triki-intro-ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber)}
 .triki-head{display:flex;align-items:center;gap:10px}
